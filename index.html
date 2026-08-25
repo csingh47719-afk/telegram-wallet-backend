@@ -3,71 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Wallet</title>
+    <title>Open Wallet</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color, #121212);
-            color: var(--tg-theme-text-color, #ffffff);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0b0e14;
+            color: #ffffff;
             margin: 0;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .card {
-            background-color: var(--tg-theme-secondary-bg-color, #1e1e1e);
-            border-radius: 16px;
-            padding: 20px;
-            width: 90%;
-            max-width: 360px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        .wallet-card {
+            background: linear-gradient(135deg, #1e2640 0%, #111827 100%);
+            border: 1px solid #2d3748;
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
             text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        .balance { font-size: 28px; font-weight: bold; margin: 15px 0 5px; }
-        .address-box {
-            background: #2a2a2a;
-            padding: 10px;
-            border-radius: 8px;
+        .user-title { font-size: 16px; color: #9ca3af; margin: 0; }
+        .network-tag {
+            display: inline-block;
+            background: #059669;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+        .balances-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .bal-box {
+            background: #151d30;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #1f293d;
+        }
+        .bal-title { font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+        .bal-value { font-size: 20px; font-weight: 800; color: #38bdf8; margin-top: 4px; }
+        
+        .address-container {
+            background: #111827;
+            border: 1px solid #334155;
+            padding: 12px;
+            border-radius: 12px;
             font-size: 12px;
             word-break: break-all;
-            margin: 15px 0;
-            color: #aaa;
+            margin: 12px 0 16px;
+            color: #cbd5e1;
+            cursor: pointer;
         }
         .btn {
-            background-color: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            background: #0284c7;
+            color: #ffffff;
             border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
             width: 100%;
+            transition: 0.2s;
         }
+        .btn-secondary { background: #334155; }
+        .btn:active { transform: scale(0.98); }
+
+        .send-box {
+            background: #151d30;
+            border: 1px solid #2d3748;
+            border-radius: 16px;
+            padding: 16px;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 15px;
+        }
+        .input-field {
+            width: 100%;
+            background: #0b0e14;
+            border: 1px solid #334155;
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0 12px;
+            font-size: 14px;
+        }
+        .status-msg { font-size: 13px; margin-top: 10px; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h3 id="userName">Loading...</h3>
-        <div class="balance" id="trxBalance">0.00 TRX</div>
-        <div style="font-size: 14px; color: #888;">Testnet Balance</div>
+
+    <div class="wallet-card">
+        <p class="user-title" id="userName">Hello User</p>
+        <span class="network-tag">TRON MAINNET</span>
         
-        <div class="address-box" id="walletAddr">Fetching Wallet...</div>
+        <div class="balances-grid">
+            <div class="bal-box">
+                <div class="bal-title">TRX Balance</div>
+                <div class="bal-value" id="trxBalance">0.00</div>
+            </div>
+            <div class="bal-box">
+                <div class="bal-title">USDT (TRC20)</div>
+                <div class="bal-value" id="usdtBalance" style="color: #34d399;">0.00</div>
+            </div>
+        </div>
         
-        <button class="btn" onclick="fetchWalletData()">Refresh Balance</button>
+        <div class="address-container" onclick="copyAddress()">
+            <span id="walletAddr">Loading Mainnet Address...</span>
+            <div style="font-size: 10px; color: #38bdf8; margin-top: 4px;">(Tap to Copy Address)</div>
+        </div>
+
+        <button class="btn btn-secondary" onclick="fetchWalletData()">Refresh Balance</button>
+    </div>
+
+    <div class="send-box">
+        <h4 style="margin: 0 0 10px; color: #e2e8f0;">Send Mainnet TRX</h4>
+        <input type="text" id="recipient" class="input-field" placeholder="Recipient Mainnet Address (T...)">
+        <input type="number" id="sendAmount" class="input-field" placeholder="Amount (TRX)">
+        <button class="btn" id="sendBtn" onclick="sendTransaction()">Transfer TRX</button>
+        <div id="statusMsg" class="status-msg"></div>
     </div>
 
     <script>
         const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
+        if (tg) { tg.ready(); tg.expand(); }
 
-        const BACKEND_URL = "https://telegram-wallet-backend-3.onrender.com/api/wallet";
-        
-        // Telegram User Data
+        const BACKEND_URL = "https://telegram-wallet-backend-3.onrender.com";
         const user = tg?.initDataUnsafe?.user;
         const telegramId = user?.id ? String(user.id) : "demo_user_123";
         const firstName = user?.first_name || "Guest";
@@ -76,29 +148,75 @@
 
         async function fetchWalletData() {
             try {
-                document.getElementById('walletAddr').innerText = "Connecting...";
-                const res = await fetch(BACKEND_URL, {
+                const res = await fetch(`${BACKEND_URL}/api/wallet`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ telegramId: telegramId })
+                    body: JSON.stringify({ telegramId })
                 });
                 const data = await res.json();
-                
                 if (data.address) {
                     document.getElementById('walletAddr').innerText = data.address;
-                    document.getElementById('trxBalance').innerText = `${data.balanceTRX} TRX`;
-                } else {
-                    document.getElementById('walletAddr').innerText = "Error loading wallet";
+                    document.getElementById('trxBalance').innerText = `${parseFloat(data.balanceTRX).toFixed(2)} TRX`;
+                    document.getElementById('usdtBalance').innerText = `$${data.balanceUSDT || '0.00'}`;
                 }
             } catch (err) {
-                document.getElementById('walletAddr').innerText = "Connection failed";
                 console.error(err);
             }
         }
 
-        // Auto load on open
+        function copyAddress() {
+            const addr = document.getElementById('walletAddr').innerText;
+            if (addr && !addr.includes("Loading")) {
+                navigator.clipboard.writeText(addr);
+                alert("Mainnet Address copied!");
+            }
+        }
+
+        async function sendTransaction() {
+            const toAddress = document.getElementById('recipient').value.trim();
+            const amount = document.getElementById('sendAmount').value.trim();
+            const status = document.getElementById('statusMsg');
+            const btn = document.getElementById('sendBtn');
+
+            if (!toAddress || !amount) {
+                status.innerText = "Please enter address and amount.";
+                status.style.color = "#f87171";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+            status.innerText = "Broadcasting to Mainnet...";
+            status.style.color = "#fbbf24";
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegramId, toAddress, amount })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    status.innerText = `Sent Successfully! TXID: ${data.txid.substring(0, 10)}...`;
+                    status.style.color = "#4ade80";
+                    document.getElementById('recipient').value = '';
+                    document.getElementById('sendAmount').value = '';
+                    setTimeout(fetchWalletData, 4000);
+                } else {
+                    status.innerText = `Error: ${data.error || "Failed"}`;
+                    status.style.color = "#f87171";
+                }
+            } catch (err) {
+                status.innerText = "Transaction error.";
+                status.style.color = "#f87171";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Transfer TRX";
+            }
+        }
+
         fetchWalletData();
     </script>
 </body>
 </html>
-
