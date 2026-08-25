@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Wallet</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #121212);
+            color: var(--tg-theme-text-color, #ffffff);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #1e1e1e);
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 360px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .balance { font-size: 28px; font-weight: bold; margin: 15px 0 5px; }
+        .address-box {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 15px 0;
+            color: #aaa;
+        }
+        .btn {
+            background-color: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3 id="userName">Loading...</h3>
+        <div class="balance" id="trxBalance">0.00 TRX</div>
+        <div style="font-size: 14px; color: #888;">Testnet Balance</div>
+        
+        <div class="address-box" id="walletAddr">Fetching Wallet...</div>
+        
+        <button class="btn" onclick="fetchWalletData()">Refresh Balance</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        const BACKEND_URL = "https://telegram-wallet-backend-3.onrender.com/api/wallet";
+        
+        // Telegram User Data
+        const user = tg?.initDataUnsafe?.user;
+        const telegramId = user?.id ? String(user.id) : "demo_user_123";
+        const firstName = user?.first_name || "Guest";
+
+        document.getElementById('userName').innerText = `Hello, ${firstName}!`;
+
+        async function fetchWalletData() {
+            try {
+                document.getElementById('walletAddr').innerText = "Connecting...";
+                const res = await fetch(BACKEND_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegramId: telegramId })
+                });
+                const data = await res.json();
+                
+                if (data.address) {
+                    document.getElementById('walletAddr').innerText = data.address;
+                    document.getElementById('trxBalance').innerText = `${data.balanceTRX} TRX`;
+                } else {
+                    document.getElementById('walletAddr').innerText = "Error loading wallet";
+                }
+            } catch (err) {
+                document.getElementById('walletAddr').innerText = "Connection failed";
+                console.error(err);
+            }
+        }
+
+        // Auto load on open
+        fetchWalletData();
+    </script>
+</body>
+</html>
+
