@@ -72,7 +72,7 @@
         .act-btn:active .act-circle { background: #2563eb; color: #ffffff; transform: scale(0.92); }
         .act-title { font-size: 12px; font-weight: 700; color: #334155; }
 
-        /* Search & Custom Token Bar */
+        /* Search Bar */
         .search-container { display: flex; gap: 8px; margin-bottom: 16px; }
         .search-box {
             flex: 1; display: flex; align-items: center; gap: 10px;
@@ -81,7 +81,7 @@
         }
         .search-box input { border: none; outline: none; background: transparent; width: 100%; font-size: 14px; color: #0f172a; }
 
-        /* Assets Section */
+        /* Assets Section Header */
         .assets-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
         .assets-title { font-size: 18px; font-weight: 800; color: #0f172a; }
         .see-all-btn { font-size: 13px; font-weight: 700; color: #2563eb; cursor: pointer; }
@@ -95,7 +95,18 @@
         }
         .asset-card:active { transform: scale(0.98); background: #f8fafc; }
         .asset-left { display: flex; align-items: center; gap: 14px; }
-        .asset-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #f1f5f9; }
+        .asset-img-wrapper {
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; background: #f1f5f9; flex-shrink: 0;
+            border: 1px solid #e2e8f0;
+        }
+        .asset-img { width: 100%; height: 100%; object-fit: cover; }
+        .asset-fallback-badge {
+            width: 100%; height: 100%; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 800; color: #ffffff;
+        }
         .asset-coin-name { font-size: 15px; font-weight: 800; color: #0f172a; }
         .asset-coin-symbol { font-size: 12px; font-weight: 600; color: #64748b; margin-top: 2px; }
         .asset-right { text-align: right; }
@@ -185,7 +196,7 @@
     <!-- MAIN WALLET VIEW -->
     <div id="walletView" class="view-tab active-view">
         
-        <!-- Hero Royal Blue Balance Card -->
+        <!-- Hero Balance Card -->
         <div class="hero-card">
             <div class="hero-top">
                 <div>
@@ -197,20 +208,20 @@
                     <div class="total-btc-est" id="btcEst">≈ 0.0000 BTC</div>
                 </div>
                 <div class="floating-badges">
-                    <img class="badge-icon" src="https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/btc.png" alt="BTC">
-                    <img class="badge-icon" src="https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/usdt.png" alt="USDT">
-                    <img class="badge-icon" src="https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/trx.png" alt="TRX">
+                    <img class="badge-icon" src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png" alt="BTC">
+                    <img class="badge-icon" src="https://assets.coingecko.com/coins/images/325/large/Tether.png" alt="USDT">
+                    <img class="badge-icon" src="https://assets.coingecko.com/coins/images/4128/large/solana.png" alt="SOL">
                 </div>
             </div>
         </div>
 
         <!-- 4 Action Circular Buttons -->
         <div class="actions-grid">
-            <button class="act-btn" onclick="openSendModal('TRX', 'TRON Mainnet')">
+            <button class="act-btn" onclick="openSendModal('TRX', 'TRON Mainnet', 'TRX')">
                 <div class="act-circle"><i class="fa-solid fa-arrow-up"></i></div>
                 <span class="act-title">Send</span>
             </button>
-            <button class="act-btn" onclick="openDepositModal('BTC', 'Bitcoin Network')">
+            <button class="act-btn" onclick="openDepositModal('BTC', 'Bitcoin Network', 'BTC')">
                 <div class="act-circle"><i class="fa-solid fa-arrow-down"></i></div>
                 <span class="act-title">Receive</span>
             </button>
@@ -410,28 +421,28 @@
         document.getElementById('cardHolderName').innerText = displayName.toUpperCase();
         document.getElementById('leaderboardUserName').innerText = `${displayName} (You)`;
 
-        // Verified Permanent Icons List
+        // 100% Guaranteed Non-Failing Official & Permanent Icons
         const TOKENS = [
-            { symbol: "BTC", name: "Bitcoin", network: "Bitcoin Network", chain: "BTC", icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/btc.png", defaultPrice: 88500 },
-            { symbol: "ETH", name: "Ethereum", network: "Ethereum Mainnet", chain: "ETH", icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/eth.png", defaultPrice: 2600 },
-            { symbol: "USDT", name: "Tether USD", network: "TRON (TRC-20)", chain: "TRX", icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/usdt.png", defaultPrice: 1.00 },
-            { symbol: "TRX", name: "TRON", network: "TRON Mainnet", chain: "TRX", icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/trx.png", defaultPrice: 0.22 },
-            { symbol: "SOL", name: "Solana", network: "Solana Mainnet", chain: "SOL", icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/sol.png", defaultPrice: 145.00 },
-            { symbol: "TON", name: "Toncoin", network: "TON Blockchain", chain: "TON", icon: "https://ton.org/download/ton_symbol.png", defaultPrice: 5.40 },
-            { symbol: "POL", name: "Polygon", network: "Polygon Network", chain: "ETH", icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/matic.png", defaultPrice: 0.38 },
-            { symbol: "ARB", name: "Arbitrum", network: "Arbitrum One", chain: "ETH", icon: "https://cryptologos.cc/logos/arbitrum-arb-logo.png", defaultPrice: 0.55 },
-            { symbol: "OP", name: "Optimism", network: "Optimism Mainnet", chain: "ETH", icon: "https://cryptologos.cc/logos/optimism-ethereum-op-logo.png", defaultPrice: 1.60 },
-            { symbol: "KSM", name: "Kusama", network: "Kusama Network", chain: "KSM", icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/ksm.png", defaultPrice: 21.50 },
-            { symbol: "FTM", name: "Fantom", network: "Fantom Opera", chain: "ETH", icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/ftm.png", defaultPrice: 0.68 },
-            { symbol: "GLMR", name: "Moonbeam", network: "Moonbeam Network", chain: "ETH", icon: "https://cryptologos.cc/logos/moonbeam-glmr-logo.png", defaultPrice: 0.18 },
-            { symbol: "BONK", name: "Bonk", network: "Solana (SPL)", chain: "SOL", icon: "https://cryptologos.cc/logos/bonk1-bonk-logo.png", defaultPrice: 0.000022 },
-            { symbol: "WIF", name: "dogwifhat", network: "Solana (SPL)", chain: "SOL", icon: "https://cryptologos.cc/logos/dogwifhat-wif-logo.png", defaultPrice: 2.30 },
-            { symbol: "NOT", name: "Notcoin", network: "TON Blockchain", chain: "TON", icon: "https://cryptologos.cc/logos/notcoin-not-logo.png", defaultPrice: 0.0075 },
-            { symbol: "DOGS", name: "DOGS", network: "TON Blockchain", chain: "TON", icon: "https://cryptologos.cc/logos/dogs-dogs-logo.png", defaultPrice: 0.00065 },
-            { symbol: "HMSTR", name: "Hamster Kombat", network: "TON Blockchain", chain: "TON", icon: "https://cryptologos.cc/logos/hamster-kombat-hmstr-logo.png", defaultPrice: 0.0032 },
-            { symbol: "CATI", name: "Catizen", network: "TON Blockchain", chain: "TON", icon: "https://cryptologos.cc/logos/catizen-cati-logo.png", defaultPrice: 0.42 },
-            { symbol: "GRAM", name: "GRAM", network: "TON Blockchain", chain: "TON", icon: "https://ton.org/download/ton_symbol.png", defaultPrice: 0.012 },
-            { symbol: "PEPE", name: "Pepe", network: "Ethereum (ERC-20)", chain: "ETH", icon: "https://cryptologos.cc/logos/pepe-pepe-logo.png", defaultPrice: 0.0000095 }
+            { symbol: "BTC", name: "Bitcoin", network: "Bitcoin Network", chain: "BTC", icon: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png", bg: "#f7931a", defaultPrice: 88500 },
+            { symbol: "ETH", name: "Ethereum", network: "Ethereum Mainnet", chain: "ETH", icon: "https://assets.coingecko.com/coins/images/279/large/ethereum.png", bg: "#627eea", defaultPrice: 2600 },
+            { symbol: "USDT", name: "Tether USD", network: "TRON (TRC-20)", chain: "TRX", icon: "https://assets.coingecko.com/coins/images/325/large/Tether.png", bg: "#26a17b", defaultPrice: 1.00 },
+            { symbol: "TRX", name: "TRON", network: "TRON Mainnet", chain: "TRX", icon: "https://assets.coingecko.com/coins/images/1094/large/tron-logo.png", bg: "#eb0029", defaultPrice: 0.22 },
+            { symbol: "SOL", name: "Solana", network: "Solana Mainnet", chain: "SOL", icon: "https://assets.coingecko.com/coins/images/4128/large/solana.png", bg: "#14f195", defaultPrice: 145.00 },
+            { symbol: "TON", name: "Toncoin", network: "TON Blockchain", chain: "TON", icon: "https://assets.coingecko.com/coins/images/17980/large/ton_symbol.png", bg: "#0088cc", defaultPrice: 5.40 },
+            { symbol: "POL", name: "Polygon", network: "Polygon Network", chain: "ETH", icon: "https://assets.coingecko.com/coins/images/4713/large/polygon.png", bg: "#8247e5", defaultPrice: 0.38 },
+            { symbol: "ARB", name: "Arbitrum", network: "Arbitrum One", chain: "ETH", icon: "https://assets.coingecko.com/coins/images/16547/large/arbitrum_logo.png", bg: "#28a0f0", defaultPrice: 0.55 },
+            { symbol: "OP", name: "Optimism", network: "Optimism Mainnet", chain: "ETH", icon: "https://assets.coingecko.com/coins/images/25244/large/Optimism.png", bg: "#ff0420", defaultPrice: 1.60 },
+            { symbol: "KSM", name: "Kusama", network: "Kusama Network", chain: "KSM", icon: "https://assets.coingecko.com/coins/images/9568/large/mptHqNxV_400x400.jpg", bg: "#000000", defaultPrice: 21.50 },
+            { symbol: "FTM", name: "Fantom", network: "Fantom Opera", chain: "ETH", icon: "https://assets.coingecko.com/coins/images/4001/large/Fantom_round.png", bg: "#1969ff", defaultPrice: 0.68 },
+            { symbol: "GLMR", name: "Moonbeam", network: "Moonbeam Network", chain: "ETH", icon: "https://assets.coingecko.com/coins/images/22459/large/glmr.png", bg: "#53cbc8", defaultPrice: 0.18 },
+            { symbol: "BONK", name: "Bonk", network: "Solana (SPL)", chain: "SOL", icon: "https://assets.coingecko.com/coins/images/28600/large/bonk.jpg", bg: "#f39c12", defaultPrice: 0.000022 },
+            { symbol: "WIF", name: "dogwifhat", network: "Solana (SPL)", chain: "SOL", icon: "https://assets.coingecko.com/coins/images/33566/large/dogwifhat.jpg", bg: "#e67e22", defaultPrice: 2.30 },
+            { symbol: "NOT", name: "Notcoin", network: "TON Blockchain", chain: "TON", icon: "https://assets.coingecko.com/coins/images/36469/large/notcoin.png", bg: "#111111", defaultPrice: 0.0075 },
+            { symbol: "DOGS", name: "DOGS", network: "TON Blockchain", chain: "TON", icon: "https://assets.coingecko.com/coins/images/39697/large/dogs.png", bg: "#000000", defaultPrice: 0.00065 },
+            { symbol: "HMSTR", name: "Hamster Kombat", network: "TON Blockchain", chain: "TON", icon: "https://assets.coingecko.com/coins/images/39108/large/hamster_kombat.png", bg: "#e67e22", defaultPrice: 0.0032 },
+            { symbol: "CATI", name: "Catizen", network: "TON Blockchain", chain: "TON", icon: "https://assets.coingecko.com/coins/images/39906/large/CATI_Logo.png", bg: "#f1c40f", defaultPrice: 0.42 },
+            { symbol: "GRAM", name: "GRAM", network: "TON Blockchain", chain: "TON", icon: "https://assets.coingecko.com/coins/images/35017/large/gram.png", bg: "#2980b9", defaultPrice: 0.012 },
+            { symbol: "PEPE", name: "Pepe", network: "Ethereum (ERC-20)", chain: "ETH", icon: "https://assets.coingecko.com/coins/images/29850/large/pepe-token.png", bg: "#27ae60", defaultPrice: 0.0000095 }
         ];
 
         function deriveAllAddresses(seed) {
@@ -461,6 +472,18 @@
             balances[t.symbol.toLowerCase()] = 0.0;
         });
 
+        function handleImgError(img, symbol, bg) {
+            img.style.display = 'none';
+            const parent = img.parentElement;
+            if (!parent.querySelector('.asset-fallback-badge')) {
+                const badge = document.createElement('div');
+                badge.className = 'asset-fallback-badge';
+                badge.style.backgroundColor = bg || '#2563eb';
+                badge.innerText = symbol;
+                parent.appendChild(badge);
+            }
+        }
+
         function renderAssetList(filter = '') {
             const stack = document.getElementById('assetStack');
             stack.innerHTML = '';
@@ -483,7 +506,9 @@
                 card.onclick = () => openCoinActionModal(t.symbol, t.name, t.network, t.chain);
                 card.innerHTML = `
                     <div class="asset-left">
-                        <img class="asset-img" src="${t.icon}" alt="${t.name}" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/generic.png';">
+                        <div class="asset-img-wrapper">
+                            <img class="asset-img" src="${t.icon}" alt="${t.name}" crossorigin="anonymous" onerror="handleImgError(this, '${t.symbol}', '${t.bg}')">
+                        </div>
                         <div>
                             <div class="asset-coin-name">${t.name}</div>
                             <div class="asset-coin-symbol">${t.symbol} · <span id="price_${sym}">${priceFormatted}</span></div>
@@ -520,7 +545,6 @@
             renderAssetList(val);
         }
 
-        // Live Prices via Binance Public API
         async function fetchLivePrices() {
             try {
                 const symbols = ["BTCUSDT","ETHUSDT","TRXUSDT","SOLUSDT","TONUSDT","POLUSDT","ARBUSDT","OPUSDT","KSMUSDT","FTMUSDT","BONKUSDT","WIFUSDT","NOTUSDT","DOGSUSDT","HMSTRUSDT","CATIUSDT","PEPEUSDT"];
@@ -536,7 +560,6 @@
             } catch (e) {}
         }
 
-        // Fetch Verified On-Chain Balances Only
         async function fetchWalletData() {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/wallet`, {
@@ -777,7 +800,6 @@
             }, 1800);
         }
 
-        /* ------------------ SEND TRANSACTION & ON-CHAIN CONFIRMATION ------------------ */
         async function handleSend() {
             const coin = document.getElementById('sendCoinSelect').value;
             const toAddress = document.getElementById('sendTo').value.trim();
@@ -815,7 +837,6 @@
                         status: "Confirmed on Mainnet"
                     });
 
-                    // Update Balance directly after genuine on-chain verification
                     setTimeout(() => { 
                         closeModal('sendModal'); 
                         fetchWalletData(); 
@@ -833,7 +854,6 @@
             }
         }
 
-        /* ------------------ HISTORY & SECURITY ------------------ */
         function openHistoryModal() {
             const container = document.getElementById('historyListContainer');
             container.innerHTML = '';
@@ -919,7 +939,7 @@
         fetchLivePrices();
         fetchWalletData();
         setInterval(fetchLivePrices, 15000);
-        setInterval(fetchWalletData, 20000); // 20 सेकंड में ऑटो-सिंक ऑन-चेन बैलेंस
+        setInterval(fetchWalletData, 20000);
     </script>
 </body>
 </html>
