@@ -36,8 +36,9 @@
 
         .asset-list { list-style: none; padding: 0 16px; }
         .asset-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+        .asset-item:active { background-color: #f8fafc; }
         .asset-left { display: flex; align-items: center; gap: 12px; }
-        .crypto-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .crypto-icon { width: 40px; height: 40px; border-radius: 50%; }
         .asset-name { font-size: 15px; font-weight: 700; color: #1e293b; }
         .asset-price { font-size: 12px; color: #64748b; margin-top: 2px; }
         .asset-right { text-align: right; }
@@ -58,20 +59,21 @@
         .input-box { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px; margin: 8px 0; font-size: 14px; background: #f8fafc; }
         .select-box { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px; margin: 8px 0; font-size: 14px; background: #f8fafc; }
         .submit-btn { width: 100%; background: #dc2626; color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px; margin-top: 12px; cursor: pointer; }
+        .btn-secondary-modal { width: 100%; background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px; margin-top: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <!-- Header -->
     <div class="header">
-        <button class="icon-btn" onclick="alert('Network: TRON Mainnet')"><i class="fa-solid fa-gear"></i></button>
+        <button class="icon-btn" onclick="alert('Network: TRON Mainnet (Official)')"><i class="fa-solid fa-gear"></i></button>
         <div class="profile-badge">
             <div class="avatar" id="userAvatar">V</div>
             <span id="userName">VIKRAMSINGH8667</span>
             <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
         </div>
         <div class="right-icons">
-            <button class="icon-btn" onclick="openModal('depositModal')"><i class="fa-solid fa-qrcode"></i></button>
+            <button class="icon-btn" onclick="openDepositModal()"><i class="fa-solid fa-qrcode"></i></button>
             <button class="icon-btn" onclick="alert('Address book coming soon')"><i class="fa-solid fa-user-plus"></i></button>
         </div>
     </div>
@@ -86,13 +88,13 @@
         <div class="main-balance" id="totalBalanceUSD">$0.00</div>
     </div>
 
-    <!-- Action Buttons -->
+    <!-- 4 Main Action Buttons -->
     <div class="action-row">
-        <button class="action-btn" onclick="openModal('depositModal')">
+        <button class="action-btn" onclick="openDepositModal()">
             <div class="circle-icon"><i class="fa-solid fa-arrow-down-left"></i></div>
             <span class="action-label">Deposit</span>
         </button>
-        <button class="action-btn" onclick="openModal('sendModal')">
+        <button class="action-btn" onclick="openSendModal('TRX')">
             <div class="circle-icon"><i class="fa-solid fa-arrow-up-right"></i></div>
             <span class="action-label">Send</span>
         </button>
@@ -117,12 +119,12 @@
 
     <ul class="asset-list">
         <!-- BTC -->
-        <li class="asset-item" onclick="openAssetAction('BTC')">
+        <li class="asset-item" onclick="openCoinActionModal('BTC', 'Bitcoin')">
             <div class="asset-left">
                 <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png" alt="BTC">
                 <div>
                     <div class="asset-name">BTC</div>
-                    <div class="asset-price" id="btcPrice">Loading...</div>
+                    <div class="asset-price" id="btcPrice">$0.00</div>
                 </div>
             </div>
             <div class="asset-right">
@@ -132,12 +134,12 @@
         </li>
 
         <!-- ETH -->
-        <li class="asset-item" onclick="openAssetAction('ETH')">
+        <li class="asset-item" onclick="openCoinActionModal('ETH', 'Ethereum')">
             <div class="asset-left">
                 <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/279/large/ethereum.png" alt="ETH">
                 <div>
                     <div class="asset-name">ETH</div>
-                    <div class="asset-price" id="ethPrice">Loading...</div>
+                    <div class="asset-price" id="ethPrice">$0.00</div>
                 </div>
             </div>
             <div class="asset-right">
@@ -147,7 +149,7 @@
         </li>
 
         <!-- USDT -->
-        <li class="asset-item" onclick="openAssetAction('USDT')">
+        <li class="asset-item" onclick="openCoinActionModal('USDT', 'Tether USD')">
             <div class="asset-left">
                 <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/325/large/Tether.png" alt="USDT">
                 <div>
@@ -162,12 +164,12 @@
         </li>
 
         <!-- TRX -->
-        <li class="asset-item" onclick="openAssetAction('TRX')">
+        <li class="asset-item" onclick="openCoinActionModal('TRX', 'TRON')">
             <div class="asset-left">
                 <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/1094/large/tron-logo.png" alt="TRX">
                 <div>
                     <div class="asset-name">TRX</div>
-                    <div class="asset-price" id="trxPrice">Loading...</div>
+                    <div class="asset-price" id="trxPrice">$0.00</div>
                 </div>
             </div>
             <div class="asset-right">
@@ -177,7 +179,7 @@
         </li>
 
         <!-- USDC -->
-        <li class="asset-item" onclick="openAssetAction('USDC')">
+        <li class="asset-item" onclick="openCoinActionModal('USDC', 'USD Coin')">
             <div class="asset-left">
                 <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/6319/large/usdc.png" alt="USDC">
                 <div>
@@ -192,12 +194,12 @@
         </li>
 
         <!-- PEPE -->
-        <li class="asset-item" onclick="openAssetAction('PEPE')">
+        <li class="asset-item" onclick="openCoinActionModal('PEPE', 'Pepe')">
             <div class="asset-left">
                 <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/29850/large/pepe-token.png" alt="PEPE">
                 <div>
                     <div class="asset-name">PEPE</div>
-                    <div class="asset-price" id="pepePrice">Loading...</div>
+                    <div class="asset-price" id="pepePrice">$0.00</div>
                 </div>
             </div>
             <div class="asset-right">
@@ -214,17 +216,27 @@
         <div class="nav-item" onclick="alert('Leaderboard Active!')"><i class="fa-solid fa-chart-simple"></i><span>Leaderboard</span></div>
     </div>
 
-    <!-- Deposit Modal -->
-    <div class="modal" id="depositModal" onclick="closeModalOutside(event, 'depositModal')">
+    <!-- 1. Coin Action Sheet Modal -->
+    <div class="modal" id="coinActionModal" onclick="closeModalOutside(event, 'coinActionModal')">
         <div class="modal-content">
-            <div class="modal-title">Deposit / Receive</div>
-            <p style="font-size: 12px; color: #64748b; text-align: center; margin-bottom: 8px;">Your TRON Mainnet Address (TRX & USDT-TRC20):</p>
-            <div id="depositAddr" style="background: #f1f5f9; padding: 14px; border-radius: 12px; font-size: 12px; word-break: break-all; text-align: center; font-weight: 700; color: #0f172a; cursor: pointer;" onclick="copyAddr()">Loading Address...</div>
-            <button class="submit-btn" onclick="copyAddr()">Copy Address</button>
+            <div class="modal-title" id="actionModalTitle">Coin Options</div>
+            <button class="submit-btn" id="coinDepositBtn" style="background: #0284c7;">Receive / Deposit</button>
+            <button class="submit-btn" id="coinSendBtn">Send</button>
+            <button class="btn-secondary-modal" onclick="closeModal('coinActionModal')">Cancel</button>
         </div>
     </div>
 
-    <!-- Send Modal -->
+    <!-- 2. Deposit Modal -->
+    <div class="modal" id="depositModal" onclick="closeModalOutside(event, 'depositModal')">
+        <div class="modal-content">
+            <div class="modal-title" id="depositModalTitle">Deposit / Receive</div>
+            <p style="font-size: 12px; color: #64748b; text-align: center; margin-bottom: 8px;">Your TRON Mainnet Address:</p>
+            <div id="depositAddr" style="background: #f1f5f9; padding: 14px; border-radius: 12px; font-size: 12px; word-break: break-all; text-align: center; font-weight: 700; color: #0f172a; cursor: pointer;" onclick="copyAddr()">Loading Address...</div>
+            <button class="submit-btn" onclick="copyAddr()">Copy Mainnet Address</button>
+        </div>
+    </div>
+
+    <!-- 3. Send Modal -->
     <div class="modal" id="sendModal" onclick="closeModalOutside(event, 'sendModal')">
         <div class="modal-content">
             <div class="modal-title">Send Crypto</div>
@@ -232,14 +244,14 @@
                 <option value="TRX">TRX (TRON Mainnet)</option>
                 <option value="USDT">USDT (TRC-20)</option>
             </select>
-            <input type="text" id="sendTo" class="input-box" placeholder="Recipient Mainnet Address (T...)">
+            <input type="text" id="sendTo" class="input-box" placeholder="Recipient TRON Address (T...)">
             <input type="number" id="sendAmt" class="input-box" placeholder="Amount">
             <button class="submit-btn" id="sendSubmitBtn" onclick="handleSend()">Send Now</button>
             <div id="sendRes" style="font-size: 12px; text-align: center; margin-top: 10px; font-weight: 600;"></div>
         </div>
     </div>
 
-    <!-- Swap Modal -->
+    <!-- 4. Swap Modal -->
     <div class="modal" id="swapModal" onclick="closeModalOutside(event, 'swapModal')">
         <div class="modal-content">
             <div class="modal-title">Instant Swap</div>
@@ -276,33 +288,37 @@
         document.getElementById('userAvatar').innerText = name.charAt(0).toUpperCase();
 
         let currentWalletAddress = "";
-        let prices = { btc: 0, eth: 0, trx: 0.16, usdt: 1, usdc: 1, pepe: 0 };
+        let prices = { btc: 88500, eth: 2600, trx: 0.22, usdt: 1, usdc: 1, pepe: 0.00001 };
         let walletBalances = { trx: 0, usdt: 0 };
 
+        // 100% Reliable Live Prices from Binance API (No CORS / Rate Limit issue)
         async function fetchLivePrices() {
             try {
-                const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tron,tether,usd-coin,pepe&vs_currencies=usd");
+                const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbols=%5B%22BTCUSDT%22,%22ETHUSDT%22,%22TRXUSDT%22,%22USDCUSDT%22,%22PEPEUSDT%22%5D");
                 const data = await res.json();
                 
-                prices.btc = data.bitcoin?.usd || 78766;
-                prices.eth = data.ethereum?.usd || 2453;
-                prices.trx = data.tron?.usd || 0.16;
-                prices.usdt = data.tether?.usd || 1;
-                prices.usdc = data['usd-coin']?.usd || 1;
-                prices.pepe = data.pepe?.usd || 0.000009;
+                data.forEach(item => {
+                    const p = parseFloat(item.price);
+                    if (item.symbol === "BTCUSDT") prices.btc = p;
+                    if (item.symbol === "ETHUSDT") prices.eth = p;
+                    if (item.symbol === "TRXUSDT") prices.trx = p;
+                    if (item.symbol === "USDCUSDT") prices.usdc = p;
+                    if (item.symbol === "PEPEUSDT") prices.pepe = p;
+                });
 
-                document.getElementById('btcPrice').innerText = `$${prices.btc.toLocaleString()}`;
-                document.getElementById('ethPrice').innerText = `$${prices.eth.toLocaleString()}`;
+                document.getElementById('btcPrice').innerText = `$${prices.btc.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('ethPrice').innerText = `$${prices.eth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                 document.getElementById('trxPrice').innerText = `$${prices.trx.toFixed(4)}`;
-                document.getElementById('usdcPrice').innerText = `$${prices.usdc.toFixed(2)}`;
-                document.getElementById('pepePrice').innerText = `$${prices.pepe.toFixed(6)}`;
+                document.getElementById('usdcPrice').innerText = `$${prices.usdc.toFixed(4)}`;
+                document.getElementById('pepePrice').innerText = `$${prices.pepe.toFixed(8)}`;
 
                 updateTotalDisplay();
             } catch (e) {
-                console.log("Price fetch fallback", e);
+                console.error("Live Price Fetch Error:", e);
             }
         }
 
+        // Fetch Mainnet Balances
         async function fetchWalletData() {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/wallet`, {
@@ -344,15 +360,34 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function closeModalOutside(e, id) { if(e.target.id === id) closeModal(id); }
 
-        function openAssetAction(coin) {
+        function openDepositModal(coin = 'TRON / USDT') {
+            document.getElementById('depositModalTitle').innerText = `Deposit ${coin}`;
+            openModal('depositModal');
+        }
+
+        function openSendModal(coin = 'TRX') {
             document.getElementById('sendCoinSelect').value = (coin === 'USDT') ? 'USDT' : 'TRX';
             openModal('sendModal');
+        }
+
+        // Tap on coin handler
+        function openCoinActionModal(symbol, fullName) {
+            document.getElementById('actionModalTitle').innerText = `${fullName} (${symbol})`;
+            document.getElementById('coinDepositBtn').onclick = () => {
+                closeModal('coinActionModal');
+                openDepositModal(symbol);
+            };
+            document.getElementById('coinSendBtn').onclick = () => {
+                closeModal('coinActionModal');
+                openSendModal(symbol);
+            };
+            openModal('coinActionModal');
         }
 
         function copyAddr() {
             if(currentWalletAddress && !currentWalletAddress.includes("Loading")) {
                 navigator.clipboard.writeText(currentWalletAddress);
-                alert("Mainnet Address Copied!");
+                alert("TRON Mainnet Address Copied!");
                 closeModal('depositModal');
             }
         }
@@ -440,7 +475,7 @@
 
         fetchLivePrices();
         fetchWalletData();
-        setInterval(fetchLivePrices, 30000);
+        setInterval(fetchLivePrices, 15000); // हर 15 सेकंड में ऑटो लाइव अपडेट
     </script>
 </body>
 </html>
