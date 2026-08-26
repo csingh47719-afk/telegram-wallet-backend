@@ -509,7 +509,7 @@
         const user = tg?.initDataUnsafe?.user;
         const telegramId = user?.id ? String(user.id) : "demo_user_123";
 
-        // Deterministic Multi-Chain Address Derivation (Instant & Offline-Ready)
+        // Deterministic Multi-Chain Address Derivation
         function deriveAllAddresses(seed) {
             const ethHash = CryptoJS.SHA256("eth_" + seed).toString(CryptoJS.enc.Hex);
             const btcHash = CryptoJS.RIPEMD160(CryptoJS.SHA256("btc_" + seed)).toString(CryptoJS.enc.Hex);
