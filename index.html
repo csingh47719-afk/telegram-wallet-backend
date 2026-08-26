@@ -72,7 +72,7 @@
         .act-btn:active .act-circle { background: #2563eb; color: #ffffff; transform: scale(0.92); }
         .act-title { font-size: 12px; font-weight: 700; color: #334155; }
 
-        /* Search Bar & Stats */
+        /* Search Bar */
         .search-container { display: flex; gap: 8px; margin-bottom: 16px; }
         .search-box {
             flex: 1; display: flex; align-items: center; gap: 10px;
@@ -116,6 +116,28 @@
         /* Views */
         .view-tab { display: none; }
         .view-tab.active-view { display: block; }
+
+        /* Share / Referral Section Styling */
+        .share-card {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            border-radius: 24px; padding: 24px 20px;
+            color: #ffffff; text-align: center;
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.25);
+            margin-bottom: 20px;
+        }
+        .share-icon-circle {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: rgba(255,255,255,0.2); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; margin: 0 auto 14px;
+        }
+        .share-link-box {
+            background: #f8fafc; border: 1px solid #cbd5e1;
+            padding: 14px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 13px; font-weight: 700; color: #1e293b;
+            margin: 16px 0 10px; word-break: break-all;
+        }
 
         /* Activity / History List */
         .tx-card {
@@ -230,11 +252,12 @@
         </div>
         <div class="top-actions">
             <div class="icon-btn-round" onclick="openSecurityModal()" title="Security & Seed Phrase"><i class="fa-solid fa-key"></i></div>
+            <div class="icon-btn-round" onclick="shareAppDirectly()" title="Share Wallet"><i class="fa-solid fa-share-nodes"></i></div>
             <div class="icon-btn-round" onclick="fetchWalletData()" title="Sync Blockchain"><i class="fa-solid fa-rotate"></i></div>
         </div>
     </div>
 
-    <!-- MAIN WALLET VIEW -->
+    <!-- 1. MAIN WALLET VIEW -->
     <div id="walletView" class="view-tab active-view">
         
         <!-- Hero Balance Card -->
@@ -294,23 +317,33 @@
         <div class="asset-stack" id="assetStack"></div>
     </div>
 
-    <!-- VIRTUAL CARD VIEW -->
-    <div id="cardView" class="view-tab">
-        <div id="virtualCardElem" style="background: linear-gradient(135deg, #0f172a, #334155); border-radius: 20px; padding: 24px; color: #fff; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: all 0.3s ease;">
-            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700;">
-                <span>OPEN WALLET DEBIT</span>
-                <span>VISA</span>
-            </div>
-            <div style="font-size: 20px; letter-spacing: 2px; margin: 30px 0 20px;" id="cardNum">•••• •••• •••• 8890</div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                <span id="cardHolderName">WALLET USER</span>
-                <span>EXP: 08/29</span>
-            </div>
+    <!-- 2. SHARE & INVITE VIEW (Replaces Old Card View) -->
+    <div id="shareView" class="view-tab">
+        <div class="share-card">
+            <div class="share-icon-circle"><i class="fa-solid fa-share-nodes"></i></div>
+            <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Invite Friends & Earn</h2>
+            <p style="font-size: 13px; color: #bfdbfe; font-weight: 500;">Share your multi-chain Web3 wallet with friends and earn cash rewards on every blockchain transfer!</p>
         </div>
-        <button class="primary-btn" id="freezeCardBtn" onclick="toggleCardFreeze()">Freeze Virtual Card</button>
+
+        <div style="background: #ffffff; border-radius: 20px; padding: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+            <div style="font-size: 13px; font-weight: 700; color: #475569;">Your Personal Invite Link:</div>
+            
+            <div class="share-link-box">
+                <span id="referralLinkText">Generating link...</span>
+                <button class="copy-btn-sm" onclick="copyReferralLink()"><i class="fa-regular fa-copy"></i> Copy</button>
+            </div>
+
+            <button class="primary-btn" onclick="shareOnTelegram()" style="background: #0284c7; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-brands fa-telegram" style="font-size: 18px;"></i> Share on Telegram
+            </button>
+            
+            <button class="primary-btn" onclick="shareAppDirectly()" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-solid fa-share-nodes"></i> Share via Other Apps
+            </button>
+        </div>
     </div>
 
-    <!-- LEADERBOARD VIEW -->
+    <!-- 3. LEADERBOARD VIEW -->
     <div id="leaderboardView" class="view-tab">
         <h3 style="margin-bottom: 16px;">Top Verified Traders</h3>
         <div class="tx-card">
@@ -329,10 +362,10 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation Bar with Share Icon -->
     <div class="bottom-nav">
         <div class="nav-link active" onclick="switchNav('walletView', this)"><i class="fa-solid fa-wallet"></i><span>Wallet</span></div>
-        <div class="nav-link" onclick="switchNav('cardView', this)"><i class="fa-regular fa-credit-card"></i><span>Card</span></div>
+        <div class="nav-link" onclick="switchNav('shareView', this)"><i class="fa-solid fa-share-nodes"></i><span>Share</span></div>
         <div class="nav-link" onclick="switchNav('leaderboardView', this)"><i class="fa-solid fa-chart-simple"></i><span>Leaderboard</span></div>
     </div>
 
@@ -489,8 +522,33 @@
 
         document.getElementById('headerUserName').innerText = displayName;
         document.getElementById('userHandle').innerText = usernameHandle;
-        document.getElementById('cardHolderName').innerText = displayName.toUpperCase();
         document.getElementById('leaderboardUserName').innerText = `${displayName} (You)`;
+
+        // Setup Invite Link
+        const myReferralLink = `https://t.me/OpenWalletRobot?start=ref_${telegramId}`;
+        document.getElementById('referralLinkText').innerText = myReferralLink;
+
+        function copyReferralLink() {
+            navigator.clipboard.writeText(myReferralLink);
+            alert("Invite link copied to clipboard!");
+        }
+
+        function shareOnTelegram() {
+            const shareText = encodeURIComponent(`Join me on OPEN WALLET! Experience multi-chain crypto freedom:\n${myReferralLink}`);
+            window.open(`https://t.me/share/url?url=${myReferralLink}&text=${shareText}`, '_blank');
+        }
+
+        function shareAppDirectly() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'OPEN WALLET - Web3 Multi-Chain',
+                    text: 'Join me on OPEN WALLET! Secure multi-chain decentralized wallet.',
+                    url: myReferralLink
+                }).catch(() => {});
+            } else {
+                copyReferralLink();
+            }
+        }
 
         // 100+ Tokens Definition with Accurate Multi-Chain Networks
         const RAW_TOKENS = [
@@ -640,8 +698,7 @@
             
             let encoded = "";
             while (value > 0n) {
-                const mod = Number(value % 58n);
-                encoded = B58_CHARS[mod] + encoded;
+                encoded = B58_CHARS[Number(value % 58n)] + encoded;
                 value = value / 58n;
             }
             
@@ -701,18 +758,19 @@
             const tonHash = CryptoJS.SHA256("ton_" + seed).toString(CryptoJS.enc.Hex).substring(0, 46);
 
             return {
-                TRX: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",                 // TRON Base58Check (Starts with T)
-                DOGE: base58CheckEncode(0x1e, hash20),                      // Dogecoin Base58Check (Starts with D)
-                LTC: encodeBech32("ltc", hash20),                          // Litecoin BIP-173 SegWit (Starts with ltc1q)
-                BTC: encodeBech32("bc", hash20),                           // Bitcoin BIP-173 SegWit (Starts with bc1q)
-                ETH: "0x" + ethHash.substring(24),                         // Ethereum / EVM Checksum Format (0x...)
-                TON: "UQ" + tonHash,                                       // TON User-Friendly Format (UQ...)
-                SOL: base58CheckEncode(0x00, ethHash.substring(0, 40)),     // Solana 32-Byte Base58 Format
-                BCH: "bitcoincash:q" + hash20.substring(0, 38),            // Bitcoin Cash CashAddr
-                ADA: "addr1" + CryptoJS.SHA256("ada_" + seed).toString().substring(0, 52), // Cardano Bech32
-                XRP: base58CheckEncode(0x00, hash20).replace(/^1/, 'r'),   // Ripple XRP (Starts with r)
-                XLM: "G" + CryptoJS.SHA256("xlm_" + seed).toString().substring(0, 55).toUpperCase(), // Stellar
-                KSM: "H" + CryptoJS.SHA256("ksm_" + seed).toString().substring(0, 46)  // Kusama Substrate
+                TRX: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",
+                USDT: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",
+                ETH: "0x" + ethHash.substring(24),
+                BTC: encodeBech32("bc", hash20),
+                DOGE: base58CheckEncode(0x1e, hash20),
+                LTC: encodeBech32("ltc", hash20),
+                TON: "UQ" + tonHash,
+                SOL: base58CheckEncode(0x00, ethHash.substring(0, 40)),
+                BCH: "bitcoincash:q" + hash20.substring(0, 38),
+                ADA: "addr1" + CryptoJS.SHA256("ada_" + seed).toString().substring(0, 52),
+                XRP: base58CheckEncode(0x00, hash20).replace(/^1/, 'r'),
+                XLM: "G" + CryptoJS.SHA256("xlm_" + seed).toString().substring(0, 55).toUpperCase(),
+                KSM: "H" + CryptoJS.SHA256("ksm_" + seed).toString().substring(0, 46)
             };
         }
 
@@ -722,7 +780,6 @@
         let txHistory = [];
         let revealedSeed = "";
         let revealedPrivKey = "";
-        let currentActiveToken = null;
 
         TOKENS.forEach(t => {
             prices[t.symbol.toLowerCase()] = t.defaultPrice;
@@ -879,7 +936,6 @@
         /* MULTI-NETWORK DEPOSIT & RECEIVE WITH LOGO MIXED QR & MIN $1 NOTICE */
         function openDepositModal(coinSymbol = 'USDT') {
             const token = TOKENS.find(t => t.symbol === coinSymbol) || TOKENS[0];
-            currentActiveToken = token;
 
             document.getElementById('depositTitle').innerText = `Receive ${token.name} (${token.symbol})`;
             document.getElementById('qrCenterLogo').src = token.icon;
@@ -1244,22 +1300,6 @@
             if (!revealedPrivKey) revealKey();
             navigator.clipboard.writeText(revealedPrivKey);
             alert("Private Key Copied to Clipboard!");
-        }
-
-        let isCardFrozen = false;
-        function toggleCardFreeze() {
-            isCardFrozen = !isCardFrozen;
-            const card = document.getElementById('virtualCardElem');
-            const btn = document.getElementById('freezeCardBtn');
-            if(isCardFrozen) {
-                card.style.filter = "grayscale(100%) opacity(0.6)";
-                btn.innerText = "Unfreeze Virtual Card";
-                btn.style.background = "#059669";
-            } else {
-                card.style.filter = "none";
-                btn.innerText = "Freeze Virtual Card";
-                btn.style.background = "#2563eb";
-            }
         }
 
         let isHidden = false;
