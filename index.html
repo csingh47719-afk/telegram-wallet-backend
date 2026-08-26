@@ -517,19 +517,16 @@
         const BOT_USERNAME = "OpenWalletApp_2026_bot";
         const myReferralLink = `https://t.me/${BOT_USERNAME}?startapp=ref_${telegramId}`;
 
-        // इनवाइट बॉक्स में लिंक सेट करें
         const refLinkElem = document.getElementById('referralLinkText');
         if (refLinkElem) {
             refLinkElem.innerText = myReferralLink;
         }
 
-        // 1. इनवाइट लिंक कॉपी फ़ंक्शन
         function copyReferralLink() {
             navigator.clipboard.writeText(myReferralLink);
             alert("Invite link copied to clipboard!");
         }
 
-        // 2. टेलीग्राम डायरेक्ट शेयर फ़ंक्शन (सिंगल लिंक + बैनर कार्ड)
         function shareOnTelegram() {
             const shareText = encodeURIComponent("🚀 Open your Web3 Multi-Chain Wallet with me & earn cash rewards!");
             const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(myReferralLink)}&text=${shareText}`;
@@ -541,7 +538,6 @@
             }
         }
 
-        // 3. अन्य ऐप्स (WhatsApp, आदि) पर शेयर करने का फ़ंक्शन
         function shareAppDirectly() {
             if (navigator.share) {
                 navigator.share({
@@ -802,15 +798,25 @@
             }
         }
 
+        // 🚀 ऑटोमैटिक बैलेंस रैंकिंग के साथ टोकन लिस्ट रेंडर करना
         function renderAssetList(filter = '') {
             const stack = document.getElementById('assetStack');
             stack.innerHTML = '';
 
-            const filteredTokens = TOKENS.filter(t => 
+            let filteredTokens = TOKENS.filter(t => 
                 t.name.toLowerCase().includes(filter.toLowerCase()) || 
                 t.symbol.toLowerCase().includes(filter.toLowerCase()) ||
                 t.networks.some(n => n.name.toLowerCase().includes(filter.toLowerCase()))
             );
+
+            // 🔥 जिस कॉइन में सबसे ज़्यादा बैलेंस (USD Value) होगा, वह सबसे ऊपर आएगा
+            filteredTokens.sort((a, b) => {
+                const symA = a.symbol.toLowerCase();
+                const symB = b.symbol.toLowerCase();
+                const balA = (balances[symA] || 0) * (prices[symA] || a.defaultPrice);
+                const balB = (balances[symB] || 0) * (prices[symB] || b.defaultPrice);
+                return balB - balA;
+            });
 
             filteredTokens.forEach(t => {
                 const sym = t.symbol.toLowerCase();
@@ -845,18 +851,15 @@
             const swapFromSel = document.getElementById('swapFromCoin');
             const swapToSel = document.getElementById('swapToCoin');
 
-            sendSel.innerHTML = '';
-            swapFromSel.innerHTML = '';
-            swapToSel.innerHTML = '';
-
-            TOKENS.forEach(t => {
-                sendSel.innerHTML += `<option value="${t.symbol}">${t.name} (${t.symbol})</option>`;
-                swapFromSel.innerHTML += `<option value="${t.symbol}">${t.symbol}</option>`;
-                swapToSel.innerHTML += `<option value="${t.symbol}">${t.symbol}</option>`;
-            });
-
-            swapFromSel.value = "TRX";
-            swapToSel.value = "USDT";
+            if (sendSel && sendSel.children.length === 0) {
+                TOKENS.forEach(t => {
+                    sendSel.innerHTML += `<option value="${t.symbol}">${t.name} (${t.symbol})</option>`;
+                    swapFromSel.innerHTML += `<option value="${t.symbol}">${t.symbol}</option>`;
+                    swapToSel.innerHTML += `<option value="${t.symbol}">${t.symbol}</option>`;
+                });
+                swapFromSel.value = "TRX";
+                swapToSel.value = "USDT";
+            }
         }
 
         function filterTokens() {
@@ -909,14 +912,6 @@
                 const price = prices[sym] || t.defaultPrice;
                 const usd = bal * price;
                 total += usd;
-
-                const priceElem = document.getElementById(`price_${sym}`);
-                const balElem = document.getElementById(`bal_${sym}`);
-                const usdElem = document.getElementById(`usd_${sym}`);
-
-                if (priceElem) priceElem.innerText = price < 0.001 ? `$${price.toFixed(8)}` : `$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                if (balElem) balElem.innerText = `${bal.toFixed(4)} ${t.symbol}`;
-                if (usdElem) usdElem.innerText = `$${usd.toFixed(2)}`;
             });
 
             const btcPrice = prices['btc'] || 88500;
@@ -924,6 +919,10 @@
 
             document.getElementById('totalUsd').innerText = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('btcEst').innerText = `≈ ${btcEst} BTC`;
+
+            // बैलेंस अपडेट होते ही रैंकिंग ऑटोमैटिक सॉर्ट हो जाएगी
+            const searchVal = document.getElementById('tokenSearchInput')?.value || '';
+            renderAssetList(searchVal);
         }
 
         function switchNav(viewId, element) {
@@ -1272,7 +1271,6 @@
             }
         }
 
-        renderAssetList();
         fetchLivePrices();
         fetchWalletData();
         setInterval(fetchLivePrices, 15000);
