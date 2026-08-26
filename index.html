@@ -10,34 +10,28 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background-color: #ffffff; color: #121212; padding-bottom: 75px; }
         
-        /* Header */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; }
         .icon-btn { font-size: 20px; color: #333; background: none; border: none; cursor: pointer; }
         .profile-badge { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
         .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #f97316, #dc2626); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
         .right-icons { display: flex; gap: 16px; }
 
-        /* Balance Area */
         .balance-section { text-align: center; padding: 10px 0 20px; }
         .balance-label { font-size: 13px; color: #64748b; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .main-balance { font-size: 42px; font-weight: 800; margin-top: 4px; color: #0f172a; }
 
-        /* Action Buttons */
         .action-row { display: flex; justify-content: space-around; padding: 0 16px 20px; }
         .action-btn { display: flex; flex-direction: column; align-items: center; background: none; border: none; gap: 6px; cursor: pointer; }
         .circle-icon { width: 52px; height: 52px; border-radius: 50%; background: #dc2626; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
         .circle-icon:active { transform: scale(0.92); }
         .action-label { font-size: 12px; font-weight: 600; color: #334155; }
 
-        /* Assets Section */
         .assets-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 8px; border-top: 8px solid #f8fafc; }
         .assets-title { font-size: 17px; font-weight: 800; color: #0f172a; }
         .assets-actions { display: flex; gap: 14px; color: #64748b; font-size: 15px; }
 
         .asset-list { list-style: none; padding: 0 16px; }
         .asset-group { border-bottom: 1px solid #f1f5f9; }
-        
-        /* Main Asset Item */
         .asset-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; cursor: pointer; }
         .asset-left { display: flex; align-items: center; gap: 12px; }
         .crypto-icon { width: 40px; height: 40px; border-radius: 50%; }
@@ -48,9 +42,8 @@
         .asset-amount { font-size: 12px; color: #64748b; margin-top: 2px; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
         .chevron-icon { transition: transform 0.2s ease; font-size: 11px; }
 
-        /* Sub-Tokens / Network List (Accordion) */
-        .sub-tokens-list { display: none; padding-left: 20px; background-color: #fafbfc; border-radius: 12px; margin-bottom: 8px; }
-        .sub-token-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 10px 0; cursor: pointer; border-bottom: 1px dashed #e2e8f0; }
+        .sub-tokens-list { display: none; padding-left: 18px; background-color: #fafbfc; border-radius: 12px; margin-bottom: 8px; }
+        .sub-token-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 12px 0; cursor: pointer; border-bottom: 1px dashed #e2e8f0; }
         .sub-token-item:last-child { border-bottom: none; }
         .sub-left { display: flex; align-items: center; gap: 10px; }
         .sub-arrow { color: #94a3b8; font-size: 14px; }
@@ -61,40 +54,40 @@
         .sub-usd { font-size: 14px; font-weight: 700; color: #0f172a; }
         .sub-amt { font-size: 11px; color: #64748b; }
 
-        /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; padding: 10px 0; z-index: 50; }
         .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: #94a3b8; gap: 4px; cursor: pointer; }
         .nav-item.active { color: #0f172a; font-weight: 700; }
         .nav-item i { font-size: 18px; }
 
-        /* Modals */
         .modal { display: none; position: fixed; bottom: 0; left: 0; right: 0; top: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; }
         .modal-content { background: #ffffff; width: 100%; border-radius: 24px 24px 0 0; padding: 24px 20px; animation: slideUp 0.25s ease-out; max-height: 85vh; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 14px; text-align: center; color: #0f172a; }
+        .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; text-align: center; color: #0f172a; }
+        .modal-subtitle { font-size: 12px; color: #64748b; text-align: center; margin-bottom: 14px; }
         .input-box { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px; margin: 8px 0; font-size: 14px; background: #f8fafc; }
         .select-box { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px; margin: 8px 0; font-size: 14px; background: #f8fafc; }
-        .submit-btn { width: 100%; background: #dc2626; color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px; margin-top: 12px; cursor: pointer; }
+        .submit-btn { width: 100%; background: #dc2626; color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px; margin-top: 10px; cursor: pointer; }
         .btn-secondary-modal { width: 100%; background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px; margin-top: 8px; cursor: pointer; }
+        .addr-display { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 14px; border-radius: 12px; font-size: 12px; word-break: break-all; text-align: center; font-weight: 700; color: #0f172a; cursor: pointer; margin-bottom: 12px; }
     </style>
 </head>
 <body>
 
     <!-- Header -->
     <div class="header">
-        <button class="icon-btn" onclick="alert('Network: TRON & Multi-Chain Mainnet')"><i class="fa-solid fa-gear"></i></button>
+        <button class="icon-btn" onclick="alert('Network: Multi-Chain Live (BTC, ETH, TRON, TON)')"><i class="fa-solid fa-gear"></i></button>
         <div class="profile-badge">
             <div class="avatar" id="userAvatar">V</div>
             <span id="userName">VIKRAMSINGH8667</span>
             <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
         </div>
         <div class="right-icons">
-            <button class="icon-btn" onclick="openDepositModal()"><i class="fa-solid fa-qrcode"></i></button>
+            <button class="icon-btn" onclick="openDepositModal('BTC', 'Bitcoin Network')"><i class="fa-solid fa-qrcode"></i></button>
             <button class="icon-btn" onclick="alert('Address book coming soon')"><i class="fa-solid fa-user-plus"></i></button>
         </div>
     </div>
 
-    <!-- Total Balance -->
+    <!-- Balance Section -->
     <div class="balance-section">
         <div class="balance-label">
             <i class="fa-solid fa-rotate" onclick="fetchLivePrices(); fetchWalletData();" style="cursor: pointer;"></i>
@@ -104,13 +97,13 @@
         <div class="main-balance" id="totalBalanceUSD">$0.00</div>
     </div>
 
-    <!-- Action Buttons -->
+    <!-- 4 Main Action Buttons -->
     <div class="action-row">
-        <button class="action-btn" onclick="openDepositModal()">
+        <button class="action-btn" onclick="openDepositModal('TRX', 'TRON Mainnet')">
             <div class="circle-icon"><i class="fa-solid fa-arrow-down-left"></i></div>
             <span class="action-label">Deposit</span>
         </button>
-        <button class="action-btn" onclick="openSendModal('TRX')">
+        <button class="action-btn" onclick="openSendModal('TRX', 'TRON Mainnet')">
             <div class="circle-icon"><i class="fa-solid fa-arrow-up-right"></i></div>
             <span class="action-label">Send</span>
         </button>
@@ -118,7 +111,7 @@
             <div class="circle-icon"><i class="fa-solid fa-right-left"></i></div>
             <span class="action-label">Swap</span>
         </button>
-        <button class="action-btn" onclick="openHistory()">
+        <button class="action-btn" onclick="openHistory('TRX')">
             <div class="circle-icon"><i class="fa-regular fa-newspaper"></i></div>
             <span class="action-label">History</span>
         </button>
@@ -135,7 +128,104 @@
 
     <ul class="asset-list">
         
-        <!-- TRX (TRON Ecosystem) -->
+        <!-- BTC -->
+        <li class="asset-group">
+            <div class="asset-item" onclick="toggleDropdown('btcSubList', 'btcChevron')">
+                <div class="asset-left">
+                    <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png" alt="BTC">
+                    <div>
+                        <div class="asset-name">BTC</div>
+                        <div class="asset-price" id="btcPrice">$0.00</div>
+                    </div>
+                </div>
+                <div class="asset-right">
+                    <div class="asset-usd" id="btcUsd">$0.00</div>
+                    <div class="asset-amount">0.00 BTC <i class="fa-solid fa-chevron-down chevron-icon" id="btcChevron"></i></div>
+                </div>
+            </div>
+            <div class="sub-tokens-list" id="btcSubList">
+                <div class="sub-token-item" onclick="openCoinActionModal('BTC', 'Bitcoin (Native SegWit)', 'Bitcoin Network')">
+                    <div class="sub-left">
+                        <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
+                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png">
+                        <div>
+                            <div class="sub-name">BTC (Native)</div>
+                            <div class="sub-network">Bitcoin Mainnet</div>
+                        </div>
+                    </div>
+                    <div class="sub-right">
+                        <div class="sub-usd">$0.00</div>
+                        <div class="sub-amt">0.00 BTC</div>
+                    </div>
+                </div>
+            </div>
+        </li>
+
+        <!-- ETH -->
+        <li class="asset-group">
+            <div class="asset-item" onclick="toggleDropdown('ethSubList', 'ethChevron')">
+                <div class="asset-left">
+                    <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/279/large/ethereum.png" alt="ETH">
+                    <div>
+                        <div class="asset-name">ETH</div>
+                        <div class="asset-price" id="ethPrice">$0.00</div>
+                    </div>
+                </div>
+                <div class="asset-right">
+                    <div class="asset-usd" id="ethUsd">$0.00</div>
+                    <div class="asset-amount">0.00 ETH <i class="fa-solid fa-chevron-down chevron-icon" id="ethChevron"></i></div>
+                </div>
+            </div>
+            <div class="sub-tokens-list" id="ethSubList">
+                <div class="sub-token-item" onclick="openCoinActionModal('ETH', 'Ethereum (ERC-20)', 'Ethereum Mainnet')">
+                    <div class="sub-left">
+                        <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
+                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/279/large/ethereum.png">
+                        <div>
+                            <div class="sub-name">ETH (Native)</div>
+                            <div class="sub-network">Ethereum Mainnet (ERC20)</div>
+                        </div>
+                    </div>
+                    <div class="sub-right">
+                        <div class="sub-usd">$0.00</div>
+                        <div class="sub-amt">0.00 ETH</div>
+                    </div>
+                </div>
+                <div class="sub-token-item" onclick="openCoinActionModal('PEPE', 'Pepe Token', 'Ethereum Mainnet')">
+                    <div class="sub-left">
+                        <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
+                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/29850/large/pepe-token.png">
+                        <div>
+                            <div class="sub-name">PEPE</div>
+                            <div class="sub-network">ERC-20 Token</div>
+                        </div>
+                    </div>
+                    <div class="sub-right">
+                        <div class="sub-usd">$0.00</div>
+                        <div class="sub-amt">0.00 PEPE</div>
+                    </div>
+                </div>
+            </div>
+        </li>
+
+        <!-- USDT -->
+        <li class="asset-group">
+            <div class="asset-item" onclick="openCoinActionModal('USDT', 'USDT (TRC-20)', 'TRON Mainnet')">
+                <div class="asset-left">
+                    <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/325/large/Tether.png" alt="USDT">
+                    <div>
+                        <div class="asset-name">USDT (TRC20)</div>
+                        <div class="asset-price">$1.00</div>
+                    </div>
+                </div>
+                <div class="asset-right">
+                    <div class="asset-usd" id="usdtUsdValue">$0.00</div>
+                    <div class="asset-amount"><span id="usdtTokenAmount">0.00 USDT</span></div>
+                </div>
+            </div>
+        </li>
+
+        <!-- TRX -->
         <li class="asset-group">
             <div class="asset-item" onclick="toggleDropdown('trxSubList', 'trxChevron')">
                 <div class="asset-left">
@@ -153,9 +243,8 @@
                     </div>
                 </div>
             </div>
-            <!-- Sub-Tokens under TRON Blockchain -->
             <div class="sub-tokens-list" id="trxSubList">
-                <div class="sub-token-item" onclick="openCoinActionModal('TRX', 'TRON (TRC20 Native)')">
+                <div class="sub-token-item" onclick="openCoinActionModal('TRX', 'TRON (TRC20 Native)', 'TRON Mainnet')">
                     <div class="sub-left">
                         <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
                         <img class="sub-icon" src="https://assets.coingecko.com/coins/images/1094/large/tron-logo.png">
@@ -169,153 +258,64 @@
                         <div class="sub-amt" id="subTrxAmt">0.00 TRX</div>
                     </div>
                 </div>
-                <div class="sub-token-item" onclick="openCoinActionModal('USDT', 'USDT (TRC-20)')">
-                    <div class="sub-left">
-                        <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
-                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/325/large/Tether.png">
-                        <div>
-                            <div class="sub-name">USDT</div>
-                            <div class="sub-network">TRC-20 Token</div>
-                        </div>
-                    </div>
-                    <div class="sub-right">
-                        <div class="sub-usd" id="subUsdtUsd">$0.00</div>
-                        <div class="sub-amt" id="subUsdtAmt">0.00 USDT</div>
-                    </div>
-                </div>
-                <div class="sub-token-item" onclick="openCoinActionModal('USDD', 'USDD (Decentralized USD)')">
-                    <div class="sub-left">
-                        <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
-                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/25380/large/U7D_LOGO-S.png">
-                        <div>
-                            <div class="sub-name">USDD</div>
-                            <div class="sub-network">TRC-20 Token</div>
-                        </div>
-                    </div>
-                    <div class="sub-right">
-                        <div class="sub-usd">$0.00</div>
-                        <div class="sub-amt">0.00 USDD</div>
-                    </div>
-                </div>
             </div>
         </li>
 
-        <!-- BTC (Bitcoin Ecosystem) -->
+        <!-- TON Ecosystem (GRAM, NOT, DOGS, HMSTR, CATI) -->
         <li class="asset-group">
-            <div class="asset-item" onclick="toggleDropdown('btcSubList', 'btcChevron')">
+            <div class="asset-item" onclick="toggleDropdown('tonSubList', 'tonChevron')">
                 <div class="asset-left">
-                    <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png" alt="BTC">
+                    <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/17980/large/ton_symbol.png" alt="TON">
                     <div>
-                        <div class="asset-name">BTC</div>
-                        <div class="asset-price" id="btcPrice">$0.00</div>
+                        <div class="asset-name">TON Ecosystem</div>
+                        <div class="asset-price" id="tonPrice">$0.00</div>
                     </div>
                 </div>
                 <div class="asset-right">
-                    <div class="asset-usd" id="btcUsd">$0.00</div>
-                    <div class="asset-amount">0.00 BTC <i class="fa-solid fa-chevron-down chevron-icon" id="btcChevron"></i></div>
+                    <div class="asset-usd">$0.00</div>
+                    <div class="asset-amount">0.00 TON <i class="fa-solid fa-chevron-down chevron-icon" id="tonChevron"></i></div>
                 </div>
             </div>
-            <!-- Sub Tokens / Wrapped BTC -->
-            <div class="sub-tokens-list" id="btcSubList">
-                <div class="sub-token-item" onclick="openCoinActionModal('BTC', 'Bitcoin (Mainnet)')">
+            <div class="sub-tokens-list" id="tonSubList">
+                <div class="sub-token-item" onclick="openCoinActionModal('NOT', 'Notcoin (NOT)', 'TON Blockchain')">
                     <div class="sub-left">
                         <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
-                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png">
+                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/36469/large/notcoin.png">
                         <div>
-                            <div class="sub-name">BTC (Native)</div>
-                            <div class="sub-network">Bitcoin Network</div>
+                            <div class="sub-name">NOT</div>
+                            <div class="sub-network">TON Mainnet</div>
                         </div>
                     </div>
-                    <div class="sub-right">
-                        <div class="sub-usd">$0.00</div>
-                        <div class="sub-amt">0.00 BTC</div>
-                    </div>
+                    <div class="sub-right"><div class="sub-usd">$0.00</div><div class="sub-amt">0.00 NOT</div></div>
                 </div>
-                <div class="sub-token-item" onclick="openCoinActionModal('WBTC', 'Wrapped BTC (TRC20)')">
+                <div class="sub-token-item" onclick="openCoinActionModal('DOGS', 'DOGS Token', 'TON Blockchain')">
                     <div class="sub-left">
                         <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
-                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png">
+                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/39697/large/dogs.png">
                         <div>
-                            <div class="sub-name">BTCT (Wrapped)</div>
-                            <div class="sub-network">TRON Mainnet</div>
+                            <div class="sub-name">DOGS</div>
+                            <div class="sub-network">TON Mainnet</div>
                         </div>
                     </div>
-                    <div class="sub-right">
-                        <div class="sub-usd">$0.00</div>
-                        <div class="sub-amt">0.00 BTCT</div>
-                    </div>
+                    <div class="sub-right"><div class="sub-usd">$0.00</div><div class="sub-amt">0.00 DOGS</div></div>
                 </div>
-            </div>
-        </li>
-
-        <!-- ETH (Ethereum Ecosystem) -->
-        <li class="asset-group">
-            <div class="asset-item" onclick="toggleDropdown('ethSubList', 'ethChevron')">
-                <div class="asset-left">
-                    <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/279/large/ethereum.png" alt="ETH">
-                    <div>
-                        <div class="asset-name">ETH</div>
-                        <div class="asset-price" id="ethPrice">$0.00</div>
-                    </div>
-                </div>
-                <div class="asset-right">
-                    <div class="asset-usd" id="ethUsd">$0.00</div>
-                    <div class="asset-amount">0.00 ETH <i class="fa-solid fa-chevron-down chevron-icon" id="ethChevron"></i></div>
-                </div>
-            </div>
-            <!-- Sub Tokens under ETH -->
-            <div class="sub-tokens-list" id="ethSubList">
-                <div class="sub-token-item" onclick="openCoinActionModal('ETH', 'Ethereum (ERC-20)')">
+                <div class="sub-token-item" onclick="openCoinActionModal('HMSTR', 'Hamster Kombat', 'TON Blockchain')">
                     <div class="sub-left">
                         <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
-                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/279/large/ethereum.png">
+                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/39108/large/hamster_kombat.png">
                         <div>
-                            <div class="sub-name">ETH (Native)</div>
-                            <div class="sub-network">Ethereum Mainnet</div>
+                            <div class="sub-name">HMSTR</div>
+                            <div class="sub-network">TON Mainnet</div>
                         </div>
                     </div>
-                    <div class="sub-right">
-                        <div class="sub-usd">$0.00</div>
-                        <div class="sub-amt">0.00 ETH</div>
-                    </div>
-                </div>
-                <div class="sub-token-item" onclick="openCoinActionModal('PEPE', 'Pepe Token')">
-                    <div class="sub-left">
-                        <i class="fa-solid fa-arrow-turn-down-right sub-arrow"></i>
-                        <img class="sub-icon" src="https://assets.coingecko.com/coins/images/29850/large/pepe-token.png">
-                        <div>
-                            <div class="sub-name">PEPE</div>
-                            <div class="sub-network">ERC-20 Token</div>
-                        </div>
-                    </div>
-                    <div class="sub-right">
-                        <div class="sub-usd">$0.00</div>
-                        <div class="sub-amt">0.00 PEPE</div>
-                    </div>
-                </div>
-            </div>
-        </li>
-
-        <!-- USDT Standalone -->
-        <li class="asset-group">
-            <div class="asset-item" onclick="openCoinActionModal('USDT', 'USDT (TRC-20)')">
-                <div class="asset-left">
-                    <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/325/large/Tether.png" alt="USDT">
-                    <div>
-                        <div class="asset-name">USDT (TRC20)</div>
-                        <div class="asset-price">$1.00</div>
-                    </div>
-                </div>
-                <div class="asset-right">
-                    <div class="asset-usd" id="usdtUsdValue">$0.00</div>
-                    <div class="asset-amount"><span id="usdtTokenAmount">0.00 USDT</span></div>
+                    <div class="sub-right"><div class="sub-usd">$0.00</div><div class="sub-amt">0.00 HMSTR</div></div>
                 </div>
             </div>
         </li>
 
     </ul>
 
-    <!-- Bottom Nav -->
+    <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <div class="nav-item active"><i class="fa-solid fa-wallet"></i><span>Wallet</span></div>
         <div class="nav-item" onclick="alert('Virtual Crypto Cards launching soon!')"><i class="fa-regular fa-credit-card"></i><span>Card</span></div>
@@ -323,10 +323,11 @@
     </div>
 
     <!-- Modals -->
-    <!-- 1. Coin Action Sheet Modal -->
+    <!-- 1. Coin Action Modal -->
     <div class="modal" id="coinActionModal" onclick="closeModalOutside(event, 'coinActionModal')">
         <div class="modal-content">
             <div class="modal-title" id="actionModalTitle">Coin Options</div>
+            <div class="modal-subtitle" id="actionModalSubtitle">Network</div>
             <button class="submit-btn" id="coinDepositBtn" style="background: #0284c7;">Receive / Deposit</button>
             <button class="submit-btn" id="coinSendBtn">Send</button>
             <button class="btn-secondary-modal" onclick="closeModal('coinActionModal')">Cancel</button>
@@ -336,10 +337,10 @@
     <!-- 2. Deposit Modal -->
     <div class="modal" id="depositModal" onclick="closeModalOutside(event, 'depositModal')">
         <div class="modal-content">
-            <div class="modal-title" id="depositModalTitle">Deposit / Receive</div>
-            <p style="font-size: 12px; color: #64748b; text-align: center; margin-bottom: 8px;">Your Mainnet Address:</p>
-            <div id="depositAddr" style="background: #f1f5f9; padding: 14px; border-radius: 12px; font-size: 12px; word-break: break-all; text-align: center; font-weight: 700; color: #0f172a; cursor: pointer;" onclick="copyAddr()">Loading Address...</div>
-            <button class="submit-btn" onclick="copyAddr()">Copy Mainnet Address</button>
+            <div class="modal-title" id="depositModalTitle">Deposit</div>
+            <div class="modal-subtitle" id="depositNetworkTitle">Network Address:</div>
+            <div id="depositAddr" class="addr-display" onclick="copyAddr()">Loading Address...</div>
+            <button class="submit-btn" onclick="copyAddr()">Copy Address</button>
         </div>
     </div>
 
@@ -347,11 +348,15 @@
     <div class="modal" id="sendModal" onclick="closeModalOutside(event, 'sendModal')">
         <div class="modal-content">
             <div class="modal-title">Send Crypto</div>
-            <select id="sendCoinSelect" class="select-box">
+            <div class="modal-subtitle" id="sendModalNetwork">Network: Multi-Chain</div>
+            <select id="sendCoinSelect" class="select-box" onchange="updateSendPlaceholder()">
                 <option value="TRX">TRX (TRON Mainnet)</option>
                 <option value="USDT">USDT (TRC-20)</option>
+                <option value="BTC">BTC (Bitcoin Network)</option>
+                <option value="ETH">ETH (Ethereum Mainnet)</option>
+                <option value="TON">TON (TON Blockchain)</option>
             </select>
-            <input type="text" id="sendTo" class="input-box" placeholder="Recipient Address (T...)">
+            <input type="text" id="sendTo" class="input-box" placeholder="Recipient Address">
             <input type="number" id="sendAmt" class="input-box" placeholder="Amount">
             <button class="submit-btn" id="sendSubmitBtn" onclick="handleSend()">Send Now</button>
             <div id="sendRes" style="font-size: 12px; text-align: center; margin-top: 10px; font-weight: 600;"></div>
@@ -378,7 +383,7 @@
                     <option value="TRX">TRX</option>
                 </select>
             </div>
-            <button class="submit-btn" onclick="alert('Connecting to SunSwap Mainnet DEX...')">Swap Tokens</button>
+            <button class="submit-btn" onclick="alert('DEX Multi-Chain Bridge Connecting...')">Swap Tokens</button>
         </div>
     </div>
 
@@ -394,11 +399,10 @@
         document.getElementById('userName').innerText = name.toUpperCase();
         document.getElementById('userAvatar').innerText = name.charAt(0).toUpperCase();
 
-        let currentWalletAddress = "";
-        let prices = { btc: 88500, eth: 2600, trx: 0.22, usdt: 1 };
+        let chainAddresses = {};
+        let prices = { btc: 88500, eth: 2600, trx: 0.22, usdt: 1, ton: 5.5 };
         let walletBalances = { trx: 0, usdt: 0 };
 
-        // Accordion Toggle
         function toggleDropdown(listId, chevronId) {
             const list = document.getElementById(listId);
             const chevron = document.getElementById(chevronId);
@@ -411,10 +415,9 @@
             }
         }
 
-        // Live Prices (Binance)
         async function fetchLivePrices() {
             try {
-                const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbols=%5B%22BTCUSDT%22,%22ETHUSDT%22,%22TRXUSDT%22%5D");
+                const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbols=%5B%22BTCUSDT%22,%22ETHUSDT%22,%22TRXUSDT%22,%22TONUSDT%22%5D");
                 const data = await res.json();
                 
                 data.forEach(item => {
@@ -422,11 +425,13 @@
                     if (item.symbol === "BTCUSDT") prices.btc = p;
                     if (item.symbol === "ETHUSDT") prices.eth = p;
                     if (item.symbol === "TRXUSDT") prices.trx = p;
+                    if (item.symbol === "TONUSDT") prices.ton = p;
                 });
 
                 document.getElementById('btcPrice').innerText = `$${prices.btc.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                 document.getElementById('ethPrice').innerText = `$${prices.eth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                 document.getElementById('trxPrice').innerText = `$${prices.trx.toFixed(4)}`;
+                document.getElementById('tonPrice').innerText = `$${prices.ton.toFixed(2)}`;
 
                 updateTotalDisplay();
             } catch (e) {
@@ -434,7 +439,6 @@
             }
         }
 
-        // Wallet Balance
         async function fetchWalletData() {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/wallet`, {
@@ -444,9 +448,8 @@
                 });
                 const data = await res.json();
                 
-                if (data.address) {
-                    currentWalletAddress = data.address;
-                    document.getElementById('depositAddr').innerText = data.address;
+                if (data.addresses) {
+                    chainAddresses = data.addresses;
 
                     walletBalances.trx = parseFloat(data.balanceTRX || 0);
                     walletBalances.usdt = parseFloat(data.balanceUSDT || 0);
@@ -455,7 +458,6 @@
                     document.getElementById('subTrxAmt').innerText = `${walletBalances.trx.toFixed(2)} TRX`;
                     
                     document.getElementById('usdtTokenAmount').innerText = `${walletBalances.usdt.toFixed(2)} USDT`;
-                    document.getElementById('subUsdtAmt').innerText = `${walletBalances.usdt.toFixed(2)} USDT`;
 
                     updateTotalDisplay();
                 }
@@ -470,9 +472,7 @@
 
             document.getElementById('trxUsdValue').innerText = `$${trxUsd.toFixed(2)}`;
             document.getElementById('subTrxUsd').innerText = `$${trxUsd.toFixed(2)}`;
-            
             document.getElementById('usdtUsdValue').innerText = `$${usdtUsd.toFixed(2)}`;
-            document.getElementById('subUsdtUsd').innerText = `$${usdtUsd.toFixed(2)}`;
 
             const total = (trxUsd + usdtUsd).toFixed(2);
             document.getElementById('totalBalanceUSD').innerText = `$${total}`;
@@ -482,42 +482,62 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function closeModalOutside(e, id) { if(e.target.id === id) closeModal(id); }
 
-        function openDepositModal(coin = 'TRON Mainnet') {
+        function openDepositModal(coin = 'BTC', network = 'Bitcoin Mainnet') {
+            const addr = chainAddresses[coin] || "Loading...";
             document.getElementById('depositModalTitle').innerText = `Deposit ${coin}`;
+            document.getElementById('depositNetworkTitle').innerText = `Your ${network} Address:`;
+            document.getElementById('depositAddr').innerText = addr;
             openModal('depositModal');
         }
 
-        function openSendModal(coin = 'TRX') {
-            document.getElementById('sendCoinSelect').value = (coin === 'USDT') ? 'USDT' : 'TRX';
+        function openSendModal(coin = 'TRX', network = 'TRON Mainnet') {
+            document.getElementById('sendCoinSelect').value = coin;
+            document.getElementById('sendModalNetwork').innerText = `Network: ${network}`;
+            updateSendPlaceholder();
             openModal('sendModal');
         }
 
-        function openCoinActionModal(symbol, fullName) {
-            document.getElementById('actionModalTitle').innerText = `${fullName}`;
+        function updateSendPlaceholder() {
+            const coin = document.getElementById('sendCoinSelect').value;
+            const input = document.getElementById('sendTo');
+            if (coin === 'BTC') input.placeholder = "Recipient Bitcoin Address (bc1... or 1...)";
+            else if (coin === 'ETH') input.placeholder = "Recipient Ethereum Address (0x...)";
+            else if (coin === 'TON') input.placeholder = "Recipient TON Address (UQ...)";
+            else input.placeholder = "Recipient TRON Address (T...)";
+        }
+
+        function openCoinActionModal(symbol, fullName, network) {
+            document.getElementById('actionModalTitle').innerText = fullName;
+            document.getElementById('actionModalSubtitle').innerText = `Network: ${network}`;
             document.getElementById('coinDepositBtn').onclick = () => {
                 closeModal('coinActionModal');
-                openDepositModal(symbol);
+                openDepositModal(symbol, network);
             };
             document.getElementById('coinSendBtn').onclick = () => {
                 closeModal('coinActionModal');
-                openSendModal(symbol);
+                openSendModal(symbol, network);
             };
             openModal('coinActionModal');
         }
 
         function copyAddr() {
-            if(currentWalletAddress && !currentWalletAddress.includes("Loading")) {
-                navigator.clipboard.writeText(currentWalletAddress);
-                alert("TRON Mainnet Address Copied!");
+            const addr = document.getElementById('depositAddr').innerText;
+            if(addr && !addr.includes("Loading")) {
+                navigator.clipboard.writeText(addr);
+                alert("Blockchain Address Copied!");
                 closeModal('depositModal');
             }
         }
 
-        function openHistory() {
-            if (currentWalletAddress && !currentWalletAddress.includes("Loading")) {
-                window.open(`https://tronscan.org/#/address/${currentWalletAddress}`, '_blank');
+        function openHistory(coin = 'TRX') {
+            const addr = chainAddresses[coin];
+            if (addr) {
+                if (coin === 'BTC') window.open(`https://www.blockchain.com/explorer/addresses/btc/${addr}`, '_blank');
+                else if (coin === 'ETH') window.open(`https://etherscan.io/address/${addr}`, '_blank');
+                else if (coin === 'TON') window.open(`https://tonscan.org/address/${addr}`, '_blank');
+                else window.open(`https://tronscan.org/#/address/${addr}`, '_blank');
             } else {
-                alert("Please wait for address to load");
+                alert("Please wait for addresses to load");
             }
         }
 
@@ -525,16 +545,9 @@
             const fromCoin = document.getElementById('swapFromCoin').value;
             const toCoin = document.getElementById('swapToCoin').value;
             const amt = parseFloat(document.getElementById('swapFromAmt').value) || 0;
-            
-            if (fromCoin === toCoin) {
-                document.getElementById('swapToAmt').value = amt;
-                return;
-            }
-            if (fromCoin === 'TRX' && toCoin === 'USDT') {
-                document.getElementById('swapToAmt').value = (amt * prices.trx).toFixed(4);
-            } else if (fromCoin === 'USDT' && toCoin === 'TRX') {
-                document.getElementById('swapToAmt').value = (amt / prices.trx).toFixed(2);
-            }
+            if (fromCoin === toCoin) { document.getElementById('swapToAmt').value = amt; return; }
+            if (fromCoin === 'TRX' && toCoin === 'USDT') document.getElementById('swapToAmt').value = (amt * prices.trx).toFixed(4);
+            else if (fromCoin === 'USDT' && toCoin === 'TRX') document.getElementById('swapToAmt').value = (amt / prices.trx).toFixed(2);
         }
 
         async function handleSend() {
@@ -552,14 +565,14 @@
 
             btn.disabled = true;
             btn.innerText = "Broadcasting...";
-            resDiv.innerText = `Broadcasting ${coin} to TRON Mainnet...`;
+            resDiv.innerText = `Broadcasting ${coin} to network...`;
             resDiv.style.color = "#d97706";
 
             try {
                 const res = await fetch(`${BACKEND_URL}/api/send`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ telegramId, toAddress, amount })
+                    body: JSON.stringify({ telegramId, toAddress, amount, coin })
                 });
                 const data = await res.json();
                 if(data.success) {
