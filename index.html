@@ -513,17 +513,23 @@
         document.getElementById('userHandle').innerText = usernameHandle;
         document.getElementById('leaderboardUserName').innerText = `${displayName} (You)`;
 
-        // ✅ असली टेलीग्राम बॉट यूजरनेम सेट
+        // ✅ टेलीग्राम डायरेक्ट मिनी-ऐप शेयर लिंक (बैनर कार्ड प्रीव्यू के साथ)
         const BOT_USERNAME = "OpenWalletApp_2026_bot";
-        const myReferralLink = `https://t.me/${BOT_USERNAME}?start=ref_${telegramId}`;
-        document.getElementById('referralLinkText').innerText = myReferralLink;
+        const myReferralLink = `https://t.me/${BOT_USERNAME}?startapp=ref_${telegramId}`;
 
+        // इनवाइट बॉक्स में लिंक सेट करें
+        const refLinkElem = document.getElementById('referralLinkText');
+        if (refLinkElem) {
+            refLinkElem.innerText = myReferralLink;
+        }
+
+        // 1. इनवाइट लिंक कॉपी फ़ंक्शन
         function copyReferralLink() {
             navigator.clipboard.writeText(myReferralLink);
             alert("Invite link copied to clipboard!");
         }
 
-        // ✅ सिंगल लिंक शेयरिंग (डबल लिंक बग फिक्स)
+        // 2. टेलीग्राम डायरेक्ट शेयर फ़ंक्शन (सिंगल लिंक + बैनर कार्ड)
         function shareOnTelegram() {
             const shareText = encodeURIComponent("🚀 Open your Web3 Multi-Chain Wallet with me & earn cash rewards!");
             const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(myReferralLink)}&text=${shareText}`;
@@ -535,11 +541,12 @@
             }
         }
 
+        // 3. अन्य ऐप्स (WhatsApp, आदि) पर शेयर करने का फ़ंक्शन
         function shareAppDirectly() {
             if (navigator.share) {
                 navigator.share({
                     title: 'OPEN WALLET - Web3 Multi-Chain',
-                    text: 'Join me on OPEN WALLET! Secure multi-chain decentralized wallet.',
+                    text: '🚀 Open your Web3 Multi-Chain Wallet with me & earn cash rewards!',
                     url: myReferralLink
                 }).catch(() => {});
             } else {
@@ -673,6 +680,7 @@
             KSM: { name: "Kusama", placeholder: "Recipient Kusama/Polkadot Address (H...)" }
         };
 
+        /* =================== REAL CRYPTOGRAPHIC BASE58CHECK & BECH32 ENGINE =================== */
         const B58_CHARS = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
         function base58CheckEncode(versionByte, hexPayload) {
