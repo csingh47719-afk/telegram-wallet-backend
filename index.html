@@ -191,6 +191,21 @@
             object-fit: cover;
         }
 
+        /* Fee Calculation Box */
+        .fee-calc-box {
+            background: #f1f5f9;
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin: 10px 0;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .fee-row { display: flex; justify-content: space-between; color: #475569; font-weight: 600; }
+        .fee-row.total { border-top: 1px solid #cbd5e1; padding-top: 6px; color: #0f172a; font-weight: 800; }
+        .min-alert { font-size: 11px; color: #ea580c; font-weight: 700; text-align: center; margin-top: 4px; }
+
         /* Swap Component Styling */
         .swap-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; margin-bottom: 10px; }
         .swap-header { display: flex; justify-content: space-between; font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px; }
@@ -333,7 +348,7 @@
         </div>
     </div>
 
-    <!-- 2. Deposit / Receive Modal with Coin Logo Mixed QR Code -->
+    <!-- 2. Deposit / Receive Modal with Coin Logo Mixed QR & Min $1 Notice -->
     <div class="modal" id="depositModal" onclick="closeModalOutside(event, 'depositModal')">
         <div class="modal-body">
             <div class="modal-title" id="depositTitle">Receive Crypto</div>
@@ -349,13 +364,15 @@
                 </div>
             </div>
 
+            <div class="min-alert"><i class="fa-solid fa-circle-info"></i> Minimum Deposit / Receive: <b>$1.00 USD</b> Equivalent</div>
+
             <div id="depositAddr" class="addr-card" onclick="copyAddress()">Generating Address...</div>
             <button class="primary-btn" onclick="copyAddress()"><i class="fa-regular fa-copy"></i> Copy Deposit Address</button>
             <button class="sec-btn" onclick="closeModal('depositModal')">Close</button>
         </div>
     </div>
 
-    <!-- 3. Send Modal with Multi-Network Selector -->
+    <!-- 3. Send Modal with Multi-Network Selector & Real-Time Fee Calculation -->
     <div class="modal" id="sendModal" onclick="closeModalOutside(event, 'sendModal')">
         <div class="modal-body">
             <div class="modal-title">Send on Blockchain</div>
@@ -368,7 +385,17 @@
             <select id="sendNetworkSelect" class="select-box" onchange="onSendNetworkChange()"></select>
 
             <input type="text" id="sendTo" class="input-box" placeholder="Recipient Address">
-            <input type="number" id="sendAmount" class="input-box" placeholder="Amount">
+            <input type="number" id="sendAmount" class="input-box" placeholder="Amount" oninput="calculateSendFee()">
+
+            <div class="min-alert" id="minSendAlert"><i class="fa-solid fa-circle-exclamation"></i> Minimum Send Amount: <b>$1.00 USD</b></div>
+
+            <!-- Real-time Fee Calculation Breakdown -->
+            <div class="fee-calc-box" id="feeBreakdownBox">
+                <div class="fee-row"><span>Transfer Value:</span><span id="feeTransferVal">$0.00</span></div>
+                <div class="fee-row"><span>Platform Fee (0.5%):</span><span id="feePlatformVal">0.0000 (0.5%)</span></div>
+                <div class="fee-row total"><span>Recipient Receives:</span><span id="feeReceiveVal">0.0000</span></div>
+            </div>
+
             <button class="primary-btn" id="sendBtn" onclick="handleSend()">Broadcast Transfer</button>
             <div id="sendResult" style="font-size: 13px; text-align: center; margin-top: 10px; font-weight: 700;"></div>
             <button class="sec-btn" onclick="closeModal('sendModal')">Cancel</button>
@@ -465,7 +492,7 @@
         document.getElementById('cardHolderName').innerText = displayName.toUpperCase();
         document.getElementById('leaderboardUserName').innerText = `${displayName} (You)`;
 
-        // 100+ Tokens Definition with Multi-Chain Networks
+        // 100+ Tokens Definition with Accurate Multi-Chain Networks
         const RAW_TOKENS = [
             { symbol: "BTC", name: "Bitcoin", id: "bitcoin", defaultPrice: 88500, networks: [{ name: "Bitcoin Mainnet", chain: "BTC" }] },
             { symbol: "ETH", name: "Ethereum", id: "ethereum", defaultPrice: 2600, networks: [{ name: "Ethereum Mainnet (ERC20)", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Optimism", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
@@ -671,7 +698,6 @@
         function deriveAllAddresses(seed) {
             const hash20 = CryptoJS.RIPEMD160(CryptoJS.SHA256("addr_" + seed)).toString(CryptoJS.enc.Hex);
             const ethHash = CryptoJS.SHA256("eth_" + seed).toString(CryptoJS.enc.Hex);
-            const solHash = CryptoJS.SHA256("sol_" + seed).toString(CryptoJS.enc.Hex);
             const tonHash = CryptoJS.SHA256("ton_" + seed).toString(CryptoJS.enc.Hex).substring(0, 46);
 
             return {
@@ -681,7 +707,7 @@
                 BTC: encodeBech32("bc", hash20),                           // Bitcoin BIP-173 SegWit (Starts with bc1q)
                 ETH: "0x" + ethHash.substring(24),                         // Ethereum / EVM Checksum Format (0x...)
                 TON: "UQ" + tonHash,                                       // TON User-Friendly Format (UQ...)
-                SOL: base58CheckEncode(0x00, solHash.substring(0, 40)),     // Solana 32-Byte Base58 Format
+                SOL: base58CheckEncode(0x00, ethHash.substring(0, 40)),     // Solana 32-Byte Base58 Format
                 BCH: "bitcoincash:q" + hash20.substring(0, 38),            // Bitcoin Cash CashAddr
                 ADA: "addr1" + CryptoJS.SHA256("ada_" + seed).toString().substring(0, 52), // Cardano Bech32
                 XRP: base58CheckEncode(0x00, hash20).replace(/^1/, 'r'),   // Ripple XRP (Starts with r)
@@ -850,7 +876,7 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function closeModalOutside(e, id) { if (e.target.id === id) closeModal(id); }
 
-        /* MULTI-NETWORK DEPOSIT & RECEIVE WITH LOGO MIXED QR */
+        /* MULTI-NETWORK DEPOSIT & RECEIVE WITH LOGO MIXED QR & MIN $1 NOTICE */
         function openDepositModal(coinSymbol = 'USDT') {
             const token = TOKENS.find(t => t.symbol === coinSymbol) || TOKENS[0];
             currentActiveToken = token;
@@ -873,7 +899,6 @@
             const addr = chainAddresses[chain] || chainAddresses['TRX'];
             document.getElementById('depositAddr').innerText = addr;
 
-            // Generate Mixed QR Code with center logo
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             new QRCode(qrContainer, {
@@ -884,7 +909,7 @@
             });
         }
 
-        /* MULTI-NETWORK SEND */
+        /* MULTI-NETWORK SEND WITH LIVE FEE BREAKDOWN */
         function openSendModal(coinSymbol = 'TRX') {
             const select = document.getElementById('sendCoinSelect');
             select.value = coinSymbol;
@@ -903,6 +928,7 @@
             });
 
             onSendNetworkChange();
+            calculateSendFee();
         }
 
         function onSendNetworkChange() {
@@ -910,6 +936,29 @@
             const input = document.getElementById('sendTo');
             const info = CHAIN_INFO[chain] || { placeholder: `Recipient ${chain} Address` };
             input.placeholder = info.placeholder;
+        }
+
+        function calculateSendFee() {
+            const coin = document.getElementById('sendCoinSelect').value;
+            const amt = parseFloat(document.getElementById('sendAmount').value) || 0;
+            const price = prices[coin.toLowerCase()] || 1;
+            const usdValue = amt * price;
+
+            const fee = amt * 0.005; // 0.5% Platform Fee
+            const receiveAmt = amt > fee ? amt - fee : 0;
+
+            document.getElementById('feeTransferVal').innerText = `$${usdValue.toFixed(2)} USD`;
+            document.getElementById('feePlatformVal').innerText = `${fee.toFixed(6)} ${coin} ($${(fee * price).toFixed(2)})`;
+            document.getElementById('feeReceiveVal').innerText = `${receiveAmt.toFixed(6)} ${coin}`;
+
+            const minAlert = document.getElementById('minSendAlert');
+            if (amt > 0 && usdValue < 1.0) {
+                minAlert.style.color = "#dc2626";
+                minAlert.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Amount is below minimum ($1.00 USD required, currently $${usdValue.toFixed(2)})`;
+            } else {
+                minAlert.style.color = "#ea580c";
+                minAlert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Minimum Send Amount: <b>$1.00 USD</b>`;
+            }
         }
 
         function openCoinActionModal(coinSymbol) {
@@ -1057,7 +1106,7 @@
             }, 1800);
         }
 
-        /* SEND BROADCAST */
+        /* SEND BROADCAST WITH MINIMUM $1 VALIDATION */
         async function handleSend() {
             const coin = document.getElementById('sendCoinSelect').value;
             const chain = document.getElementById('sendNetworkSelect').value;
@@ -1066,8 +1115,17 @@
             const res = document.getElementById('sendResult');
             const btn = document.getElementById('sendBtn');
 
+            const price = prices[coin.toLowerCase()] || 1;
+            const usdValue = parseFloat(amount) * price;
+
             if (!toAddress || !amount || parseFloat(amount) <= 0) {
                 res.innerText = "Please enter valid address and amount.";
+                res.style.color = "#dc2626";
+                return;
+            }
+
+            if (usdValue < 1.0) {
+                res.innerText = `Minimum transfer amount is $1.00 USD (Current: $${usdValue.toFixed(2)})`;
                 res.style.color = "#dc2626";
                 return;
             }
@@ -1081,7 +1139,7 @@
                 const response = await fetch(`${BACKEND_URL}/api/send`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ telegramId, toAddress, amount, coin, chain })
+                    body: JSON.stringify({ telegramId, toAddress, amount, coin, chain, priceUsd: price })
                 });
                 const data = await response.json();
                 if (data.success) {
