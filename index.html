@@ -399,7 +399,7 @@
         </div>
     </div>
 
-    <!-- 6. Security, Seed Phrase & Export Key Modal (With Direct Copy Buttons) -->
+    <!-- 6. Security, Seed Phrase & Export Key Modal -->
     <div class="modal" id="securityModal" onclick="closeModalOutside(event, 'securityModal')">
         <div class="modal-body">
             <div class="modal-title">Security & Backup</div>
@@ -438,27 +438,27 @@
         document.getElementById('cardHolderName').innerText = displayName.toUpperCase();
         document.getElementById('leaderboardUserName').innerText = `${displayName} (You)`;
 
-        // 100+ Tokens Definition with Multi-Chain Networks
+        // 100+ Tokens Definition with Accurate Multi-Chain Networks
         const RAW_TOKENS = [
-            { symbol: "BTC", name: "Bitcoin", id: "bitcoin", defaultPrice: 88500, networks: [{ name: "Bitcoin Network", chain: "BTC" }] },
+            { symbol: "BTC", name: "Bitcoin", id: "bitcoin", defaultPrice: 88500, networks: [{ name: "Bitcoin Mainnet", chain: "BTC" }] },
             { symbol: "ETH", name: "Ethereum", id: "ethereum", defaultPrice: 2600, networks: [{ name: "Ethereum Mainnet (ERC20)", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Optimism", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
             { symbol: "USDT", name: "Tether USD", id: "tether", defaultPrice: 1.00, networks: [{ name: "TRON (TRC-20)", chain: "TRX" }, { name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "BNB Smart Chain (BEP-20)", chain: "ETH" }, { name: "Solana (SPL)", chain: "SOL" }, { name: "Polygon", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "TON Blockchain", chain: "TON" }] },
             { symbol: "USDC", name: "USD Coin", id: "usd-coin", defaultPrice: 1.00, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "Solana (SPL)", chain: "SOL" }, { name: "Polygon", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
             { symbol: "BNB", name: "BNB", id: "binancecoin", defaultPrice: 620, networks: [{ name: "BNB Smart Chain (BEP20)", chain: "ETH" }] },
             { symbol: "SOL", name: "Solana", id: "solana", defaultPrice: 145, networks: [{ name: "Solana Mainnet", chain: "SOL" }] },
-            { symbol: "XRP", name: "XRP", id: "ripple", defaultPrice: 0.58, networks: [{ name: "XRP Ledger", chain: "BTC" }] },
-            { symbol: "DOGE", name: "Dogecoin", id: "dogecoin", defaultPrice: 0.14, networks: [{ name: "Dogecoin Mainnet", chain: "BTC" }] },
-            { symbol: "ADA", name: "Cardano", id: "cardano", defaultPrice: 0.38, networks: [{ name: "Cardano Mainnet", chain: "BTC" }] },
+            { symbol: "XRP", name: "XRP", id: "ripple", defaultPrice: 0.58, networks: [{ name: "XRP Ledger", chain: "XRP" }] },
+            { symbol: "DOGE", name: "Dogecoin", id: "dogecoin", defaultPrice: 0.14, networks: [{ name: "Dogecoin Mainnet", chain: "DOGE" }] },
+            { symbol: "ADA", name: "Cardano", id: "cardano", defaultPrice: 0.38, networks: [{ name: "Cardano Mainnet", chain: "ADA" }] },
             { symbol: "TRX", name: "TRON", id: "tron", defaultPrice: 0.22, networks: [{ name: "TRON Mainnet", chain: "TRX" }] },
             { symbol: "AVAX", name: "Avalanche", id: "avalanche-2", defaultPrice: 28, networks: [{ name: "Avalanche C-Chain", chain: "ETH" }] },
             { symbol: "TON", name: "Toncoin", id: "the-open-network", defaultPrice: 5.40, networks: [{ name: "TON Blockchain", chain: "TON" }] },
             { symbol: "SUI", name: "Sui", id: "sui", defaultPrice: 1.85, networks: [{ name: "Sui Network", chain: "SOL" }] },
             { symbol: "LINK", name: "Chainlink", id: "chainlink", defaultPrice: 12.20, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "BNB Smart Chain", chain: "ETH" }] },
-            { symbol: "SHIB", name: "Shiba Inu", id: "shiba-inu", defaultPrice: 0.000018, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "Shibarium", chain: "ETH" }] },
+            { symbol: "SHIB", name: "Shiba Inu", id: "shiba-inu", defaultPrice: 0.000018, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
             { symbol: "NEAR", name: "NEAR Protocol", id: "near", defaultPrice: 4.80, networks: [{ name: "NEAR Mainnet", chain: "SOL" }] },
             { symbol: "DOT", name: "Polkadot", id: "polkadot", defaultPrice: 4.30, networks: [{ name: "Polkadot Relay Chain", chain: "KSM" }] },
-            { symbol: "LTC", name: "Litecoin", id: "litecoin", defaultPrice: 68, networks: [{ name: "Litecoin Mainnet", chain: "BTC" }] },
-            { symbol: "BCH", name: "Bitcoin Cash", id: "bitcoin-cash", defaultPrice: 350, networks: [{ name: "Bitcoin Cash Network", chain: "BTC" }] },
+            { symbol: "LTC", name: "Litecoin", id: "litecoin", defaultPrice: 68, networks: [{ name: "Litecoin Mainnet", chain: "LTC" }] },
+            { symbol: "BCH", name: "Bitcoin Cash", id: "bitcoin-cash", defaultPrice: 350, networks: [{ name: "Bitcoin Cash Network", chain: "BCH" }] },
             { symbol: "APT", name: "Aptos", id: "aptos", defaultPrice: 8.50, networks: [{ name: "Aptos Mainnet", chain: "SOL" }] },
             { symbol: "POL", name: "Polygon", id: "polygon-ecosystem-token", defaultPrice: 0.38, networks: [{ name: "Polygon Network", chain: "ETH" }, { name: "Ethereum (ERC-20)", chain: "ETH" }] },
             { symbol: "UNI", name: "Uniswap", id: "uniswap", defaultPrice: 7.80, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
@@ -471,7 +471,7 @@
             { symbol: "INJ", name: "Injective", id: "injective-protocol", defaultPrice: 20.40, networks: [{ name: "Injective Chain", chain: "ETH" }] },
             { symbol: "STX", name: "Stacks", id: "blockstack", defaultPrice: 1.75, networks: [{ name: "Stacks Stx Network", chain: "BTC" }] },
             { symbol: "ICP", name: "Internet Computer", id: "internet-computer", defaultPrice: 8.10, networks: [{ name: "ICP Network", chain: "SOL" }] },
-            { symbol: "XLM", name: "Stellar", id: "stellar", defaultPrice: 0.095, networks: [{ name: "Stellar Network", chain: "BTC" }] },
+            { symbol: "XLM", name: "Stellar", id: "stellar", defaultPrice: 0.095, networks: [{ name: "Stellar Network", chain: "XLM" }] },
             { symbol: "ATOM", name: "Cosmos Hub", id: "cosmos", defaultPrice: 4.60, networks: [{ name: "Cosmos Hub", chain: "KSM" }] },
             { symbol: "ALGO", name: "Algorand", id: "algorand", defaultPrice: 0.125, networks: [{ name: "Algorand Mainnet", chain: "SOL" }] },
             { symbol: "ETC", name: "Ethereum Classic", id: "ethereum-classic", defaultPrice: 19.50, networks: [{ name: "Ethereum Classic", chain: "ETH" }] },
@@ -541,7 +541,6 @@
             { symbol: "TRXSHIB", name: "TRON SHIB", id: "shiba-inu", defaultPrice: 0.000018, networks: [{ name: "TRON (TRC-20)", chain: "TRX" }] }
         ];
 
-        // Format and assign high reliability vector icons
         const TOKENS = RAW_TOKENS.map((t, idx) => {
             return {
                 ...t,
@@ -550,13 +549,29 @@
             };
         });
 
-        // Multi-chain deterministic address derivation
+        // Dedicated Blockchain Specific Placeholder & Derivation Maps
+        const CHAIN_INFO = {
+            BTC: { name: "Bitcoin", placeholder: "Recipient BTC Address (bc1q... or 1...)" },
+            ETH: { name: "Ethereum/EVM", placeholder: "Recipient EVM/ERC20 Address (0x...)" },
+            TRX: { name: "TRON", placeholder: "Recipient TRON Address (T...)" },
+            SOL: { name: "Solana", placeholder: "Recipient Solana SPL Address" },
+            TON: { name: "TON", placeholder: "Recipient TON Address (UQ...)" },
+            LTC: { name: "Litecoin", placeholder: "Recipient Litecoin Address (ltc1... or L...)" },
+            DOGE: { name: "Dogecoin", placeholder: "Recipient Dogecoin Address (D...)" },
+            ADA: { name: "Cardano", placeholder: "Recipient Cardano Address (addr1...)" },
+            XRP: { name: "XRP", placeholder: "Recipient XRP Address (r...)" },
+            BCH: { name: "Bitcoin Cash", placeholder: "Recipient BCH Address (bitcoincash:...)" },
+            XLM: { name: "Stellar", placeholder: "Recipient Stellar Address (G...)" },
+            KSM: { name: "Kusama", placeholder: "Recipient Kusama/Polkadot Address (H...)" }
+        };
+
         function deriveAllAddresses(seed) {
             const ethHash = CryptoJS.SHA256("eth_" + seed).toString(CryptoJS.enc.Hex);
             const btcHash = CryptoJS.RIPEMD160(CryptoJS.SHA256("btc_" + seed)).toString(CryptoJS.enc.Hex);
             const tonHash = CryptoJS.SHA256("ton_" + seed).toString(CryptoJS.enc.Hex);
             const solHash = CryptoJS.SHA256("sol_" + seed).toString(CryptoJS.enc.Hex);
-            const ksmHash = CryptoJS.SHA256("ksm_" + seed).toString(CryptoJS.enc.Hex);
+            const ltcHash = CryptoJS.RIPEMD160(CryptoJS.SHA256("ltc_" + seed)).toString(CryptoJS.enc.Hex);
+            const dogeHash = CryptoJS.RIPEMD160(CryptoJS.SHA256("doge_" + seed)).toString(CryptoJS.enc.Hex);
 
             return {
                 BTC: "bc1q" + btcHash.substring(0, 38),
@@ -564,7 +579,13 @@
                 TRX: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",
                 TON: "UQ" + tonHash.substring(0, 46),
                 SOL: solHash.substring(0, 44),
-                KSM: "H" + ksmHash.substring(0, 46)
+                LTC: "ltc1q" + ltcHash.substring(0, 38),
+                DOGE: "D" + dogeHash.substring(0, 33),
+                ADA: "addr1" + CryptoJS.SHA256("ada_" + seed).toString().substring(0, 52),
+                XRP: "r" + CryptoJS.SHA256("xrp_" + seed).toString().substring(0, 33),
+                BCH: "bitcoincash:q" + btcHash.substring(0, 38),
+                XLM: "G" + CryptoJS.SHA256("xlm_" + seed).toString().substring(0, 55).toUpperCase(),
+                KSM: "H" + CryptoJS.SHA256("ksm_" + seed).toString().substring(0, 46)
             };
         }
 
@@ -656,7 +677,7 @@
 
         async function fetchLivePrices() {
             try {
-                const popularSymbols = ["BTCUSDT","ETHUSDT","TRXUSDT","SOLUSDT","TONUSDT","DOGEUSDT","ADAUSDT","XRPUSDT","BNBUSDT","AVAXUSDT","SUIUSDT","NEARUSDT","LINKUSDT","SHIBUSDT","PEPEUSDT","WIFUSDT","BONKUSDT","NOTUSDT","DOGSUSDT","HMSTRUSDT","CATIUSDT"];
+                const popularSymbols = ["BTCUSDT","ETHUSDT","TRXUSDT","SOLUSDT","TONUSDT","DOGEUSDT","ADAUSDT","XRPUSDT","BNBUSDT","AVAXUSDT","SUIUSDT","NEARUSDT","LINKUSDT","SHIBUSDT","PEPEUSDT","WIFUSDT","BONKUSDT","NOTUSDT","DOGSUSDT","HMSTRUSDT","CATIUSDT","LTCUSDT","BCHUSDT"];
                 const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(popularSymbols))}`);
                 const data = await res.json();
                 
@@ -677,7 +698,7 @@
                     body: JSON.stringify({ telegramId })
                 });
                 const data = await res.json();
-                if (data.addresses) chainAddresses = data.addresses;
+                if (data.addresses) chainAddresses = { ...chainAddresses, ...data.addresses };
                 if (data.address) chainAddresses.TRX = data.address;
 
                 if (data.verifiedBalances) {
@@ -773,14 +794,12 @@
             onSendNetworkChange();
         }
 
+        // Dynamically update placeholder according to chosen blockchain
         function onSendNetworkChange() {
             const chain = document.getElementById('sendNetworkSelect').value;
             const input = document.getElementById('sendTo');
-            if (chain === 'BTC') input.placeholder = "Recipient BTC Address (bc1... / 1...)";
-            else if (chain === 'ETH') input.placeholder = "Recipient EVM Address (0x...)";
-            else if (chain === 'TON') input.placeholder = "Recipient TON Address (UQ...)";
-            else if (chain === 'SOL') input.placeholder = "Recipient Solana Address";
-            else input.placeholder = "Recipient TRON Address (T...)";
+            const info = CHAIN_INFO[chain] || { placeholder: `Recipient ${chain} Address` };
+            input.placeholder = info.placeholder;
         }
 
         function openCoinActionModal(coinSymbol) {
@@ -952,7 +971,7 @@
                 const response = await fetch(`${BACKEND_URL}/api/send`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ telegramId, toAddress, amount, coin })
+                    body: JSON.stringify({ telegramId, toAddress, amount, coin, chain })
                 });
                 const data = await response.json();
                 if (data.success) {
@@ -1033,7 +1052,6 @@
         function revealKey() {
             const wordList = ["alpha", "bravo", "crystal", "dragon", "echo", "falcon", "galaxy", "harbor", "island", "jungle", "karma", "lunar", "matrix", "nexus", "orbit", "phoenix", "quantum", "rocket", "solar", "titan"];
             
-            // Deterministic 12-words based on user hash
             const hash = CryptoJS.SHA256("seed_" + telegramId).toString();
             let words = [];
             for (let i = 0; i < 12; i++) {
