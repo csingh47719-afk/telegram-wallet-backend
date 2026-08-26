@@ -156,23 +156,6 @@
             margin: 16px 0 10px; word-break: break-all;
         }
 
-        /* Activity / History List */
-        .tx-card {
-            background: #ffffff; border-radius: 16px; padding: 14px 16px;
-            display: flex; align-items: center; justify-content: space-between;
-            border: 1px solid #f1f5f9; margin-bottom: 10px;
-        }
-        .tx-left { display: flex; align-items: center; gap: 12px; }
-        .tx-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .tx-icon.sent { background: #fee2e2; color: #dc2626; }
-        .tx-icon.received { background: #dcfce7; color: #16a34a; }
-        .tx-icon.swap { background: #e0e7ff; color: #4338ca; }
-        .tx-title { font-size: 14px; font-weight: 700; color: #0f172a; }
-        .tx-date { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-        .tx-right { text-align: right; }
-        .tx-amount { font-size: 14px; font-weight: 700; }
-        .tx-status { font-size: 11px; color: #16a34a; font-weight: 600; }
-
         /* Bottom Nav */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -363,19 +346,19 @@
     <!-- 3. LEADERBOARD VIEW -->
     <div id="leaderboardView" class="view-tab">
         <h3 style="margin-bottom: 16px;">Top Verified Traders</h3>
-        <div class="tx-card">
-            <div class="tx-left">
+        <div class="tx-card" style="background: #ffffff; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #f1f5f9; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="font-weight: 800; font-size: 16px; color: #eab308;">#1</div>
-                <div><div class="tx-title">WhaleTrader_99</div><div class="tx-date">Volume: $680,200</div></div>
+                <div><div style="font-size: 14px; font-weight: 700; color: #0f172a;">WhaleTrader_99</div><div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Volume: $680,200</div></div>
             </div>
-            <div class="tx-right"><div style="color: #16a34a; font-weight: 800;">+38.5%</div></div>
+            <div><div style="color: #16a34a; font-weight: 800;">+38.5%</div></div>
         </div>
-        <div class="tx-card">
-            <div class="tx-left">
+        <div class="tx-card" style="background: #ffffff; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #f1f5f9; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="font-weight: 800; font-size: 16px; color: #94a3b8;">#2</div>
-                <div><div class="tx-title" id="leaderboardUserName">You</div><div class="tx-date">On-Chain Verified</div></div>
+                <div><div style="font-size: 14px; font-weight: 700; color: #0f172a;" id="leaderboardUserName">You</div><div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">On-Chain Verified</div></div>
             </div>
-            <div class="tx-right"><div style="color: #16a34a; font-weight: 800;">Active</div></div>
+            <div><div style="color: #16a34a; font-weight: 800;">Active</div></div>
         </div>
     </div>
 
@@ -540,8 +523,9 @@
             alert("Invite link copied to clipboard!");
         }
 
+        // ✅ सिंगल लिंक शेयरिंग (डबल लिंक बग फिक्स)
         function shareOnTelegram() {
-            const shareText = encodeURIComponent(`🚀 Open your Web3 Multi-Chain Wallet with me:\n${myReferralLink}`);
+            const shareText = encodeURIComponent("🚀 Open your Web3 Multi-Chain Wallet with me & earn cash rewards!");
             const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(myReferralLink)}&text=${shareText}`;
             
             if (window.Telegram?.WebApp?.openTelegramLink) {
@@ -689,7 +673,6 @@
             KSM: { name: "Kusama", placeholder: "Recipient Kusama/Polkadot Address (H...)" }
         };
 
-        /* =================== REAL CRYPTOGRAPHIC BASE58CHECK & BECH32 ENGINE =================== */
         const B58_CHARS = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
         function base58CheckEncode(versionByte, hexPayload) {
@@ -1157,14 +1140,6 @@
                 balances[toKey] = (balances[toKey] || 0) + outAmt;
                 updateUI();
 
-                txHistory.unshift({
-                    type: "swap",
-                    title: `Swapped ${from} ➔ ${to}`,
-                    date: "Just now",
-                    amount: `${amt} ${from} ➔ ${outAmt.toFixed(4)} ${to}`,
-                    status: "Completed"
-                });
-
                 msg.innerText = `Swapped ${amt} ${from} ➔ ${outAmt.toFixed(4)} ${to} Successfully!`;
                 msg.style.color = "#16a34a";
                 btn.disabled = false;
@@ -1214,14 +1189,6 @@
                 if (data.success) {
                     res.innerText = `Broadcasted! TXID: ${data.txid.substring(0, 10)}...`;
                     res.style.color = "#16a34a";
-
-                    txHistory.unshift({
-                        type: "sent",
-                        title: `Sent ${coin}`,
-                        date: "Just now",
-                        amount: `-${amount} ${coin}`,
-                        status: "Confirmed on Mainnet"
-                    });
 
                     setTimeout(() => { 
                         closeModal('sendModal'); 
