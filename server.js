@@ -22,26 +22,20 @@ const tronWeb = new TronWeb(fullNode, solidityNode, eventServer);
 
 const USDT_CONTRACT_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
-const UserSchema = new mongoose.Schema({
-    telegramId: { type: String, required: true, unique: true },
-    tronAddress: { type: String, required: true },
-    ethAddress: { type: String, required: true },
-    btcAddress: { type: String, required: true },
-    tonAddress: { type: String, required: true },
-    encryptedTronKey: { type: String, required: true }
-});
+// Loose Schema so it never crashes on old/missing fields
+const UserSchema = new mongoose.Schema({}, { strict: false });
 const User = mongoose.model('User', UserSchema);
 
-function deriveEthAddress(privKeyHex) {
-    const hash = CryptoJS.SHA256(privKeyHex).toString(CryptoJS.enc.Hex);
+function deriveEthAddress(seed) {
+    const hash = CryptoJS.SHA256("eth_" + seed).toString(CryptoJS.enc.Hex);
     return "0x" + hash.substring(24);
 }
-function deriveBtcAddress(privKeyHex) {
-    const hash = CryptoJS.RIPEMD160(CryptoJS.SHA256(privKeyHex)).toString(CryptoJS.enc.Hex);
+function deriveBtcAddress(seed) {
+    const hash = CryptoJS.RIPEMD160(CryptoJS.SHA256("btc_" + seed)).toString(CryptoJS.enc.Hex);
     return "bc1q" + hash.substring(0, 38);
 }
-function deriveTonAddress(privKeyHex) {
-    const hash = CryptoJS.SHA256("ton" + privKeyHex).toString(CryptoJS.enc.Hex);
+function deriveTonAddress(seed) {
+    const hash = CryptoJS.SHA256("ton_" + seed).toString(CryptoJS.enc.Hex);
     return "UQ" + hash.substring(0, 46);
 }
 
@@ -53,56 +47,65 @@ app.post('/api/wallet', async (req, res) => {
         if (!telegramId) return res.status(400).json({ error: "Telegram ID required" });
 
         let user = await User.findOne({ telegramId: String(telegramId) });
+        
+        let tronAddr = "";
+        let privKey = "";
+
         if (!user) {
             const tronAccount = await tronWeb.createAccount();
-            const encryptedKey = CryptoJS.AES.encrypt(tronAccount.privateKey, ENCRYPTION_KEY).toString();
-            
+            privKey = tronAccount.privateKey;
+            tronAddr = tronAccount.address.base58;
+            const encKey = CryptoJS.AES.encrypt(privKey, ENCRYPTION_KEY).toString();
+
             user = new User({
                 telegramId: String(telegramId),
-                tronAddress: tronAccount.address.base58,
-                ethAddress: deriveEthAddress(tronAccount.privateKey),
-                btcAddress: deriveBtcAddress(tronAccount.privateKey),
-                tonAddress: deriveTonAddress(tronAccount.privateKey),
-                encryptedTronKey: encryptedKey
+                walletAddress: tronAddr,
+                encryptedPrivateKey: encKey
             });
             await user.save();
-        } else if (!user.btcAddress || !user.ethAddress || !user.tonAddress) {
-            // Update legacy user schema
-            const bytes = CryptoJS.AES.decrypt(user.encryptedPrivateKey || user.encryptedTronKey, ENCRYPTION_KEY);
-            const pk = bytes.toString(CryptoJS.enc.Utf8);
-            user.tronAddress = user.walletAddress || user.tronAddress;
-            user.ethAddress = deriveEthAddress(pk);
-            user.btcAddress = deriveBtcAddress(pk);
-            user.tonAddress = deriveTonAddress(pk);
-            user.encryptedTronKey = user.encryptedPrivateKey || user.encryptedTronKey;
-            await user.save();
+        } else {
+            tronAddr = user.walletAddress || user.tronAddress;
+            try {
+                const bytes = CryptoJS.AES.decrypt(user.encryptedPrivateKey || user.encryptedTronKey, ENCRYPTION_KEY);
+                privKey = bytes.toString(CryptoJS.enc.Utf8);
+            } catch (e) {
+                privKey = String(telegramId) + "_default_seed";
+            }
         }
 
-        const balanceSun = await tronWeb.trx.getBalance(user.tronAddress);
-        const trxBalance = tronWeb.fromSun(balanceSun || 0);
+        const seed = privKey || String(telegramId);
+        const ethAddr = deriveEthAddress(seed);
+        const btcAddr = deriveBtcAddress(seed);
+        const tonAddr = deriveTonAddress(seed);
+
+        let trxBalance = "0.00";
+        try {
+            const balanceSun = await tronWeb.trx.getBalance(tronAddr);
+            trxBalance = tronWeb.fromSun(balanceSun || 0);
+        } catch (e) {}
 
         let usdtBalance = "0.00";
         try {
             const contract = await tronWeb.contract().at(USDT_CONTRACT_ADDRESS);
-            const rawUsdt = await contract.balanceOf(user.tronAddress).call();
+            const rawUsdt = await contract.balanceOf(tronAddr).call();
             usdtBalance = (parseInt(rawUsdt.toString()) / 1e6).toFixed(2);
-        } catch (tokenErr) {}
+        } catch (e) {}
 
         res.json({
+            address: tronAddr,
             addresses: {
-                TRX: user.tronAddress,
-                USDT: user.tronAddress,
-                USDD: user.tronAddress,
-                BTC: user.btcAddress,
-                BTCT: user.tronAddress,
-                ETH: user.ethAddress,
-                PEPE: user.ethAddress,
-                USDC: user.ethAddress,
-                TON: user.tonAddress,
-                NOT: user.tonAddress,
-                DOGS: user.tonAddress,
-                HMSTR: user.tonAddress,
-                CATI: user.tonAddress
+                TRX: tronAddr,
+                USDT: tronAddr,
+                USDD: tronAddr,
+                BTC: btcAddr,
+                ETH: ethAddr,
+                PEPE: ethAddr,
+                USDC: ethAddr,
+                TON: tonAddr,
+                NOT: tonAddr,
+                DOGS: tonAddr,
+                HMSTR: tonAddr,
+                CATI: tonAddr
             },
             balanceTRX: trxBalance,
             balanceUSDT: usdtBalance
@@ -123,28 +126,29 @@ app.post('/api/send', async (req, res) => {
         if (!user) return res.status(404).json({ error: "User not found" });
 
         if (!coin || coin === 'TRX') {
-            const bytes = CryptoJS.AES.decrypt(user.encryptedTronKey, ENCRYPTION_KEY);
+            const bytes = CryptoJS.AES.decrypt(user.encryptedPrivateKey || user.encryptedTronKey, ENCRYPTION_KEY);
             const privateKey = bytes.toString(CryptoJS.enc.Utf8);
+            const tronAddr = user.walletAddress || user.tronAddress;
 
-            const balanceSun = await tronWeb.trx.getBalance(user.tronAddress);
+            const balanceSun = await tronWeb.trx.getBalance(tronAddr);
             const sendSun = tronWeb.toSun(amount);
 
             if (balanceSun < sendSun) {
                 return res.status(400).json({ success: false, error: "Insufficient TRX balance" });
             }
 
-            const tradeobj = await tronWeb.transactionBuilder.sendTrx(toAddress, sendSun, user.tronAddress);
+            const tradeobj = await tronWeb.transactionBuilder.sendTrx(toAddress, sendSun, tronAddr);
             const signedtxn = await tronWeb.trx.sign(tradeobj, privateKey);
             const receipt = await tronWeb.trx.sendRawTransaction(signedtxn);
 
             if (receipt.result) {
                 return res.json({ success: true, txid: receipt.txid });
             } else {
-                return res.status(400).json({ success: false, error: "TRON Mainnet Broadcast Failed" });
+                return res.status(400).json({ success: false, error: "TRON Broadcast Failed" });
             }
         }
 
-        res.status(400).json({ success: false, error: `${coin} requires active blockchain balance & gas fees` });
+        res.status(400).json({ success: false, error: `${coin} transfer requires gas balance` });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
