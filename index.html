@@ -12,17 +12,17 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #ffffff;
             color: #121212;
-            padding-bottom: 70px;
+            padding-bottom: 75px;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
+            padding: 14px 16px;
         }
         .icon-btn {
-            font-size: 18px;
-            color: #333;
+            font-size: 19px;
+            color: #222;
             background: none;
             border: none;
             cursor: pointer;
@@ -31,40 +31,41 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 15px;
             cursor: pointer;
         }
         .avatar {
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            background: #ff5722;
+            background: linear-gradient(135deg, #ef4444, #f97316);
             color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
         }
-        .right-icons { display: flex; gap: 14px; }
+        .right-icons { display: flex; gap: 16px; }
         
         .balance-section {
             text-align: center;
-            padding: 15px 0 20px;
+            padding: 10px 0 20px;
         }
         .balance-label {
             font-size: 13px;
-            color: #777;
+            color: #64748b;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
         }
         .main-balance {
-            font-size: 38px;
-            font-weight: 700;
+            font-size: 40px;
+            font-weight: 800;
             margin-top: 4px;
+            color: #0f172a;
         }
         
         .action-row {
@@ -82,8 +83,8 @@
             cursor: pointer;
         }
         .circle-icon {
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: #dc2626;
             color: #ffffff;
@@ -91,38 +92,41 @@
             align-items: center;
             justify-content: center;
             font-size: 18px;
-            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+            transition: transform 0.1s;
         }
+        .circle-icon:active { transform: scale(0.92); }
         .action-label {
             font-size: 12px;
-            font-weight: 500;
-            color: #222;
+            font-weight: 600;
+            color: #334155;
         }
 
         .assets-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 16px;
+            padding: 12px 16px 8px;
+            border-top: 8px solid #f8fafc;
         }
-        .assets-title { font-size: 16px; font-weight: 700; }
-        .assets-actions { display: flex; gap: 12px; color: #666; }
+        .assets-title { font-size: 16px; font-weight: 800; color: #0f172a; }
+        .assets-actions { display: flex; gap: 14px; color: #64748b; font-size: 15px; }
 
         .asset-list { list-style: none; padding: 0 16px; }
         .asset-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #f3f4f6;
+            padding: 14px 0;
+            border-bottom: 1px solid #f1f5f9;
         }
         .asset-left { display: flex; align-items: center; gap: 12px; }
-        .crypto-icon { width: 36px; height: 36px; border-radius: 50%; }
-        .asset-name { font-size: 15px; font-weight: 600; }
-        .asset-price { font-size: 12px; color: #666; margin-top: 2px; }
+        .crypto-icon { width: 38px; height: 38px; border-radius: 50%; }
+        .asset-name { font-size: 15px; font-weight: 700; color: #1e293b; }
+        .asset-price { font-size: 12px; color: #64748b; margin-top: 2px; }
         .asset-right { text-align: right; }
-        .asset-usd { font-size: 15px; font-weight: 600; }
-        .asset-amount { font-size: 12px; color: #777; margin-top: 2px; }
+        .asset-usd { font-size: 15px; font-weight: 700; color: #0f172a; }
+        .asset-amount { font-size: 12px; color: #64748b; margin-top: 2px; }
 
         /* Bottom Nav */
         .bottom-nav {
@@ -131,24 +135,25 @@
             left: 0;
             right: 0;
             background: #ffffff;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-around;
-            padding: 8px 0;
+            padding: 10px 0;
+            z-index: 50;
         }
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             font-size: 11px;
-            color: #9ca3af;
+            color: #94a3b8;
             gap: 4px;
             cursor: pointer;
         }
-        .nav-item.active { color: #111827; font-weight: 600; }
-        .nav-item i { font-size: 18px; }
+        .nav-item.active { color: #0f172a; font-weight: 700; }
+        .nav-item i { font-size: 19px; }
 
-        /* Modal Overlay */
+        /* Modals */
         .modal {
             display: none;
             position: fixed;
@@ -156,26 +161,27 @@
             left: 0;
             right: 0;
             top: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             z-index: 100;
             align-items: flex-end;
         }
         .modal-content {
             background: #ffffff;
             width: 100%;
-            border-radius: 20px 20px 0 0;
-            padding: 20px;
-            animation: slideUp 0.2s ease-out;
+            border-radius: 24px 24px 0 0;
+            padding: 24px 20px;
+            animation: slideUp 0.25s ease-out;
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center; }
+        .modal-title { font-size: 17px; font-weight: 800; margin-bottom: 12px; text-align: center; color: #0f172a; }
         .input-box {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
             margin: 8px 0;
             font-size: 14px;
+            background: #f8fafc;
         }
         .submit-btn {
             width: 100%;
@@ -183,10 +189,11 @@
             color: #fff;
             border: none;
             padding: 14px;
-            border-radius: 10px;
-            font-weight: 600;
+            border-radius: 12px;
+            font-weight: 700;
             font-size: 15px;
-            margin-top: 10px;
+            margin-top: 12px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -194,15 +201,15 @@
 
     <!-- Header -->
     <div class="header">
-        <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
+        <button class="icon-btn" onclick="alert('Network: TRON Mainnet (Official)')"><i class="fa-solid fa-gear"></i></button>
         <div class="profile-badge">
-            <div class="avatar" id="userAvatar">V</div>
-            <span id="userName">Vikram8890</span>
+            <div class="avatar" id="userAvatar">U</div>
+            <span id="userName">User</span>
             <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
         </div>
         <div class="right-icons">
-            <button class="icon-btn"><i class="fa-solid fa-qrcode"></i></button>
-            <button class="icon-btn"><i class="fa-solid fa-user-plus"></i></button>
+            <button class="icon-btn" onclick="openModal('depositModal')"><i class="fa-solid fa-qrcode"></i></button>
+            <button class="icon-btn" onclick="alert('Contacts coming soon')"><i class="fa-solid fa-user-plus"></i></button>
         </div>
     </div>
 
@@ -216,7 +223,7 @@
         <div class="main-balance" id="totalBalanceUSD">$0.00</div>
     </div>
 
-    <!-- Action Buttons -->
+    <!-- Actions -->
     <div class="action-row">
         <button class="action-btn" onclick="openModal('depositModal')">
             <div class="circle-icon"><i class="fa-solid fa-arrow-down-left"></i></div>
@@ -226,17 +233,17 @@
             <div class="circle-icon"><i class="fa-solid fa-arrow-up-right"></i></div>
             <span class="action-label">Send</span>
         </button>
-        <button class="action-btn" onclick="openModal('swapModal')">
+        <button class="action-btn" onclick="alert('TRON SunSwap DEX Integration coming soon!')">
             <div class="circle-icon"><i class="fa-solid fa-right-left"></i></div>
             <span class="action-label">Swap</span>
         </button>
-        <button class="action-btn" onclick="openModal('historyModal')">
+        <button class="action-btn" onclick="openHistory()">
             <div class="circle-icon"><i class="fa-regular fa-newspaper"></i></div>
             <span class="action-label">History</span>
         </button>
     </div>
 
-    <!-- Assets Section -->
+    <!-- Assets List -->
     <div class="assets-header">
         <div class="assets-title">Assets</div>
         <div class="assets-actions">
@@ -276,7 +283,7 @@
             </div>
         </li>
 
-        <!-- USDT (TRC-20) -->
+        <!-- USDT (TRC-20) Real Mainnet -->
         <li class="asset-item">
             <div class="asset-left">
                 <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/325/large/Tether.png" alt="USDT">
@@ -291,7 +298,7 @@
             </div>
         </li>
 
-        <!-- TRX (TRON) -->
+        <!-- TRX (TRON Real Mainnet) -->
         <li class="asset-item">
             <div class="asset-left">
                 <img class="crypto-icon" src="https://assets.coingecko.com/coins/images/1094/large/tron-logo.png" alt="TRX">
@@ -337,17 +344,17 @@
         </li>
     </ul>
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Nav -->
     <div class="bottom-nav">
         <div class="nav-item active">
             <i class="fa-solid fa-wallet"></i>
             <span>Wallet</span>
         </div>
-        <div class="nav-item">
+        <div class="nav-item" onclick="alert('Virtual Crypto Cards Coming Soon!')">
             <i class="fa-regular fa-credit-card"></i>
             <span>Card</span>
         </div>
-        <div class="nav-item">
+        <div class="nav-item" onclick="alert('Leaderboard Active!')">
             <i class="fa-solid fa-chart-simple"></i>
             <span>Leaderboard</span>
         </div>
@@ -356,21 +363,21 @@
     <!-- Deposit Modal -->
     <div class="modal" id="depositModal" onclick="closeModalOutside(event, 'depositModal')">
         <div class="modal-content">
-            <div class="modal-title">Deposit (TRON / USDT)</div>
-            <p style="font-size: 12px; color: #666; text-align: center; margin-bottom: 8px;">Your Mainnet Address:</p>
-            <div id="depositAddr" style="background: #f3f4f6; padding: 12px; border-radius: 8px; font-size: 12px; word-break: break-all; text-align: center; font-weight: bold; cursor: pointer;" onclick="copyAddr()">Loading...</div>
-            <button class="submit-btn" onclick="copyAddr()">Copy Address</button>
+            <div class="modal-title">Deposit (TRON / USDT TRC-20)</div>
+            <p style="font-size: 12px; color: #64748b; text-align: center; margin-bottom: 8px;">Your Mainnet Address:</p>
+            <div id="depositAddr" style="background: #f1f5f9; padding: 14px; border-radius: 12px; font-size: 12px; word-break: break-all; text-align: center; font-weight: 700; color: #0f172a; cursor: pointer;" onclick="copyAddr()">Loading Address...</div>
+            <button class="submit-btn" onclick="copyAddr()">Copy Mainnet Address</button>
         </div>
     </div>
 
     <!-- Send Modal -->
     <div class="modal" id="sendModal" onclick="closeModalOutside(event, 'sendModal')">
         <div class="modal-content">
-            <div class="modal-title">Send Crypto</div>
-            <input type="text" id="sendTo" class="input-box" placeholder="Recipient Address (T...)">
-            <input type="number" id="sendAmt" class="input-box" placeholder="Amount">
-            <button class="submit-btn" id="sendSubmitBtn" onclick="handleSend()">Send TRX</button>
-            <div id="sendRes" style="font-size: 12px; text-align: center; margin-top: 8px;"></div>
+            <div class="modal-title">Send Mainnet TRX</div>
+            <input type="text" id="sendTo" class="input-box" placeholder="Recipient Mainnet Address (T...)">
+            <input type="number" id="sendAmt" class="input-box" placeholder="Amount (TRX)">
+            <button class="submit-btn" id="sendSubmitBtn" onclick="handleSend()">Broadcast to Mainnet</button>
+            <div id="sendRes" style="font-size: 12px; text-align: center; margin-top: 10px; font-weight: 600;"></div>
         </div>
     </div>
 
@@ -381,7 +388,7 @@
         const BACKEND_URL = "https://telegram-wallet-backend-3.onrender.com";
         const user = tg?.initDataUnsafe?.user;
         const telegramId = user?.id ? String(user.id) : "demo_user_123";
-        const name = user?.username || user?.first_name || "Vikram8890";
+        const name = user?.username || user?.first_name || "User";
 
         document.getElementById('userName').innerText = name;
         document.getElementById('userAvatar').innerText = name.charAt(0).toUpperCase();
@@ -416,7 +423,7 @@
                     document.getElementById('totalBalanceUSD').innerText = `$${totalUSD}`;
                 }
             } catch (err) {
-                console.error(err);
+                console.error("Fetch Error:", err);
             }
         }
 
@@ -425,10 +432,18 @@
         function closeModalOutside(e, id) { if(e.target.id === id) closeModal(id); }
 
         function copyAddr() {
-            if(currentWalletAddress) {
+            if(currentWalletAddress && !currentWalletAddress.includes("Loading")) {
                 navigator.clipboard.writeText(currentWalletAddress);
-                alert("Address Copied!");
+                alert("Mainnet Address Copied!");
                 closeModal('depositModal');
+            }
+        }
+
+        function openHistory() {
+            if (currentWalletAddress && !currentWalletAddress.includes("Loading")) {
+                window.open(`https://tronscan.org/#/address/${currentWalletAddress}`, '_blank');
+            } else {
+                alert("Please wait for address to load");
             }
         }
 
@@ -440,14 +455,14 @@
 
             if(!toAddress || !amount) {
                 resDiv.innerText = "Please fill all fields";
-                resDiv.style.color = "red";
+                resDiv.style.color = "#dc2626";
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "Sending...";
-            resDiv.innerText = "Broadcasting to Network...";
-            resDiv.style.color = "#888";
+            btn.innerText = "Broadcasting...";
+            resDiv.innerText = "Broadcasting to TRON Mainnet...";
+            resDiv.style.color = "#d97706";
 
             try {
                 const res = await fetch(`${BACKEND_URL}/api/send`, {
@@ -457,19 +472,19 @@
                 });
                 const data = await res.json();
                 if(data.success) {
-                    resDiv.innerText = "Transfer Success!";
-                    resDiv.style.color = "green";
-                    setTimeout(() => { closeModal('sendModal'); fetchWalletData(); }, 2000);
+                    resDiv.innerText = `Success! TXID: ${data.txid.substring(0, 10)}...`;
+                    resDiv.style.color = "#16a34a";
+                    setTimeout(() => { closeModal('sendModal'); fetchWalletData(); }, 2500);
                 } else {
-                    resDiv.innerText = data.error || "Failed";
-                    resDiv.style.color = "red";
+                    resDiv.innerText = data.error || "Mainnet transaction failed";
+                    resDiv.style.color = "#dc2626";
                 }
             } catch(e) {
-                resDiv.innerText = "Error in transaction";
-                resDiv.style.color = "red";
+                resDiv.innerText = "Transaction broadcast error";
+                resDiv.style.color = "#dc2626";
             } finally {
                 btn.disabled = false;
-                btn.innerText = "Send TRX";
+                btn.innerText = "Broadcast to Mainnet";
             }
         }
 
@@ -482,7 +497,7 @@
                 eye.className = "fa-regular fa-eye";
                 isHidden = false;
             } else {
-                bal.innerText = "••••••";
+                bal.innerText = "$ ••••••";
                 eye.className = "fa-regular fa-eye-slash";
                 isHidden = true;
             }
@@ -492,4 +507,3 @@
     </script>
 </body>
 </html>
-
