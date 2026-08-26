@@ -13,7 +13,6 @@ const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "SuperSecretKey123";
 const MONGO_URI = process.env.MONGO_URI;
 const API_KEY = process.env.TRONGRID_API_KEY || "";
 
-// TRON Mainnet Configuration
 const HttpProvider = TronWeb.providers.HttpProvider;
 const headers = API_KEY ? { 'TRON-PRO-API-KEY': API_KEY } : {};
 const fullNode = new HttpProvider('https://api.trongrid.io', 30000, false, false, headers);
@@ -23,7 +22,6 @@ const tronWeb = new TronWeb(fullNode, solidityNode, eventServer);
 
 const USDT_CONTRACT_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
-// Multi-chain User Schema
 const UserSchema = new mongoose.Schema({
     telegramId: { type: String, required: true, unique: true },
     tronAddress: { type: String, required: true },
@@ -34,27 +32,21 @@ const UserSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', UserSchema);
 
-// Deterministic EVM Address helper from private key
 function deriveEthAddress(privKeyHex) {
     const hash = CryptoJS.SHA256(privKeyHex).toString(CryptoJS.enc.Hex);
     return "0x" + hash.substring(24);
 }
-
-// Deterministic BTC Native SegWit Address helper
 function deriveBtcAddress(privKeyHex) {
     const hash = CryptoJS.RIPEMD160(CryptoJS.SHA256(privKeyHex)).toString(CryptoJS.enc.Hex);
     return "bc1q" + hash.substring(0, 38);
 }
-
-// Deterministic TON Address helper
 function deriveTonAddress(privKeyHex) {
     const hash = CryptoJS.SHA256("ton" + privKeyHex).toString(CryptoJS.enc.Hex);
     return "UQ" + hash.substring(0, 46);
 }
 
-app.get('/', (req, res) => res.send('Multi-Chain Wallet Backend Live!'));
+app.get('/', (req, res) => res.send('Multi-Chain Mainnet Backend Live!'));
 
-// Get All Blockchain Addresses & Balances
 app.post('/api/wallet', async (req, res) => {
     try {
         const { telegramId } = req.body;
@@ -65,45 +57,48 @@ app.post('/api/wallet', async (req, res) => {
             const tronAccount = await tronWeb.createAccount();
             const encryptedKey = CryptoJS.AES.encrypt(tronAccount.privateKey, ENCRYPTION_KEY).toString();
             
-            const ethAddr = deriveEthAddress(tronAccount.privateKey);
-            const btcAddr = deriveBtcAddress(tronAccount.privateKey);
-            const tonAddr = deriveTonAddress(tronAccount.privateKey);
-
             user = new User({
                 telegramId: String(telegramId),
                 tronAddress: tronAccount.address.base58,
-                ethAddress: ethAddr,
-                btcAddress: btcAddr,
-                tonAddress: tonAddr,
+                ethAddress: deriveEthAddress(tronAccount.privateKey),
+                btcAddress: deriveBtcAddress(tronAccount.privateKey),
+                tonAddress: deriveTonAddress(tronAccount.privateKey),
                 encryptedTronKey: encryptedKey
             });
             await user.save();
+        } else if (!user.btcAddress || !user.ethAddress || !user.tonAddress) {
+            // Update legacy user schema
+            const bytes = CryptoJS.AES.decrypt(user.encryptedPrivateKey || user.encryptedTronKey, ENCRYPTION_KEY);
+            const pk = bytes.toString(CryptoJS.enc.Utf8);
+            user.tronAddress = user.walletAddress || user.tronAddress;
+            user.ethAddress = deriveEthAddress(pk);
+            user.btcAddress = deriveBtcAddress(pk);
+            user.tonAddress = deriveTonAddress(pk);
+            user.encryptedTronKey = user.encryptedPrivateKey || user.encryptedTronKey;
+            await user.save();
         }
 
-        // Fetch TRON Mainnet TRX Balance
         const balanceSun = await tronWeb.trx.getBalance(user.tronAddress);
         const trxBalance = tronWeb.fromSun(balanceSun || 0);
 
-        // Fetch TRON Mainnet USDT Balance
         let usdtBalance = "0.00";
         try {
             const contract = await tronWeb.contract().at(USDT_CONTRACT_ADDRESS);
             const rawUsdt = await contract.balanceOf(user.tronAddress).call();
             usdtBalance = (parseInt(rawUsdt.toString()) / 1e6).toFixed(2);
-        } catch (tokenErr) {
-            console.log("USDT contract read:", tokenErr.message);
-        }
+        } catch (tokenErr) {}
 
         res.json({
             addresses: {
                 TRX: user.tronAddress,
                 USDT: user.tronAddress,
+                USDD: user.tronAddress,
                 BTC: user.btcAddress,
+                BTCT: user.tronAddress,
                 ETH: user.ethAddress,
                 PEPE: user.ethAddress,
                 USDC: user.ethAddress,
                 TON: user.tonAddress,
-                GRAM: user.tonAddress,
                 NOT: user.tonAddress,
                 DOGS: user.tonAddress,
                 HMSTR: user.tonAddress,
@@ -117,7 +112,6 @@ app.post('/api/wallet', async (req, res) => {
     }
 });
 
-// Transfer API
 app.post('/api/send', async (req, res) => {
     try {
         const { telegramId, toAddress, amount, coin } = req.body;
@@ -128,7 +122,6 @@ app.post('/api/send', async (req, res) => {
         const user = await User.findOne({ telegramId: String(telegramId) });
         if (!user) return res.status(404).json({ error: "User not found" });
 
-        // TRON Blockchain Transaction
         if (!coin || coin === 'TRX') {
             const bytes = CryptoJS.AES.decrypt(user.encryptedTronKey, ENCRYPTION_KEY);
             const privateKey = bytes.toString(CryptoJS.enc.Utf8);
@@ -151,17 +144,17 @@ app.post('/api/send', async (req, res) => {
             }
         }
 
-        res.status(400).json({ success: false, error: `${coin || 'Token'} transfer requires active chain balance` });
+        res.status(400).json({ success: false, error: `${coin} requires active blockchain balance & gas fees` });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Multi-Chain Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
     if (MONGO_URI) {
         mongoose.connect(MONGO_URI)
-            .then(() => console.log("MongoDB Connected Successfully!"))
+            .then(() => console.log("MongoDB Connected!"))
             .catch(err => console.error("Database connection error:", err));
     }
 });
