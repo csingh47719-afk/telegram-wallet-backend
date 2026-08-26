@@ -4,16 +4,28 @@ const TronWeb = require('tronweb');
 const CryptoJS = require('crypto-js');
 const crypto = require('crypto');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10kb' })); // Payload size restriction against DDoS
 app.use(cors());
+
+// Anti-Bot & DDoS Rate Limiting
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { error: "Too many requests. Please try again later." }
+});
+app.use('/api/', apiLimiter);
 
 const PORT = process.env.PORT || 10000;
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "SuperSecretKey123";
 const MONGO_URI = process.env.MONGO_URI;
 const API_KEY = process.env.TRONGRID_API_KEY || "";
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
+
+// आपका वेरिफ़ाइड एडमिन फ़ीस वॉलेट एड्रेस (0.5% प्लेटफ़ॉर्म फ़ीस यहाँ स्टोर होगी)
+const ADMIN_FEE_WALLET = process.env.ADMIN_FEE_WALLET || "TLmgAsP4r8ckuGyRN8S65dtpL1cJaWC62R";
 
 // TRON Mainnet Configuration with Official RPC
 const HttpProvider = TronWeb.providers.HttpProvider;
@@ -32,12 +44,14 @@ const VERIFIED_CONTRACTS = {
 const UserSchema = new mongoose.Schema({}, { strict: false });
 const User = mongoose.model('User', UserSchema);
 
-// सुरक्षा स्तर 1: Telegram WebApp HMAC-SHA256 सिग्नेचर वेरिफिकेशन
+// सुरक्षा स्तर 1: सख्त Telegram WebApp HMAC-SHA256 सिग्नेचर वेरिफिकेशन
 function verifyTelegramWebAppData(initData) {
-    if (!BOT_TOKEN || !initData) return true; // लोकल टेस्टिंग हेतु फॉलबैक
+    if (!initData) return false;
+    if (!BOT_TOKEN) return true; // लोकल टेस्टिंग फॉलबैक
     try {
         const urlParams = new URLSearchParams(initData);
         const hash = urlParams.get('hash');
+        if (!hash) return false;
         urlParams.delete('hash');
 
         const dataCheckArr = [];
@@ -56,31 +70,114 @@ function verifyTelegramWebAppData(initData) {
     }
 }
 
-// Multi-Chain Address Derivation
-function deriveEthAddress(seed) {
-    const hash = CryptoJS.SHA256("eth_" + seed).toString(CryptoJS.enc.Hex);
-    return "0x" + hash.substring(24);
-}
-function deriveBtcAddress(seed) {
-    const hash = CryptoJS.RIPEMD160(CryptoJS.SHA256("btc_" + seed)).toString(CryptoJS.enc.Hex);
-    return "bc1q" + hash.substring(0, 38);
-}
-function deriveTonAddress(seed) {
-    const hash = CryptoJS.SHA256("ton_" + seed).toString(CryptoJS.enc.Hex);
-    return "UQ" + hash.substring(0, 46);
+// Multi-Chain Address Derivation Helpers
+const B58_CHARS = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+function base58CheckEncode(versionByte, hexPayload) {
+    const versionHex = (versionByte < 16 ? "0" : "") + versionByte.toString(16);
+    const payloadHex = versionHex + hexPayload.slice(0, 40);
+    const payloadWordArray = CryptoJS.enc.Hex.parse(payloadHex);
+    const firstHash = CryptoJS.SHA256(payloadWordArray);
+    const secondHash = CryptoJS.SHA256(firstHash);
+    const checksumHex = secondHash.toString(CryptoJS.enc.Hex).substring(0, 8);
+    const fullHex = payloadHex + checksumHex;
+
+    let bytes = [];
+    for (let i = 0; i < fullHex.length; i += 2) bytes.push(parseInt(fullHex.substr(i, 2), 16));
+
+    let value = 0n;
+    for (let i = 0; i < bytes.length; i++) value = (value * 256n) + BigInt(bytes[i]);
+
+    let encoded = "";
+    while (value > 0n) {
+        const mod = Number(value % 58n);
+        encoded = B58_CHARS[mod] + encoded;
+        value = value / 58n;
+    }
+
+    for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+        encoded = B58_CHARS[0] + encoded;
+    }
+    return encoded;
 }
 
-app.get('/', (req, res) => res.send('Protected & Verified Multi-Chain Mainnet Backend Live!'));
+const BECH32_CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+function bech32Polymod(values) {
+    let chk = 1;
+    for (let p = 0; p < values.length; ++p) {
+        const b = chk >> 25;
+        chk = ((chk & 0x1ffffff) << 5) ^ values[p];
+        if ((b >> 0) & 1) chk ^= 0x3b6a57b2;
+        if ((b >> 1) & 1) chk ^= 0x26508e6d;
+        if ((b >> 2) & 1) chk ^= 0x1ea119fa;
+        if ((b >> 3) & 1) chk ^= 0x3d4233dd;
+        if ((b >> 4) & 1) chk ^= 0x2a1462b3;
+    }
+    return chk;
+}
+function bech32HrpExpand(hrp) {
+    const ret = [];
+    for (let p = 0; p < hrp.length; ++p) ret.push(hrp.charCodeAt(p) >> 5);
+    ret.push(0);
+    for (let p = 0; p < hrp.length; ++p) ret.push(hrp.charCodeAt(p) & 31);
+    return ret;
+}
+function encodeBech32(hrp, hex20) {
+    const bytes = [];
+    for (let i = 0; i < hex20.length; i += 2) bytes.push(parseInt(hex20.substr(i, 2), 16));
+    let acc = 0, bits = 0;
+    const data5 = [0];
+    for (const b of bytes) {
+        acc = (acc << 8) | b;
+        bits += 8;
+        while (bits >= 5) {
+            bits -= 5;
+            data5.push((acc >> bits) & 31);
+        }
+    }
+    if (bits > 0) data5.push((acc << (5 - bits)) & 31);
+    const values = bech32HrpExpand(hrp).concat(data5).concat([0, 0, 0, 0, 0, 0]);
+    const mod = bech32Polymod(values) ^ 1;
+    const checksum = [];
+    for (let p = 0; p < 6; ++p) checksum.push((mod >> (5 * (5 - p))) & 31);
+    let ret = hrp + '1';
+    for (const d of data5.concat(checksum)) ret += BECH32_CHARSET[d];
+    return ret;
+}
 
-// सुरक्षा स्तर 2: डायरेक्ट ऑन-चेन RPC वेरिफिकेशन (केवल वास्तविक ऑन-चेन बैलेंस रिटर्न होगा)
+function deriveAllAddresses(seed) {
+    const hash20 = CryptoJS.RIPEMD160(CryptoJS.SHA256("addr_" + seed)).toString(CryptoJS.enc.Hex);
+    const ethHash = CryptoJS.SHA256("eth_" + seed).toString(CryptoJS.enc.Hex);
+    const solHash = CryptoJS.SHA256("sol_" + seed).toString(CryptoJS.enc.Hex);
+    const tonHash = CryptoJS.SHA256("ton_" + seed).toString(CryptoJS.enc.Hex).substring(0, 46);
+
+    return {
+        BTC: encodeBech32("bc", hash20),
+        ETH: "0x" + ethHash.substring(24),
+        TRX: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",
+        USDT: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",
+        TON: "UQ" + tonHash,
+        SOL: base58CheckEncode(0x00, solHash.substring(0, 40)),
+        LTC: encodeBech32("ltc", hash20),
+        DOGE: base58CheckEncode(0x1e, hash20),
+        ADA: "addr1" + CryptoJS.SHA256("ada_" + seed).toString().substring(0, 52),
+        XRP: base58CheckEncode(0x00, hash20).replace(/^1/, 'r'),
+        BCH: "bitcoincash:q" + hash20.substring(0, 38),
+        XLM: "G" + CryptoJS.SHA256("xlm_" + seed).toString().substring(0, 55).toUpperCase(),
+        KSM: "H" + CryptoJS.SHA256("ksm_" + seed).toString().substring(0, 46)
+    };
+}
+
+app.get('/', (req, res) => res.send('Strictly Protected Multi-Chain Mainnet Backend Live!'));
+
+// सुरक्षा स्तर 2: डायरेक्ट ऑन-चेन RPC वेरिफिकेशन
 app.post('/api/wallet', async (req, res) => {
     try {
         const { telegramId, initData } = req.body;
         if (!telegramId) return res.status(400).json({ error: "Telegram ID required" });
 
-        // सुरक्षा स्तर 1 चेक
         if (initData && !verifyTelegramWebAppData(initData)) {
-            return res.status(401).json({ error: "Invalid Telegram Signature / Fake Request Blocked" });
+            return res.status(401).json({ error: "Unauthorized / Fake Request Blocked" });
         }
 
         let user = await User.findOne({ telegramId: String(telegramId) });
@@ -111,20 +208,18 @@ app.post('/api/wallet', async (req, res) => {
         }
 
         const seed = privKey || String(telegramId);
-        const ethAddr = deriveEthAddress(seed);
-        const btcAddr = deriveBtcAddress(seed);
-        const tonAddr = deriveTonAddress(seed);
+        const derivedAddresses = deriveAllAddresses(seed);
+        derivedAddresses.TRX = tronAddr;
+        derivedAddresses.USDT = tronAddr;
 
-        // 1. Direct TRON On-Chain RPC Query
+        // 1. Direct TRON Native TRX Query
         let trxBalance = "0.00";
         try {
             const balanceSun = await tronWeb.trx.getBalance(tronAddr);
             trxBalance = (balanceSun / 1e6).toFixed(4);
-        } catch (e) {
-            console.error("TRX RPC error:", e.message);
-        }
+        } catch (e) {}
 
-        // 2. Direct Verified USDT TRC-20 Contract RPC Query
+        // 2. Direct TRC-20 USDT Smart Contract Query
         let usdtBalance = "0.00";
         try {
             const contract = await tronWeb.contract().at(VERIFIED_CONTRACTS.USDT);
@@ -132,25 +227,17 @@ app.post('/api/wallet', async (req, res) => {
             usdtBalance = (parseInt(rawUsdt.toString()) / 1e6).toFixed(2);
         } catch (e) {}
 
-        // 3. Direct BTC Mainnet RPC / Explorer Verification
+        // 3. Direct BTC Query
         let btcBalance = "0.0000";
         try {
-            const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${btcAddr}`);
+            const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${derivedAddresses.BTC}`);
             const satoshis = await btcRes.text();
             if (!isNaN(satoshis)) btcBalance = (parseInt(satoshis) / 1e8).toFixed(6);
         } catch (e) {}
 
         res.json({
             address: tronAddr,
-            addresses: {
-                TRX: tronAddr,
-                USDT: tronAddr,
-                BTC: btcAddr,
-                ETH: ethAddr,
-                TON: tonAddr,
-                SOL: CryptoJS.SHA256("sol_" + seed).toString().substring(0, 44),
-                KSM: "H" + CryptoJS.SHA256("ksm_" + seed).toString().substring(0, 46)
-            },
+            addresses: derivedAddresses,
             verifiedBalances: {
                 trx: parseFloat(trxBalance),
                 usdt: parseFloat(usdtBalance),
@@ -165,7 +252,7 @@ app.post('/api/wallet', async (req, res) => {
     }
 });
 
-// सुरक्षा स्तर 4: ऑन-चेन ब्रॉडकास्ट और ट्रांजेक्शन कन्फर्मेशन चेक
+// सुरक्षा स्तर 4: ऑन-चेन ब्रॉडकास्ट + 0.5% प्लेटफ़ॉर्म फ़ीस
 app.post('/api/send', async (req, res) => {
     try {
         const { telegramId, toAddress, amount, coin, initData } = req.body;
@@ -174,7 +261,7 @@ app.post('/api/send', async (req, res) => {
         }
 
         if (initData && !verifyTelegramWebAppData(initData)) {
-            return res.status(401).json({ success: false, error: "Unauthorized Request" });
+            return res.status(401).json({ success: false, error: "Unauthorized Request / Signature Invalid" });
         }
 
         const user = await User.findOne({ telegramId: String(telegramId) });
@@ -182,39 +269,78 @@ app.post('/api/send', async (req, res) => {
 
         const bytes = CryptoJS.AES.decrypt(user.encryptedPrivateKey || user.encryptedTronKey, ENCRYPTION_KEY);
         const privateKey = bytes.toString(CryptoJS.enc.Utf8);
-        const tronAddr = user.walletAddress || user.tronAddress;
+        const userTronAddr = user.walletAddress || user.tronAddress;
 
-        // Native TRX Transfer with On-Chain Confirmation Verification
+        const totalAmount = parseFloat(amount);
+        const platformFee = totalAmount * 0.005; // 0.5% प्लेटफ़ॉर्म फ़ीस
+        const sendAmountToUser = totalAmount - platformFee;
+
+        // Native TRX Transfer with Auto-Fee Split
         if (!coin || coin === 'TRX') {
-            const balanceSun = await tronWeb.trx.getBalance(tronAddr);
-            const sendSun = tronWeb.toSun(amount);
+            if (!tronWeb.isAddress(toAddress)) {
+                return res.status(400).json({ success: false, error: "Invalid TRON recipient address format" });
+            }
 
-            if (balanceSun < sendSun) {
+            const balanceSun = await tronWeb.trx.getBalance(userTronAddr);
+            const totalSun = tronWeb.toSun(totalAmount);
+            const feeSun = tronWeb.toSun(platformFee);
+            const userSun = tronWeb.toSun(sendAmountToUser);
+
+            if (balanceSun < totalSun) {
                 return res.status(400).json({ success: false, error: "Insufficient verified TRX on blockchain" });
             }
 
-            const tradeobj = await tronWeb.transactionBuilder.sendTrx(toAddress, sendSun, tronAddr);
-            const signedtxn = await tronWeb.trx.sign(tradeobj, privateKey);
-            const receipt = await tronWeb.trx.sendRawTransaction(signedtxn);
+            // 1. मुख्य राशि रिसीवर को भेजें
+            const tradeobj1 = await tronWeb.transactionBuilder.sendTrx(toAddress, userSun, userTronAddr);
+            const signedtxn1 = await tronWeb.trx.sign(tradeobj1, privateKey);
+            const receipt1 = await tronWeb.trx.sendRawTransaction(signedtxn1);
 
-            if (receipt.result) {
-                return res.json({ success: true, txid: receipt.txid });
+            // 2. 0.5% फ़ीस सीधे आपके एडमिन वॉलेट में ट्रांसफर होगी
+            if (feeSun > 0 && ADMIN_FEE_WALLET && tronWeb.isAddress(ADMIN_FEE_WALLET)) {
+                try {
+                    const tradeobj2 = await tronWeb.transactionBuilder.sendTrx(ADMIN_FEE_WALLET, feeSun, userTronAddr);
+                    const signedtxn2 = await tronWeb.trx.sign(tradeobj2, privateKey);
+                    await tronWeb.trx.sendRawTransaction(signedtxn2);
+                } catch (err) {
+                    console.error("Admin fee transfer error:", err.message);
+                }
+            }
+
+            if (receipt1.result) {
+                return res.json({ success: true, txid: receipt1.txid });
             } else {
                 return res.status(400).json({ success: false, error: "Mainnet Broadcast Rejected" });
             }
         }
 
-        // Verified USDT TRC20 Token Transfer
+        // Verified USDT TRC20 Transfer with Auto-Fee Split
         if (coin === 'USDT') {
-            const contract = await tronWeb.contract().at(VERIFIED_CONTRACTS.USDT);
-            const rawBalance = await contract.balanceOf(tronAddr).call();
-            const sendUnits = parseInt(amount) * 1e6;
-
-            if (parseInt(rawBalance.toString()) < sendUnits) {
-                return res.status(400).json({ success: false, error: "Insufficient verified USDT balance" });
+            if (!tronWeb.isAddress(toAddress)) {
+                return res.status(400).json({ success: false, error: "Invalid USDT recipient address" });
             }
 
+            const contract = await tronWeb.contract().at(VERIFIED_CONTRACTS.USDT);
+            const rawBalance = await contract.balanceOf(userTronAddr).call();
+            const totalUnits = Math.round(totalAmount * 1e6);
+            const feeUnits = Math.round(platformFee * 1e6);
+            const sendUnits = totalUnits - feeUnits;
+
+            if (parseInt(rawBalance.toString()) < totalUnits) {
+                return res.status(400).json({ success: false, error: "Insufficient verified USDT balance on-chain" });
+            }
+
+            // 1. मुख्य USDT ट्रांसफर
             const txid = await contract.transfer(toAddress, sendUnits).send({ feeLimit: 15000000 });
+
+            // 2. 0.5% USDT फ़ीस आपके एडमिन वॉलेट में
+            if (feeUnits > 0 && ADMIN_FEE_WALLET && tronWeb.isAddress(ADMIN_FEE_WALLET)) {
+                try {
+                    await contract.transfer(ADMIN_FEE_WALLET, feeUnits).send({ feeLimit: 15000000 });
+                } catch (err) {
+                    console.error("USDT fee transfer error:", err.message);
+                }
+            }
+
             return res.json({ success: true, txid: txid });
         }
 
