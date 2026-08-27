@@ -24,7 +24,7 @@ const MONGO_URI = process.env.MONGO_URI;
 const API_KEY = process.env.TRONGRID_API_KEY || "";
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 
-// आपका एडमिन फ़ीस वॉलेट (जहाँ 0.5% प्लेटफ़ॉर्म फ़ीस जमा होगी)
+// आपका वेरिफ़ाइड एडमिन फ़ीस वॉलेट (0.5% फ़ीस यहाँ स्टोर होगी)
 const ADMIN_FEE_WALLET = process.env.ADMIN_FEE_WALLET || "TLmgAsP4r8ckuGyRN8S65dtpL1cJaWC62R";
 
 // TRON Mainnet Configuration
@@ -70,7 +70,7 @@ function verifyTelegramWebAppData(initData) {
     }
 }
 
-// 3. क्रिप्टोग्राफिक Base58Check और Bech32 एड्रेस डेरिवेशन हेल्पर्स
+// 3. क्रिप्टोग्राफिक Base58Check और Bech32 एड्रेस डेरिवेशन
 const B58_CHARS = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 function base58CheckEncode(versionByte, hexPayload) {
@@ -166,7 +166,29 @@ function deriveAllAddresses(seed) {
     };
 }
 
-app.get('/', (req, res) => res.send('Secure All-in-One Multi-Chain Backend Live!'));
+// EVM RPC Call Helper (Ethereum, Optimism, BSC)
+async function getEvmBalance(rpcUrl, address) {
+    try {
+        const response = await fetch(rpcUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'eth_getBalance',
+                params: [address, 'latest'],
+                id: 1
+            })
+        });
+        const data = await response.json();
+        if (data.result) {
+            const wei = BigInt(data.result);
+            return (Number(wei) / 1e18);
+        }
+    } catch (e) {}
+    return 0.0;
+}
+
+app.get('/', (req, res) => res.send('Secure Multi-Chain Backend Live!'));
 
 // 4. वॉलेट क्वेरी रूट (डायरेक्ट RPC और ऑन-चेन वेरिफिकेशन)
 app.post('/api/wallet', async (req, res) => {
@@ -210,14 +232,14 @@ app.post('/api/wallet', async (req, res) => {
         derivedAddresses.TRX = tronAddr;
         derivedAddresses.USDT = tronAddr;
 
-        // Native TRX बैलेंस
+        // 1. Native TRX Balance
         let trxBalance = "0.00";
         try {
             const balanceSun = await tronWeb.trx.getBalance(tronAddr);
             trxBalance = (balanceSun / 1e6).toFixed(4);
         } catch (e) {}
 
-        // USDT TRC20 स्मार्ट कॉन्ट्रैक्ट बैलेंस
+        // 2. USDT TRC20 Balance
         let usdtBalance = "0.00";
         try {
             const contract = await tronWeb.contract().at(VERIFIED_CONTRACTS.USDT);
@@ -225,12 +247,20 @@ app.post('/api/wallet', async (req, res) => {
             usdtBalance = (parseInt(rawUsdt.toString()) / 1e6).toFixed(2);
         } catch (e) {}
 
-        // BTC क्वेरी
+        // 3. BTC Balance
         let btcBalance = "0.0000";
         try {
             const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${derivedAddresses.BTC}`);
             const satoshis = await btcRes.text();
             if (!isNaN(satoshis)) btcBalance = (parseInt(satoshis) / 1e8).toFixed(6);
+        } catch (e) {}
+
+        // 4. ETH & Optimism EVM Balance
+        let ethBalance = 0.0;
+        try {
+            const ethMainnet = await getEvmBalance('https://eth.llamarpc.com', derivedAddresses.ETH);
+            const optimismBal = await getEvmBalance('https://mainnet.optimism.io', derivedAddresses.ETH);
+            ethBalance = (ethMainnet + optimismBal);
         } catch (e) {}
 
         res.json({
@@ -240,7 +270,7 @@ app.post('/api/wallet', async (req, res) => {
                 trx: parseFloat(trxBalance),
                 usdt: parseFloat(usdtBalance),
                 btc: parseFloat(btcBalance),
-                eth: 0.0,
+                eth: parseFloat(ethBalance.toFixed(6)),
                 ton: 0.0,
                 sol: 0.0
             }
@@ -299,20 +329,18 @@ app.post('/api/send', async (req, res) => {
                 return res.status(400).json({ success: false, error: "Insufficient verified TRX on blockchain" });
             }
 
-            // 1. रिसीवर को ट्रांसफर
+            // 1. मुख्य राशि रिसीवर को भेजें
             const tradeobj1 = await tronWeb.transactionBuilder.sendTrx(toAddress, userSun, userTronAddr);
             const signedtxn1 = await tronWeb.trx.sign(tradeobj1, privateKey);
             const receipt1 = await tronWeb.trx.sendRawTransaction(signedtxn1);
 
-            // 2. एडमिन फ़ीस वॉलेट को ट्रांसफर
+            // 2. 0.5% फ़ीस एडमिन वॉलेट को
             if (feeSun > 0 && ADMIN_FEE_WALLET && tronWeb.isAddress(ADMIN_FEE_WALLET)) {
                 try {
                     const tradeobj2 = await tronWeb.transactionBuilder.sendTrx(ADMIN_FEE_WALLET, feeSun, userTronAddr);
                     const signedtxn2 = await tronWeb.trx.sign(tradeobj2, privateKey);
                     await tronWeb.trx.sendRawTransaction(signedtxn2);
-                } catch (err) {
-                    console.error("Admin fee transfer error:", err.message);
-                }
+                } catch (err) {}
             }
 
             if (receipt1.result) {
@@ -345,9 +373,7 @@ app.post('/api/send', async (req, res) => {
             if (feeUnits > 0 && ADMIN_FEE_WALLET && tronWeb.isAddress(ADMIN_FEE_WALLET)) {
                 try {
                     await contract.transfer(ADMIN_FEE_WALLET, feeUnits).send({ feeLimit: 15000000 });
-                } catch (err) {
-                    console.error("USDT fee transfer error:", err.message);
-                }
+                } catch (err) {}
             }
 
             return res.json({ success: true, txid: txid });
