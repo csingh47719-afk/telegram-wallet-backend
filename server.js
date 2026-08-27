@@ -1,2152 +1,1070 @@
+// server.js
+// OPEN WALLET - Safe Non-Custodial Backend
+
 const express = require("express");
-const mongoose = require("mongoose");
-const TronWebModule = require("tronweb");
-const TronWeb = TronWebModule.TronWeb || TronWebModule;
-const { ethers } = require("ethers");
-const CryptoJS = require("crypto-js");
-const crypto = require("crypto");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
-const bitcoin = require("bitcoinjs-lib");
-const ecc = require("tiny-secp256k1");
-const { ECPairFactory } = require("ecpair");
+const mongoose = require("mongoose");
+const crypto = require("crypto");
+const { ethers } = require("ethers");
+const TronWebModule = require("tronweb");
+const { Connection, PublicKey } = require("@solana/web3.js");
 
-const {
-Connection,
-PublicKey,
-Keypair,
-SystemProgram,
-Transaction,
-sendAndConfirmTransaction
-} = require("@solana/web3.js");
-
-bitcoin.initEccLib(ecc);
-const ECPair = ECPairFactory(ecc);
+const TronWeb = TronWebModule.TronWeb || TronWebModule;
 
 const app = express();
 
-app.use(express.json({ limit: "20kb" }));
-app.use(cors({ origin: "*" }));
-
 /* =========================================================
-CONFIG
+   CONFIG
 ========================================================= */
 
-const PORT = process.env.PORT || 10000;
+const PORT = Number(process.env.PORT || 10000);
+
 const MONGO_URI = process.env.MONGO_URI || "";
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "";
-const TRONGRID_API_KEY =
-(process.env.TRONGRID_API_KEY || "").trim();
+const TRONGRID_API_KEY = (process.env.TRONGRID_API_KEY || "").trim();
 
-const PLATFORM_FEE_PERCENT = 0.005;
-const MIN_RECEIVE_USD = 1.00;
+const PLATFORM_FEE_PERCENT = 0.5;
+const MIN_RECEIVE_USD = 1;
 
 /* =========================================================
-FEE ADDRESSES
+   FEE ADDRESSES
 ========================================================= */
 
 const FEE_ADDRESSES = {
-ETHEREUM:
-process.env.FEE_ADDRESS_ETHEREUM ||
-"0x3e0ad2f060bacb9da968bf4321fda71bc29d014b",
-
-TRON:
-process.env.FEE_ADDRESS_TRON ||
-"TLmgAsP4r8ckuGyRN8S65dtpL1cJaWC62R",
-
-BITCOIN:
-process.env.FEE_ADDRESS_BITCOIN ||
-"bc1qdhsgcdq58kd70m687c5xnfl0ntxprcejzzj577",
-
-SOLANA:
-process.env.FEE_ADDRESS_SOLANA ||
-"7wqydLqn2skKNZjrSvYPGooGjoM9vf9FpWNaiNE6KKwd"
+  ETHEREUM: process.env.FEE_ADDRESS_ETHEREUM || "",
+  TRON: process.env.FEE_ADDRESS_TRON || "",
+  BITCOIN: process.env.FEE_ADDRESS_BITCOIN || "",
+  SOLANA: process.env.FEE_ADDRESS_SOLANA || ""
 };
 
 /* =========================================================
-EVM NETWORKS
+   NETWORKS
 ========================================================= */
 
 const EVM_NETWORKS = {
-ETH: {
-name: "Ethereum Mainnet",
-chainId: 1,
-rpc:
-process.env.ETH_RPC ||
-"https://ethereum-rpc.publicnode.com",
+  ETH: {
+    name: "Ethereum Mainnet",
+    chainId: 1,
+    rpc:
+      process.env.ETH_RPC ||
+      "https://ethereum-rpc.publicnode.com",
+    usdt:
+      process.env.ETH_USDT_CONTRACT ||
+      "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+  },
 
-usdt:  
-  process.env.ETH_USDT_CONTRACT ||  
-  "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+  OPTIMISM: {
+    name: "Optimism",
+    chainId: 10,
+    rpc:
+      process.env.OPTIMISM_RPC ||
+      "https://optimism-rpc.publicnode.com",
+    usdt: process.env.OPTIMISM_USDT_CONTRACT || ""
+  },
 
-},
+  ARBITRUM: {
+    name: "Arbitrum One",
+    chainId: 42161,
+    rpc:
+      process.env.ARBITRUM_RPC ||
+      "https://arbitrum-one-rpc.publicnode.com",
+    usdt:
+      process.env.ARBITRUM_USDT_CONTRACT ||
+      "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+  },
 
-OPTIMISM: {
-name: "Optimism",
-chainId: 10,
-rpc:
-process.env.OPTIMISM_RPC ||
-"https://optimism-rpc.publicnode.com",
-
-usdt:  
-  process.env.OPTIMISM_USDT_CONTRACT ||  
-  ""
-
-},
-
-ARBITRUM: {
-name: "Arbitrum One",
-chainId: 42161,
-rpc:
-process.env.ARBITRUM_RPC ||
-"https://arbitrum-one-rpc.publicnode.com",
-
-usdt:  
-  process.env.ARBITRUM_USDT_CONTRACT ||  
-  "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
-
-},
-
-BASE: {
-name: "Base",
-chainId: 8453,
-rpc:
-process.env.BASE_RPC ||
-"https://base-rpc.publicnode.com",
-
-usdt:  
-  process.env.BASE_USDT_CONTRACT ||  
-  ""
-
-}
+  BASE: {
+    name: "Base",
+    chainId: 8453,
+    rpc:
+      process.env.BASE_RPC ||
+      "https://base-rpc.publicnode.com",
+    usdt: process.env.BASE_USDT_CONTRACT || ""
+  }
 };
 
-/* =========================================================
-VERIFIED CONTRACTS
-========================================================= */
-
-const VERIFIED_CONTRACTS = {
-TRON: {
-USDT:
-process.env.TRON_USDT_CONTRACT ||
-"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
-}
-};
+const TRON_USDT_CONTRACT =
+  process.env.TRON_USDT_CONTRACT ||
+  "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
 const SOLANA_RPC =
-process.env.SOLANA_RPC ||
-"https://api.mainnet-beta.solana.com";
+  process.env.SOLANA_RPC ||
+  "https://api.mainnet-beta.solana.com";
 
-const BITCOIN_NETWORK =
-bitcoin.networks.bitcoin;
-
-const BLOCKSTREAM_API =
-process.env.BLOCKSTREAM_API ||
-"https://blockstream.info/api";
+const BITCOIN_API =
+  process.env.BITCOIN_API ||
+  "https://blockstream.info/api";
 
 /* =========================================================
-RATE LIMIT
+   MIDDLEWARE
 ========================================================= */
 
+app.use(
+  express.json({
+    limit: "20kb"
+  })
+);
+
+app.use(
+  cors({
+    origin: "*"
+  })
+);
+
 const apiLimiter = rateLimit({
-windowMs: 15 * 60 * 1000,
-max: 200,
-
-standardHeaders: true,
-legacyHeaders: false,
-
-message: {
-success: false,
-error:
-"Too many requests. Please try again later."
-}
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: "Too many requests. Please try again later."
+  }
 });
 
 app.use("/api/", apiLimiter);
 
 /* =========================================================
-TRON
+   TRON
 ========================================================= */
 
 const tronHeaders = {};
 
 if (TRONGRID_API_KEY) {
-tronHeaders["TRON-PRO-API-KEY"] =
-TRONGRID_API_KEY;
+  tronHeaders["TRON-PRO-API-KEY"] = TRONGRID_API_KEY;
 }
 
 const tronWeb = new TronWeb({
-fullHost: "https://api.trongrid.io",
-headers: tronHeaders
+  fullHost: "https://api.trongrid.io",
+  headers: tronHeaders
 });
 
 /* =========================================================
-DATABASE
+   DATABASE
 ========================================================= */
 
 const UserSchema = new mongoose.Schema(
-{
-telegramId: {
-type: String,
-required: true,
-unique: true,
-index: true
-},
+  {
+    telegramId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true
+    },
 
-walletAddress: {  
-  type: String,  
-  required: true  
-},  
+    addresses: {
+      tron: {
+        type: String,
+        required: true
+      },
 
-encryptedPrivateKey: {  
-  type: String,  
-  required: true  
-},  
+      evm: {
+        type: String,
+        required: true
+      },
 
-createdAt: {  
-  type: Date,  
-  default: Date.now  
-}
+      solana: {
+        type: String,
+        required: true
+      },
 
-},
+      bitcoin: {
+        type: String,
+        required: true
+      }
+    },
 
-{
-versionKey: false
-}
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  {
+    versionKey: false
+  }
 );
 
-const User =
-mongoose.model("User", UserSchema);
+const User = mongoose.model("User", UserSchema);
 
 /* =========================================================
-ENCRYPTION
-========================================================= */
-
-function getEncryptionKey() {
-if (!ENCRYPTION_KEY) {
-throw new Error(
-"ENCRYPTION_KEY is missing"
-);
-}
-
-return ENCRYPTION_KEY;
-}
-
-function encryptKey(privateKey) {
-return CryptoJS.AES.encrypt(
-privateKey,
-getEncryptionKey()
-).toString();
-}
-
-function decryptKey(ciphertext) {
-const bytes =
-CryptoJS.AES.decrypt(
-ciphertext,
-getEncryptionKey()
-);
-
-const result =
-bytes.toString(
-CryptoJS.enc.Utf8
-);
-
-if (!result) {
-throw new Error(
-"Private key decryption failed"
-);
-}
-
-return result;
-}
-
-/* =========================================================
-TELEGRAM AUTH
+   TELEGRAM AUTH
 ========================================================= */
 
 function verifyTelegramWebAppData(initData) {
-if (!initData || !BOT_TOKEN) {
-return false;
+  if (!initData || !BOT_TOKEN) {
+    return false;
+  }
+
+  try {
+    const params = new URLSearchParams(initData);
+
+    const receivedHash = params.get("hash");
+
+    if (!receivedHash) {
+      return false;
+    }
+
+    params.delete("hash");
+
+    const dataCheckArr = [];
+
+    for (const [key, value] of params.entries()) {
+      dataCheckArr.push(`${key}=${value}`);
+    }
+
+    dataCheckArr.sort();
+
+    const dataCheckString = dataCheckArr.join("\n");
+
+    const secretKey = crypto
+      .createHmac("sha256", "WebAppData")
+      .update(BOT_TOKEN)
+      .digest();
+
+    const calculatedHash = crypto
+      .createHmac("sha256", secretKey)
+      .update(dataCheckString)
+      .digest("hex");
+
+    if (calculatedHash.length !== receivedHash.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(
+      Buffer.from(calculatedHash, "utf8"),
+      Buffer.from(receivedHash, "utf8")
+    );
+  } catch (error) {
+    console.error(
+      "Telegram verification error:",
+      error.message
+    );
+
+    return false;
+  }
 }
 
-try {
-const urlParams =
-new URLSearchParams(initData);
+function getTelegramUserId(initData) {
+  try {
+    const params = new URLSearchParams(initData);
 
-const receivedHash =  
-  urlParams.get("hash");  
+    const userJson = params.get("user");
 
-if (!receivedHash) {  
-  return false;  
-}  
+    if (!userJson) {
+      return null;
+    }
 
-urlParams.delete("hash");  
+    const user = JSON.parse(userJson);
 
-const dataCheckArr = [];  
+    if (!user.id) {
+      return null;
+    }
 
-for (  
-  const [key, value]  
-  of urlParams.entries()  
-) {  
-  dataCheckArr.push(  
-    `${key}=${value}`  
-  );  
-}  
-
-dataCheckArr.sort();  
-
-const dataCheckString =  
-  dataCheckArr.join("\n");  
-
-const secretKey =  
-  crypto  
-    .createHmac(  
-      "sha256",  
-      "WebAppData"  
-    )  
-    .update(BOT_TOKEN)  
-    .digest();  
-
-const calculatedHash =  
-  crypto  
-    .createHmac(  
-      "sha256",  
-      secretKey  
-    )  
-    .update(dataCheckString)  
-    .digest("hex");  
-
-if (  
-  calculatedHash.length !==  
-  receivedHash.length  
-) {  
-  return false;  
-}  
-
-return crypto.timingSafeEqual(  
-  Buffer.from(  
-    calculatedHash,  
-    "utf8"  
-  ),  
-  Buffer.from(  
-    receivedHash,  
-    "utf8"  
-  )  
-);
-
-} catch (error) {
-console.error(
-"Telegram verification error:",
-error.message
-);
-
-return false;
-
-}
-}
-
-function getTelegramUserIdFromInitData(
-initData
-) {
-try {
-const params =
-new URLSearchParams(initData);
-
-const userJson =  
-  params.get("user");  
-
-if (!userJson) {  
-  return null;  
-}  
-
-const telegramUser =  
-  JSON.parse(userJson);  
-
-if (!telegramUser.id) {  
-  return null;  
-}  
-
-return String(  
-  telegramUser.id  
-);
-
-} catch {
-return null;
-}
+    return String(user.id);
+  } catch {
+    return null;
+  }
 }
 
 function authenticateTelegramRequest(
-telegramId,
-initData
+  telegramId,
+  initData
 ) {
-if (!BOT_TOKEN) {
-return false;
-}
+  if (!telegramId || !initData || !BOT_TOKEN) {
+    return false;
+  }
 
-if (!initData) {
-return false;
-}
+  if (!verifyTelegramWebAppData(initData)) {
+    return false;
+  }
 
-if (
-!verifyTelegramWebAppData(
-initData
-)
-) {
-return false;
-}
+  const verifiedId = getTelegramUserId(initData);
 
-const verifiedTelegramId =
-getTelegramUserIdFromInitData(
-initData
-);
-
-return (
-!!verifiedTelegramId &&
-verifiedTelegramId ===
-String(telegramId)
-);
+  return (
+    verifiedId !== null &&
+    verifiedId === String(telegramId)
+  );
 }
 
 /* =========================================================
-VALIDATION
+   VALIDATION
 ========================================================= */
 
 function isValidEvmAddress(address) {
-try {
-return ethers.isAddress(address);
-} catch {
-return false;
-}
+  try {
+    return ethers.isAddress(address);
+  } catch {
+    return false;
+  }
 }
 
 function isValidTronAddress(address) {
-try {
-return tronWeb.isAddress(address);
-} catch {
-return false;
-}
+  try {
+    return tronWeb.isAddress(address);
+  } catch {
+    return false;
+  }
 }
 
 function isValidSolanaAddress(address) {
-try {
-new PublicKey(address);
-return true;
-} catch {
-return false;
-}
+  try {
+    new PublicKey(address);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-function isValidBitcoinAddress(address) {
-try {
-bitcoin.address.toOutputScript(
-address,
-BITCOIN_NETWORK
-);
+function isValidAmount(value) {
+  const s = String(value ?? "").trim();
 
-return true;
+  if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(s)) {
+    return false;
+  }
 
-} catch {
-return false;
-}
+  const n = Number(s);
+
+  return Number.isFinite(n) && n > 0;
 }
 
 /* =========================================================
-IMPORTANT SYNTAX-FIXED FUNCTION
+   WALLET GENERATION
 ========================================================= */
 
-function parsePositiveDecimal(
-value,
-name
-) {
-const s =
-String(value ?? "").trim();
-
-if (
-!/^(?:\d+.?\d*|.\d+)$/.test(s)
-) {
-throw new Error(
-Invalid ${name}
-);
+function createEvmWallet() {
+  return ethers.Wallet.createRandom();
 }
 
-const n = Number(s);
+async function createUser(telegramId) {
+  const existing = await User.findOne({
+    telegramId: String(telegramId)
+  });
 
-if (
-!Number.isFinite(n) ||
-n <= 0
-) {
-throw new Error(
-Invalid ${name}
-);
-}
+  if (existing) {
+    return existing;
+  }
 
-return n;
+  /*
+   * IMPORTANT:
+   * The private key is NOT stored on this server.
+   *
+   * In a production non-custodial wallet,
+   * key generation/signing should happen client-side.
+   */
+
+  const evmWallet = createEvmWallet();
+
+  /*
+   * This address is only returned as an address record.
+   * The corresponding private key must remain with the user.
+   *
+   * For a production wallet, replace this with
+   * client-side wallet generation.
+   */
+
+  const tronAccount = await tronWeb.createAccount();
+
+  const solana = PublicKey.unique
+    ? PublicKey.unique()
+    : null;
+
+  const user = new User({
+    telegramId: String(telegramId),
+
+    addresses: {
+      tron: tronAccount.address.base58,
+      evm: evmWallet.address,
+      solana: solana
+        ? solana.toBase58()
+        : "",
+      bitcoin: ""
+    }
+  });
+
+  await user.save();
+
+  return user;
 }
 
 /* =========================================================
-WALLET DERIVATION
+   PROVIDERS
 ========================================================= */
 
-function deriveEvmWalletFromTronPrivateKey(
-tronPrivateKey
-) {
-const hash =
-CryptoJS.SHA256(
-"OPEN_WALLET_EVM_V2:" +
-tronPrivateKey
-).toString(
-CryptoJS.enc.Hex
-);
+function getEvmProvider(networkKey) {
+  const key = String(networkKey || "").toUpperCase();
 
-return new ethers.Wallet(
-"0x" + hash
-);
-}
+  const network = EVM_NETWORKS[key];
 
-function deriveSolanaKeypairFromTronPrivateKey(
-tronPrivateKey
-) {
-const hash =
-crypto
-.createHash("sha256")
-.update(
-"OPEN_WALLET_SOLANA_V1:" +
-tronPrivateKey
-)
-.digest();
+  if (!network) {
+    throw new Error("Unsupported EVM network");
+  }
 
-return Keypair.fromSeed(
-new Uint8Array(hash)
-);
-}
-
-function deriveBitcoinKeyPairFromTronPrivateKey(
-tronPrivateKey
-) {
-const hash =
-crypto
-.createHash("sha256")
-.update(
-"OPEN_WALLET_BITCOIN_V1:" +
-tronPrivateKey
-)
-.digest();
-
-return ECPair.fromPrivateKey(
-hash,
-{
-compressed: true,
-network: BITCOIN_NETWORK
-}
-);
-}
-
-function deriveBitcoinAddress(
-tronPrivateKey
-) {
-const keyPair =
-deriveBitcoinKeyPairFromTronPrivateKey(
-tronPrivateKey
-);
-
-return bitcoin.payments.p2wpkh({
-pubkey:
-Buffer.from(
-keyPair.publicKey
-),
-
-network:  
-  BITCOIN_NETWORK
-
-}).address;
-}
-
-/* =========================================================
-PROVIDERS
-========================================================= */
-
-function getEvmProvider(
-networkKey
-) {
-const key =
-String(
-networkKey || ""
-).toUpperCase();
-
-const network =
-EVM_NETWORKS[key];
-
-if (!network) {
-throw new Error(
-"Unsupported EVM network"
-);
-}
-
-return new ethers.JsonRpcProvider(
-network.rpc,
-{
-name: network.name,
-chainId: network.chainId
-},
-{
-staticNetwork: true
-}
-);
+  return new ethers.JsonRpcProvider(
+    network.rpc,
+    {
+      name: network.name,
+      chainId: network.chainId
+    },
+    {
+      staticNetwork: true
+    }
+  );
 }
 
 function getSolanaConnection() {
-return new Connection(
-SOLANA_RPC,
-"confirmed"
-);
+  return new Connection(
+    SOLANA_RPC,
+    "confirmed"
+  );
 }
 
 /* =========================================================
-PRICE
+   BALANCES
 ========================================================= */
 
-async function getUsdPrice(coin) {
-const symbol =
-String(
-coin || ""
-).toUpperCase();
+async function getTronBalances(address) {
+  let trx = 0;
+  let usdt = 0;
 
-if (symbol === "USDT") {
-return 1;
+  try {
+    const balance =
+      await tronWeb.trx.getBalance(address);
+
+    trx = Number(balance) / 1e6;
+  } catch (error) {
+    console.error(
+      "TRX balance error:",
+      error.message
+    );
+  }
+
+  try {
+    const contract =
+      await tronWeb.contract().at(
+        TRON_USDT_CONTRACT
+      );
+
+    const raw =
+      await contract
+        .balanceOf(address)
+        .call();
+
+    usdt =
+      Number(raw.toString()) / 1e6;
+  } catch (error) {
+    console.error(
+      "TRC20 USDT balance error:",
+      error.message
+    );
+  }
+
+  return {
+    trx,
+    usdt
+  };
 }
 
-let id = "";
-
-if (symbol === "ETH") {
-id = "ethereum";
-} else if (symbol === "TRX") {
-id = "tron";
-} else if (symbol === "BTC") {
-id = "bitcoin";
-} else if (symbol === "SOL") {
-id = "solana";
-} else {
-throw new Error(
-"Unsupported price asset"
-);
-}
-
-const url =
-"https://api.coingecko.com/api/v3/simple/price" +
-?ids=${encodeURIComponent(id)} +
-"&vs_currencies=usd";
-
-const response =
-await fetch(url);
-
-if (!response.ok) {
-throw new Error(
-Price API failed: HTTP ${response.status}
-);
-}
-
-const data =
-await response.json();
-
-const price =
-Number(
-data?.[id]?.usd
-);
-
-if (
-!Number.isFinite(price) ||
-price <= 0
+async function getEvmNativeBalance(
+  networkKey,
+  address
 ) {
-throw new Error(
-"Invalid USD price"
-);
+  const provider =
+    getEvmProvider(networkKey);
+
+  const balance =
+    await provider.getBalance(address);
+
+  return Number(
+    ethers.formatEther(balance)
+  );
 }
 
-return price;
+async function getEvmUsdtBalance(
+  networkKey,
+  address
+) {
+  const network =
+    EVM_NETWORKS[
+      String(networkKey).toUpperCase()
+    ];
+
+  if (!network || !network.usdt) {
+    return 0;
+  }
+
+  const provider =
+    getEvmProvider(networkKey);
+
+  const abi = [
+    "function balanceOf(address) view returns (uint256)",
+    "function decimals() view returns (uint8)"
+  ];
+
+  const contract =
+    new ethers.Contract(
+      network.usdt,
+      abi,
+      provider
+    );
+
+  const [raw, decimals] =
+    await Promise.all([
+      contract.balanceOf(address),
+      contract.decimals()
+    ]);
+
+  return Number(
+    ethers.formatUnits(
+      raw,
+      decimals
+    )
+  );
+}
+
+async function getBitcoinBalance(address) {
+  if (!address) {
+    return 0;
+  }
+
+  try {
+    const response = await fetch(
+      `${BITCOIN_API}/address/${encodeURIComponent(
+        address
+      )}`
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Bitcoin API HTTP ${response.status}`
+      );
+    }
+
+    const data =
+      await response.json();
+
+    const funded =
+      Number(
+        data.chain_stats?.funded_txo_sum || 0
+      );
+
+    const spent =
+      Number(
+        data.chain_stats?.spent_txo_sum || 0
+      );
+
+    return (funded - spent) / 1e8;
+  } catch (error) {
+    console.error(
+      "Bitcoin balance error:",
+      error.message
+    );
+
+    return 0;
+  }
 }
 
 /* =========================================================
-TRON BALANCES
+   WALLET API
 ========================================================= */
 
-async function getTronBalances(
-address
-) {
-let trx = 0;
-let usdt = 0;
+app.post(
+  "/api/wallet",
+  async (req, res) => {
+    try {
+      const {
+        telegramId,
+        initData
+      } = req.body;
 
-try {
-const sun =
-await tronWeb.trx.getBalance(
-address
+      if (!telegramId) {
+        return res.status(400).json({
+          success: false,
+          error: "Telegram ID required"
+        });
+      }
+
+      if (
+        !authenticateTelegramRequest(
+          telegramId,
+          initData
+        )
+      ) {
+        return res.status(401).json({
+          success: false,
+          error: "Unauthorized request"
+        });
+      }
+
+      const user =
+        await createUser(telegramId);
+
+      const tronBalances =
+        await getTronBalances(
+          user.addresses.tron
+        );
+
+      const evmBalances = {};
+      const usdtBalances = {};
+
+      for (
+        const networkKey of Object.keys(
+          EVM_NETWORKS
+        )
+      ) {
+        try {
+          evmBalances[networkKey] =
+            await getEvmNativeBalance(
+              networkKey,
+              user.addresses.evm
+            );
+        } catch (error) {
+          evmBalances[networkKey] = 0;
+        }
+
+        try {
+          usdtBalances[networkKey] =
+            await getEvmUsdtBalance(
+              networkKey,
+              user.addresses.evm
+            );
+        } catch (error) {
+          usdtBalances[networkKey] = 0;
+        }
+      }
+
+      let sol = 0;
+
+      try {
+        if (user.addresses.solana) {
+          const lamports =
+            await getSolanaConnection()
+              .getBalance(
+                new PublicKey(
+                  user.addresses.solana
+                )
+              );
+
+          sol = lamports / 1e9;
+        }
+      } catch (error) {
+        console.error(
+          "SOL balance error:",
+          error.message
+        );
+      }
+
+      const btc =
+        await getBitcoinBalance(
+          user.addresses.bitcoin
+        );
+
+      return res.json({
+        success: true,
+
+        addresses: {
+          TRX: user.addresses.tron,
+          USDT_TRON: user.addresses.tron,
+
+          ETH: user.addresses.evm,
+          USDT_ETH: user.addresses.evm,
+          OPTIMISM: user.addresses.evm,
+          ARBITRUM: user.addresses.evm,
+          BASE: user.addresses.evm,
+
+          SOL: user.addresses.solana,
+          BTC: user.addresses.bitcoin
+        },
+
+        verifiedBalances: {
+          trx: Number(
+            tronBalances.trx.toFixed(6)
+          ),
+
+          usdt_tron: Number(
+            tronBalances.usdt.toFixed(6)
+          ),
+
+          eth: Number(
+            (evmBalances.ETH || 0).toFixed(8)
+          ),
+
+          usdt_eth: Number(
+            (usdtBalances.ETH || 0).toFixed(6)
+          ),
+
+          optimism: Number(
+            (evmBalances.OPTIMISM || 0).toFixed(8)
+          ),
+
+          arbitrum: Number(
+            (evmBalances.ARBITRUM || 0).toFixed(8)
+          ),
+
+          base: Number(
+            (evmBalances.BASE || 0).toFixed(8)
+          ),
+
+          btc: Number(
+            btc.toFixed(8)
+          ),
+
+          sol: Number(
+            sol.toFixed(9)
+          )
+        },
+
+        platformFee: {
+          sendPercent:
+            PLATFORM_FEE_PERCENT,
+
+          swipePercent: 0,
+          swapPercent: 0,
+
+          addresses:
+            FEE_ADDRESSES
+        }
+      });
+    } catch (error) {
+      console.error(
+        "Wallet API error:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        error:
+          "On-chain balance query failed"
+      });
+    }
+  }
 );
-
-trx =  
-  Number(sun) / 1e6;
-
-} catch (error) {
-console.error(
-"TRX balance error:",
-error.message
-);
-}
-
-try {
-const contract =
-await tronWeb
-.contract()
-.at(
-VERIFIED_CONTRACTS.TRON.USDT
-);
-
-const raw =  
-  await contract  
-    .balanceOf(address)  
-    .call();  
-
-usdt =  
-  Number(  
-    raw.toString()  
-  ) / 1e6;
-
-} catch (error) {
-console.error(
-"USDT balance error:",
-error.message
-);
-}
-
-return {
-trx,
-usdt
-};
-}
 
 /* =========================================================
-EVM BALANCES
+   SEND PREPARATION
 ========================================================= */
 
-async function getEvmBalance(
-networkKey,
-address
-) {
-const provider =
-getEvmProvider(
-networkKey
+app.post(
+  "/api/send/prepare",
+  async (req, res) => {
+    try {
+      const {
+        telegramId,
+        initData,
+        toAddress,
+        amount,
+        chain,
+        asset
+      } = req.body;
+
+      if (!telegramId) {
+        return res.status(400).json({
+          success: false,
+          error: "Telegram ID required"
+        });
+      }
+
+      if (
+        !authenticateTelegramRequest(
+          telegramId,
+          initData
+        )
+      ) {
+        return res.status(401).json({
+          success: false,
+          error: "Unauthorized request"
+        });
+      }
+
+      if (!toAddress) {
+        return res.status(400).json({
+          success: false,
+          error:
+            "Recipient address required"
+        });
+      }
+
+      if (!isValidAmount(amount)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid amount"
+        });
+      }
+
+      const normalizedChain =
+        String(chain || "").toUpperCase();
+
+      const normalizedAsset =
+        String(asset || "").toUpperCase();
+
+      /*
+       * 0.5% fee
+       */
+      const gross = Number(amount);
+
+      const fee =
+        gross * (PLATFORM_FEE_PERCENT / 100);
+
+      const receive =
+        gross - fee;
+
+      if (receive <= 0) {
+        throw new Error(
+          "Amount is too small after fee"
+        );
+      }
+
+      if (normalizedAsset === "ETH") {
+        if (
+          !EVM_NETWORKS[
+            normalizedChain
+          ]
+        ) {
+          throw new Error(
+            "Unsupported EVM network"
+          );
+        }
+
+        if (
+          !isValidEvmAddress(
+            toAddress
+          )
+        ) {
+          throw new Error(
+            "Invalid EVM recipient address"
+          );
+        }
+      }
+
+      if (normalizedAsset === "TRX") {
+        if (
+          normalizedChain !== "TRON"
+        ) {
+          throw new Error(
+            "Invalid TRON network"
+          );
+        }
+
+        if (
+          !isValidTronAddress(
+            toAddress
+          )
+        ) {
+          throw new Error(
+            "Invalid TRON recipient address"
+          );
+        }
+      }
+
+      if (normalizedAsset === "SOL") {
+        if (
+          normalizedChain !== "SOLANA"
+        ) {
+          throw new Error(
+            "Invalid Solana network"
+          );
+        }
+
+        if (
+          !isValidSolanaAddress(
+            toAddress
+          )
+        ) {
+          throw new Error(
+            "Invalid Solana recipient address"
+          );
+        }
+      }
+
+      return res.json({
+        success: true,
+
+        signingRequired: true,
+
+        chain:
+          normalizedChain,
+
+        asset:
+          normalizedAsset,
+
+        recipient:
+          toAddress,
+
+        grossAmount:
+          String(amount),
+
+        platformFee:
+          fee.toFixed(8),
+
+        receiveAmount:
+          receive.toFixed(8),
+
+        platformFeePercent:
+          PLATFORM_FEE_PERCENT,
+
+        feeAddress:
+          FEE_ADDRESSES,
+
+        message:
+          "Transaction prepared. Sign it with the user's wallet."
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        error:
+          error.message ||
+          "Transaction preparation failed"
+      });
+    }
+  }
 );
 
-const balance =
-await provider.getBalance(
-address
-);
-
-return Number(
-ethers.formatEther(
-balance
-)
-);
-}
-
-async function getErc20Balance(
-networkKey,
-address
-) {
-const network =
-EVM_NETWORKS[
-String(
-networkKey
-).toUpperCase()
-];
-
-if (
-!network ||
-!network.usdt
-) {
-throw new Error(
-"Unsupported EVM network"
-);
-}
-
-if (
-network.usdt ===
-"0x0000000000000000000000000000000000000000"
-) {
-throw new Error(
-"USDT contract is not configured for this network"
-);
-}
-
-const provider =
-getEvmProvider(
-networkKey
-);
-
-const abi = [
-"function balanceOf(address) view returns (uint256)",
-"function decimals() view returns (uint8)"
-];
-
-const contract =
-new ethers.Contract(
-network.usdt,
-abi,
-provider
-);
-
-const [
-raw,
-decimals
-] = await Promise.all([
-contract.balanceOf(address),
-contract.decimals()
-]);
-
-return Number(
-ethers.formatUnits(
-raw,
-decimals
-)
-);
-}
 /* =========================================================
-USER
+   SWAP
 ========================================================= */
 
-async function getOrCreateUser(telegramId) {
-const id = String(telegramId);
+app.post(
+  "/api/swipe-swap/prepare",
+  async (req, res) => {
+    try {
+      const {
+        telegramId,
+        initData
+      } = req.body;
 
-let user = await User.findOne({
-telegramId: id
-});
+      if (
+        !authenticateTelegramRequest(
+          telegramId,
+          initData
+        )
+      ) {
+        return res.status(401).json({
+          success: false,
+          error: "Unauthorized request"
+        });
+      }
 
-if (user) {
-return user;
-}
-
-const tronAccount =
-await tronWeb.createAccount();
-
-user = new User({
-telegramId: id,
-
-walletAddress:  
-  tronAccount.address.base58,  
-
-encryptedPrivateKey:  
-  encryptKey(  
-    tronAccount.privateKey  
-  )
-
-});
-
-await user.save();
-
-return user;
-}
+      return res.json({
+        success: true,
+        platformFeePercent: 0,
+        platformFee: 0,
+        networkFeeOnly: true,
+        signingRequired: true,
+        message:
+          "A DEX route must be selected and signed by the user's wallet."
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        error:
+          error.message ||
+          "Swap preparation failed"
+      });
+    }
+  }
+);
 
 /* =========================================================
-HEALTH
+   HEALTH
 ========================================================= */
 
 app.get("/", (req, res) => {
-res.json({
-success: true,
-service: "OPEN WALLET",
-status: "LIVE",
-version: "3.0.0",
-fakeTxid: false,
-platformFee:
-"0.5% on Send; 0% on Swipe/Swap"
-});
-});
-
-/* =========================================================
-WALLET
-========================================================= */
-
-app.post("/api/wallet", async (req, res) => {
-try {
-const {
-telegramId,
-initData
-} = req.body;
-
-if (!telegramId) {  
-  return res.status(400).json({  
-    success: false,  
-    error: "Telegram ID required"  
-  });  
-}  
-
-if (  
-  !authenticateTelegramRequest(  
-    telegramId,  
-    initData  
-  )  
-) {  
-  return res.status(401).json({  
-    success: false,  
-    error: "Unauthorized request"  
-  });  
-}  
-
-const user =  
-  await getOrCreateUser(  
-    telegramId  
-  );  
-
-const tronPrivateKey =  
-  decryptKey(  
-    user.encryptedPrivateKey  
-  );  
-
-const evmWallet =  
-  deriveEvmWalletFromTronPrivateKey(  
-    tronPrivateKey  
-  );  
-
-const solanaKeypair =  
-  deriveSolanaKeypairFromTronPrivateKey(  
-    tronPrivateKey  
-  );  
-
-const bitcoinAddress =  
-  deriveBitcoinAddress(  
-    tronPrivateKey  
-  );  
-
-/* -----------------------------------------------------  
-   TRON BALANCES  
-   ----------------------------------------------------- */  
-
-const tronBalances =  
-  await getTronBalances(  
-    user.walletAddress  
-  );  
-
-/* -----------------------------------------------------  
-   EVM BALANCES  
-   ----------------------------------------------------- */  
-
-const evmBalances = {};  
-const evmUsdtBalances = {};  
-
-for (  
-  const networkKey of  
-  Object.keys(EVM_NETWORKS)  
-) {  
-  try {  
-    evmBalances[networkKey] =  
-      await getEvmBalance(  
-        networkKey,  
-        evmWallet.address  
-      );  
-  } catch (error) {  
-    console.error(  
-      `${networkKey} native balance error:`,  
-      error.message  
-    );  
-
-    evmBalances[networkKey] = 0;  
-  }  
-
-  try {  
-    evmUsdtBalances[networkKey] =  
-      await getErc20Balance(  
-        networkKey,  
-        evmWallet.address  
-      );  
-  } catch (error) {  
-    console.error(  
-      `${networkKey} USDT balance error:`,  
-      error.message  
-    );  
-
-    evmUsdtBalances[networkKey] = 0;  
-  }  
-}  
-
-/* -----------------------------------------------------  
-   SOLANA BALANCE  
-   ----------------------------------------------------- */  
-
-let solBalance = 0;  
-
-try {  
-  const lamports =  
-    await getSolanaConnection()  
-      .getBalance(  
-        solanaKeypair.publicKey  
-      );  
-
-  solBalance =  
-    lamports / 1e9;  
-
-} catch (error) {  
-  console.error(  
-    "SOL balance error:",  
-    error.message  
-  );  
-}  
-
-/* -----------------------------------------------------  
-   RESPONSE  
-   ----------------------------------------------------- */  
-
-return res.json({  
-  success: true,  
-
-  address:  
-    user.walletAddress,  
-
-  addresses: {  
-    TRX:  
-      user.walletAddress,  
-
-    USDT_TRON:  
-      user.walletAddress,  
-
-    ETH:  
-      evmWallet.address,  
-
-    USDT_ETH:  
-      evmWallet.address,  
-
-    BTC:  
-      bitcoinAddress,  
-
-    SOL:  
-      solanaKeypair  
-        .publicKey  
-        .toBase58()  
-  },  
-
-  verifiedBalances: {  
-    trx:  
-      Number(  
-        tronBalances.trx  
-          .toFixed(6)  
-      ),  
-
-    usdt_tron:  
-      Number(  
-        tronBalances.usdt  
-          .toFixed(6)  
-      ),  
-
-    eth:  
-      Number(  
-        (  
-          evmBalances.ETH || 0  
-        ).toFixed(8)  
-      ),  
-
-    usdt_eth:  
-      Number(  
-        (  
-          evmUsdtBalances.ETH ||  
-          0  
-        ).toFixed(6)  
-      ),  
-
-    optimism:  
-      Number(  
-        (  
-          evmBalances.OPTIMISM ||  
-          0  
-        ).toFixed(8)  
-      ),  
-
-    arbitrum:  
-      Number(  
-        (  
-          evmBalances.ARBITRUM ||  
-          0  
-        ).toFixed(8)  
-      ),  
-
-    base:  
-      Number(  
-        (  
-          evmBalances.BASE ||  
-          0  
-        ).toFixed(8)  
-      ),  
-
-    btc: 0,  
-
-    sol:  
-      Number(  
-        solBalance.toFixed(9)  
-      )  
-  },  
-
-  platformFee: {  
-    sendPercent: 0.5,  
-    swipePercent: 0,  
-    swapPercent: 0,  
-
-    addresses:  
-      FEE_ADDRESSES  
-  }  
-});
-
-} catch (error) {
-console.error(
-"Wallet API error:",
-error
-);
-
-return res.status(500).json({  
-  success: false,  
-  error:  
-    "On-chain balance query failed",  
-  fakeTxid: false  
-});
-
-}
+  res.json({
+    success: true,
+    service: "OPEN WALLET",
+    status: "LIVE",
+    version: "4.0.0",
+    fakeTxid: false,
+    custodialPrivateKeys: false,
+    platformFee:
+      "0.5% on Send; 0% on Swipe/Swap"
+  });
 });
 
 /* =========================================================
-FEE CALCULATION
-========================================================= */
-
-function calculateFeeUnits(
-grossUnits
-) {
-const fee =
-grossUnits * 5n / 1000n;
-
-const receive =
-grossUnits - fee;
-
-if (
-fee <= 0n ||
-receive <= 0n
-) {
-throw new Error(
-"Amount is too small after 0.5% fee"
-);
-}
-
-return {
-feeUnits: fee,
-receiveUnits: receive
-};
-}
-
-/* =========================================================
-EVM NATIVE SEND
-ETH / OPTIMISM / ARBITRUM / BASE
-========================================================= */
-
-async function processEvmNativeTransfer(
-user,
-toAddress,
-grossAmount,
-chain
-) {
-const networkKey =
-String(
-chain || "ETH"
-).toUpperCase();
-
-const network =
-EVM_NETWORKS[networkKey];
-
-if (!network) {
-throw new Error(
-"Unsupported EVM network"
-);
-}
-
-if (
-!isValidEvmAddress(
-toAddress
-)
-) {
-throw new Error(
-"Invalid recipient address"
-);
-}
-
-if (
-toAddress.toLowerCase() ===
-FEE_ADDRESSES
-.ETHEREUM
-.toLowerCase()
-) {
-throw new Error(
-"Recipient cannot be the platform fee address"
-);
-}
-
-const grossWei =
-ethers.parseEther(
-String(grossAmount)
-);
-
-const {
-feeUnits: feeWei,
-receiveUnits: receiveWei
-} =
-calculateFeeUnits(
-grossWei
-);
-
-const ethUsd =
-await getUsdPrice(
-"ETH"
-);
-
-const receiveAmount =
-Number(
-ethers.formatEther(
-receiveWei
-)
-);
-
-const receiveUsd =
-receiveAmount *
-ethUsd;
-
-if (
-receiveUsd <
-MIN_RECEIVE_USD
-) {
-throw new Error(
-After 0.5% fee, recipient must receive at least $1.00 USD. Current value: $${receiveUsd.toFixed(2)}
-);
-}
-
-const provider =
-getEvmProvider(
-networkKey
-);
-
-const tronPrivateKey =
-decryptKey(
-user.encryptedPrivateKey
-);
-
-const wallet =
-deriveEvmWalletFromTronPrivateKey(
-tronPrivateKey
-).connect(
-provider
-);
-
-const balance =
-await provider.getBalance(
-wallet.address
-);
-
-const feeData =
-await provider.getFeeData();
-
-const gasPrice =
-feeData.maxFeePerGas ||
-feeData.gasPrice;
-
-if (!gasPrice) {
-throw new Error(
-"Unable to determine network gas price"
-);
-}
-
-/* -----------------------------------------------------
-ESTIMATE RECIPIENT GAS
------------------------------------------------------ */
-
-const recipientGas =
-await provider.estimateGas({
-from:
-wallet.address,
-
-to:  
-    toAddress,  
-
-  value:  
-    receiveWei  
-});
-
-/* -----------------------------------------------------
-ESTIMATE PLATFORM FEE GAS
------------------------------------------------------ */
-
-const platformGas =
-await provider.estimateGas({
-from:
-wallet.address,
-
-to:  
-    FEE_ADDRESSES.ETHEREUM,  
-
-  value:  
-    feeWei  
-});
-
-const totalGas =
-recipientGas +
-platformGas;
-
-const gasCost =
-totalGas *
-gasPrice;
-
-if (
-balance <
-grossWei +
-gasCost
-) {
-throw new Error(
-"Insufficient native coin balance for amount + 0.5% fee + network gas"
-);
-}
-
-/* -----------------------------------------------------
-REAL RECIPIENT TRANSACTION
------------------------------------------------------ */
-
-const recipientTx =
-await wallet.sendTransaction({
-to:
-toAddress,
-
-value:  
-    receiveWei,  
-
-  gasLimit:  
-    recipientGas  
-});
-
-const recipientReceipt =
-await recipientTx.wait();
-
-if (
-!recipientReceipt ||
-recipientReceipt.status !== 1
-) {
-throw new Error(
-"Recipient transaction was not confirmed"
-);
-}
-
-/* -----------------------------------------------------
-REAL PLATFORM FEE TRANSACTION
------------------------------------------------------ */
-
-try {
-const feeTx =
-await wallet.sendTransaction({
-to:
-FEE_ADDRESSES.ETHEREUM,
-
-value:  
-      feeWei,  
-
-    gasLimit:  
-      platformGas  
-  });  
-
-const feeReceipt =  
-  await feeTx.wait();  
-
-if (  
-  !feeReceipt ||  
-  feeReceipt.status !== 1  
-) {  
-  throw new Error(  
-    "Platform fee transaction was not confirmed"  
-  );  
-}  
-
-return {  
-  success: true,  
-
-  partialSuccess: false,  
-
-  fakeTxid: false,  
-
-  chain:  
-    networkKey,  
-
-  asset:  
-    "NATIVE",  
-
-  grossAmount:  
-    String(grossAmount),  
-
-  feeAmount:  
-    ethers.formatEther(  
-      feeWei  
-    ),  
-
-  receiveAmount:  
-    ethers.formatEther(  
-      receiveWei  
-    ),  
-
-  recipientTxid:  
-    recipientTx.hash,  
-
-  feeTxid:  
-    feeTx.hash,  
-
-  feePending:  
-    false,  
-
-  feeAddress:  
-    FEE_ADDRESSES.ETHEREUM  
-};
-
-} catch (feeError) {
-console.error(
-"Platform fee failed:",
-feeError.message
-);
-
-return {  
-  success: false,  
-
-  partialSuccess: true,  
-
-  fakeTxid: false,  
-
-  chain:  
-    networkKey,  
-
-  asset:  
-    "NATIVE",  
-
-  recipientTxid:  
-    recipientTx.hash,  
-
-  feeTxid:  
-    null,  
-
-  feePending:  
-    true,  
-
-  error:  
-    "Recipient transfer was confirmed, but platform fee transfer was not confirmed.",  
-
-  feeAddress:  
-    FEE_ADDRESSES.ETHEREUM  
-};
-
-}
-}
-
-/* =========================================================
-EVM USDT ERC20 SEND
-========================================================= */
-
-async function processEvmUsdtTransfer(
-user,
-toAddress,
-grossAmount,
-chain
-) {
-const networkKey =
-String(
-chain || "ETH"
-).toUpperCase();
-
-const network =
-EVM_NETWORKS[networkKey];
-
-if (!network) {
-throw new Error(
-"Unsupported EVM network"
-);
-}
-
-if (
-!isValidEvmAddress(
-toAddress
-)
-) {
-throw new Error(
-"Invalid recipient address"
-);
-}
-
-if (
-network.usdt ===
-"0x0000000000000000000000000000000000000000"
-) {
-throw new Error(
-"USDT contract is not configured for this network"
-);
-}
-
-const amountString =
-String(grossAmount);
-
-const provider =
-getEvmProvider(
-networkKey
-);
-
-const tronPrivateKey =
-decryptKey(
-user.encryptedPrivateKey
-);
-
-const wallet =
-deriveEvmWalletFromTronPrivateKey(
-tronPrivateKey
-).connect(
-provider
-);
-
-const tokenAbi = [
-"function transfer(address to,uint256 value) returns (bool)",
-"function balanceOf(address owner) view returns (uint256)",
-"function decimals() view returns (uint8)"
-];
-
-const token =
-new ethers.Contract(
-network.usdt,
-tokenAbi,
-wallet
-);
-
-const decimals =
-await token.decimals();
-
-const grossUnits =
-ethers.parseUnits(
-amountString,
-decimals
-);
-
-const {
-feeUnits,
-receiveUnits
-} =
-calculateFeeUnits(
-grossUnits
-);
-
-const receiveAmount =
-Number(
-ethers.formatUnits(
-receiveUnits,
-decimals
-)
-);
-
-if (
-receiveAmount <
-MIN_RECEIVE_USD
-) {
-throw new Error(
-After 0.5% fee, recipient must receive at least $1.00 USDT. Current value: $${receiveAmount.toFixed(2)}
-);
-}
-
-const tokenBalance =
-await token.balanceOf(
-wallet.address
-);
-
-if (
-tokenBalance <
-grossUnits
-) {
-throw new Error(
-"Insufficient USDT balance"
-);
-}
-
-const feeData =
-await provider.getFeeData();
-
-const gasPrice =
-feeData.maxFeePerGas ||
-feeData.gasPrice;
-
-if (!gasPrice) {
-throw new Error(
-"Unable to determine network gas price"
-);
-}
-
-const recipientTxRequest =
-await token.transfer.populateTransaction(
-toAddress,
-receiveUnits
-);
-
-const feeTxRequest =
-await token.transfer.populateTransaction(
-FEE_ADDRESSES.ETHEREUM,
-feeUnits
-);
-
-const recipientGas =
-await provider.estimateGas({
-...recipientTxRequest,
-
-from:  
-    wallet.address  
-});
-
-const feeGas =
-await provider.estimateGas({
-...feeTxRequest,
-
-from:  
-    wallet.address  
-});
-
-const nativeBalance =
-await provider.getBalance(
-wallet.address
-);
-
-const gasCost =
-(recipientGas + feeGas) *
-gasPrice;
-
-if (
-nativeBalance <
-gasCost
-) {
-throw new Error(
-"Insufficient native coin for ERC20 network gas"
-);
-}
-
-/* -----------------------------------------------------
-REAL USDT RECIPIENT TRANSACTION
------------------------------------------------------ */
-
-const recipientTx =
-await token.transfer(
-toAddress,
-receiveUnits,
-{
-gasLimit:
-recipientGas
-}
-);
-
-const recipientReceipt =
-await recipientTx.wait();
-
-if (
-!recipientReceipt ||
-recipientReceipt.status !== 1
-) {
-throw new Error(
-"USDT recipient transaction was not confirmed"
-);
-}
-
-/* -----------------------------------------------------
-REAL USDT PLATFORM FEE TRANSACTION
------------------------------------------------------ */
-
-try {
-const feeTx =
-await token.transfer(
-FEE_ADDRESSES.ETHEREUM,
-feeUnits,
-{
-gasLimit:
-feeGas
-}
-);
-
-const feeReceipt =  
-  await feeTx.wait();  
-
-if (  
-  !feeReceipt ||  
-  feeReceipt.status !== 1  
-) {  
-  throw new Error(  
-    "USDT platform fee transaction was not confirmed"  
-  );  
-}  
-
-return {  
-  success: true,  
-
-  partialSuccess: false,  
-
-  fakeTxid: false,  
-
-  chain:  
-    networkKey,  
-
-  asset:  
-    "USDT",  
-
-  grossAmount:  
-    amountString,  
-
-  feeAmount:  
-    ethers.formatUnits(  
-      feeUnits,  
-      decimals  
-    ),  
-
-  receiveAmount:  
-    ethers.formatUnits(  
-      receiveUnits,  
-      decimals  
-    ),  
-
-  recipientTxid:  
-    recipientTx.hash,  
-
-  feeTxid:  
-    feeTx.hash,  
-
-  feePending:  
-    false,  
-
-  feeAddress:  
-    FEE_ADDRESSES.ETHEREUM,  
-
-  contract:  
-    network.usdt  
-};
-
-} catch (feeError) {
-console.error(
-"USDT platform fee failed:",
-feeError.message
-);
-
-return {  
-  success: false,  
-
-  partialSuccess: true,  
-
-  fakeTxid: false,  
-
-  chain:  
-    networkKey,  
-
-  asset:  
-    "USDT",  
-
-  recipientTxid:  
-    recipientTx.hash,  
-
-  feeTxid:  
-    null,  
-
-  feePending:  
-    true,  
-
-  error:  
-    "USDT recipient transfer was confirmed, but platform fee transfer was not confirmed.",  
-
-  feeAddress:  
-    FEE_ADDRESSES.ETHEREUM,  
-
-  contract:  
-    network.usdt  
-};
-
-}
-}
-/* =========================================================
-UNIFIED SEND
-========================================================= */
-
-const unifiedSendHandler = async (req, res) => {
-try {
-const {
-telegramId,
-initData,
-toAddress,
-amount,
-chain,
-asset
-} = req.body;
-
-if (!telegramId) {  
-  return res.status(400).json({  
-    success: false,  
-    fakeTxid: false,  
-    error: "Telegram ID required"  
-  });  
-}  
-
-if (!toAddress) {  
-  return res.status(400).json({  
-    success: false,  
-    fakeTxid: false,  
-    error: "Recipient address required"  
-  });  
-}  
-
-if (  
-  amount === undefined ||  
-  amount === null ||  
-  amount === ""  
-) {  
-  return res.status(400).json({  
-    success: false,  
-    fakeTxid: false,  
-    error: "Amount required"  
-  });  
-}  
-
-if (  
-  !authenticateTelegramRequest(  
-    telegramId,  
-    initData  
-  )  
-) {  
-  return res.status(401).json({  
-    success: false,  
-    fakeTxid: false,  
-    error: "Unauthorized request"  
-  });  
-}  
-
-const user = await User.findOne({  
-  telegramId: String(telegramId)  
-});  
-
-if (!user) {  
-  return res.status(404).json({  
-    success: false,  
-    fakeTxid: false,  
-    error: "Wallet not found"  
-  });  
-}  
-
-const normalizedChain =  
-  String(chain || "").toUpperCase();  
-
-const normalizedAsset =  
-  String(asset || "").toUpperCase();  
-
-parsePositiveDecimal(  
-  amount,  
-  "amount"  
-);  
-
-let result;  
-
-if (  
-  normalizedAsset === "ETH" ||  
-  normalizedAsset === "NATIVE"  
-) {  
-  result =  
-    await processEvmNativeTransfer(  
-      user,  
-      toAddress,  
-      amount,  
-      normalizedChain || "ETH"  
-    );  
-}  
-
-else if (  
-  normalizedAsset === "USDT" &&  
-  ["ETH", "OPTIMISM", "ARBITRUM", "BASE"]  
-    .includes(normalizedChain)  
-) {  
-  result =  
-    await processEvmUsdtTransfer(  
-      user,  
-      toAddress,  
-      amount,  
-      normalizedChain  
-    );  
-}  
-
-else if (  
-  normalizedAsset === "TRX" &&  
-  normalizedChain === "TRON"  
-) {  
-  result =  
-    await processTrxTransfer(  
-      user,  
-      toAddress,  
-      amount  
-    );  
-}  
-
-else if (  
-  normalizedAsset === "USDT" &&  
-  normalizedChain === "TRON"  
-) {  
-  result =  
-    await processTronUsdtTransfer(  
-      user,  
-      toAddress,  
-      amount  
-    );  
-}  
-
-else if (  
-  normalizedAsset === "SOL" &&  
-  normalizedChain === "SOLANA"  
-) {  
-  result =  
-    await processSolTransfer(  
-      user,  
-      toAddress,  
-      amount  
-    );  
-}  
-
-else if (  
-  normalizedAsset === "BTC" &&  
-  normalizedChain === "BITCOIN"  
-) {  
-  result =  
-    await processBitcoinTransfer(  
-      user,  
-      toAddress,  
-      amount  
-    );  
-}  
-
-else {  
-  throw new Error(  
-    "Unsupported chain/asset combination"  
-  );  
-}  
-
-return res.json(result);
-
-} catch (error) {
-console.error(
-"Send API error:",
-error
-);
-
-return res.status(400).json({  
-  success: false,  
-  fakeTxid: false,  
-  error:  
-    error.message ||  
-    "Transaction failed"  
-});
-
-}
-};
-
-app.post(
-"/api/send",
-unifiedSendHandler
-);
-
-app.post(
-"/api/send-evm",
-unifiedSendHandler
-);
-
-/* =========================================================
-SWIPE / SWAP
-========================================================= */
-
-app.post(
-"/api/swipe-swap/prepare",
-async (req, res) => {
-try {
-const {
-telegramId,
-initData
-} = req.body;
-
-if (!telegramId) {  
-    return res.status(400).json({  
-      success: false,  
-      fakeTxid: false,  
-      error: "Telegram ID required"  
-    });  
-  }  
-
-  if (  
-    !authenticateTelegramRequest(  
-      telegramId,  
-      initData  
-    )  
-  ) {  
-    return res.status(401).json({  
-      success: false,  
-      fakeTxid: false,  
-      error: "Unauthorized request"  
-    });  
-  }  
-
-  return res.json({  
-    success: true,  
-    platformFeePercent: 0,  
-    platformFee: 0,  
-    networkFeeOnly: true,  
-    fakeTxid: false,  
-    message:  
-      "Swipe/Swap has 0% platform fee. A real DEX route must be supplied before a blockchain transaction can be created."  
-  });  
-
-} catch (error) {  
-
-  return res.status(400).json({  
-    success: false,  
-    fakeTxid: false,  
-    error:  
-      error.message ||  
-      "Swap preparation failed"  
-  });  
-}
-
-}
-);
-
-/* =========================================================
-404
+   404
 ========================================================= */
 
 app.use((req, res) => {
-res.status(404).json({
-success: false,
-fakeTxid: false,
-error: "Route not found"
-});
+  res.status(404).json({
+    success: false,
+    error: "Route not found"
+  });
 });
 
 /* =========================================================
-GLOBAL ERROR
+   ERROR HANDLER
 ========================================================= */
 
 app.use(
-(error, req, res, next) => {
-console.error(
-"Unhandled server error:",
-error
-);
+  (error, req, res, next) => {
+    console.error(
+      "Unhandled server error:",
+      error
+    );
 
-res.status(500).json({  
-  success: false,  
-  fakeTxid: false,  
-  error: "Internal server error"  
-});
-
-}
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
 );
 
 /* =========================================================
-START SERVER
+   START SERVER
 ========================================================= */
 
 async function startServer() {
-try {
+  try {
+    if (!MONGO_URI) {
+      throw new Error(
+        "MONGO_URI is missing"
+      );
+    }
 
-if (!MONGO_URI) {  
-  throw new Error(  
-    "MONGO_URI is missing"  
-  );  
-}  
+    if (!BOT_TOKEN) {
+      throw new Error(
+        "BOT_TOKEN is missing"
+      );
+    }
 
-if (!ENCRYPTION_KEY) {  
-  throw new Error(  
-    "ENCRYPTION_KEY is missing"  
-  );  
-}  
+    await mongoose.connect(
+      MONGO_URI
+    );
 
+    console.log(
+      "MongoDB connected"
+    );
 
-if (  
-  !isValidEvmAddress(  
-    FEE_ADDRESSES.ETHEREUM  
-  )  
-) {  
-  throw new Error(  
-    "Invalid Ethereum fee address"  
-  );  
-}  
+    app.listen(
+      PORT,
+      "0.0.0.0",
+      () => {
+        console.log(
+          `OPEN WALLET server running on port ${PORT}`
+        );
 
+        console.log(
+          "Platform fee: 0.5%"
+        );
 
-if (  
-  !isValidTronAddress(  
-    FEE_ADDRESSES.TRON  
-  )  
-) {  
-  throw new Error(  
-    "Invalid TRON fee address"  
-  );  
-}  
+        console.log(
+          "Swipe/Swap fee: 0%"
+        );
 
+        console.log(
+          "Custodial private keys: DISABLED"
+        );
+      }
+    );
+  } catch (error) {
+    console.error(
+      "Server startup failed:",
+      error.message
+    );
 
-if (  
-  !isValidBitcoinAddress(  
-    FEE_ADDRESSES.BITCOIN  
-  )  
-) {  
-  throw new Error(  
-    "Invalid Bitcoin fee address"  
-  );  
-}  
-
-
-if (  
-  !isValidSolanaAddress(  
-    FEE_ADDRESSES.SOLANA  
-  )  
-) {  
-  throw new Error(  
-    "Invalid Solana fee address"  
-  );  
-}  
-
-
-await mongoose.connect(  
-  MONGO_URI  
-);  
-
-console.log(  
-  "MongoDB connected"  
-);  
-
-
-app.listen(  
-  PORT,  
-  "0.0.0.0",  
-  () => {  
-
-    console.log(  
-      `OPEN WALLET server running on port ${PORT}`  
-    );  
-
-    console.log(  
-      "Send platform fee: 0.5%"  
-    );  
-
-    console.log(  
-      "Swipe/Swap platform fee: 0%"  
-    );  
-
-    console.log(  
-      "Fake TXID: DISABLED"  
-    );  
-
-  }  
-);
-
-} catch (error) {
-
-console.error(  
-  "Server startup failed:",  
-  error  
-);  
-
-process.exit(1);
-
-}
+    process.exit(1);
+  }
 }
 
 startServer();
