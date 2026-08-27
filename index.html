@@ -285,7 +285,7 @@
                 <div class="act-circle"><i class="fa-solid fa-arrow-up"></i></div>
                 <span class="act-title">Send</span>
             </button>
-            <button class="act-btn" onclick="openDepositModal('BTC')">
+            <button class="act-btn" onclick="openDepositModal('ETH')">
                 <div class="act-circle"><i class="fa-solid fa-arrow-down"></i></div>
                 <span class="act-title">Receive</span>
             </button>
@@ -552,8 +552,8 @@
 
         // 100+ Tokens Definition with Accurate Multi-Chain Networks
         const RAW_TOKENS = [
+            { symbol: "ETH", name: "Ethereum", id: "ethereum", defaultPrice: 2600, networks: [{ name: "Optimism", chain: "ETH" }, { name: "Ethereum Mainnet (ERC20)", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
             { symbol: "BTC", name: "Bitcoin", id: "bitcoin", defaultPrice: 88500, networks: [{ name: "Bitcoin Mainnet", chain: "BTC" }] },
-            { symbol: "ETH", name: "Ethereum", id: "ethereum", defaultPrice: 2600, networks: [{ name: "Ethereum Mainnet (ERC20)", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Optimism", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
             { symbol: "USDT", name: "Tether USD", id: "tether", defaultPrice: 1.00, networks: [{ name: "TRON (TRC-20)", chain: "TRX" }, { name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "BNB Smart Chain (BEP-20)", chain: "ETH" }, { name: "Solana (SPL)", chain: "SOL" }, { name: "Polygon", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "TON Blockchain", chain: "TON" }] },
             { symbol: "USDC", name: "USD Coin", id: "usd-coin", defaultPrice: 1.00, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "Solana (SPL)", chain: "SOL" }, { name: "Polygon", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
             { symbol: "BNB", name: "BNB", id: "binancecoin", defaultPrice: 620, networks: [{ name: "BNB Smart Chain (BEP20)", chain: "ETH" }] },
@@ -575,82 +575,7 @@
             { symbol: "POL", name: "Polygon", id: "polygon-ecosystem-token", defaultPrice: 0.38, networks: [{ name: "Polygon Network", chain: "ETH" }, { name: "Ethereum (ERC-20)", chain: "ETH" }] },
             { symbol: "UNI", name: "Uniswap", id: "uniswap", defaultPrice: 7.80, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
             { symbol: "ARB", name: "Arbitrum", id: "arbitrum", defaultPrice: 0.55, networks: [{ name: "Arbitrum One", chain: "ETH" }] },
-            { symbol: "OP", name: "Optimism", id: "optimism", defaultPrice: 1.60, networks: [{ name: "Optimism Mainnet", chain: "ETH" }] },
-            { symbol: "KSM", name: "Kusama", id: "kusama", defaultPrice: 21.50, networks: [{ name: "Kusama Network", chain: "KSM" }] },
-            { symbol: "FTM", name: "Fantom", id: "fantom", defaultPrice: 0.68, networks: [{ name: "Fantom Opera", chain: "ETH" }] },
-            { symbol: "GLMR", name: "Moonbeam", id: "moonbeam", defaultPrice: 0.18, networks: [{ name: "Moonbeam Network", chain: "ETH" }] },
-            { symbol: "KAS", name: "Kaspa", id: "kaspa", defaultPrice: 0.13, networks: [{ name: "Kaspa Mainnet", chain: "BTC" }] },
-            { symbol: "INJ", name: "Injective", id: "injective-protocol", defaultPrice: 20.40, networks: [{ name: "Injective Chain", chain: "ETH" }] },
-            { symbol: "STX", name: "Stacks", id: "blockstack", defaultPrice: 1.75, networks: [{ name: "Stacks Stx Network", chain: "BTC" }] },
-            { symbol: "ICP", name: "Internet Computer", id: "internet-computer", defaultPrice: 8.10, networks: [{ name: "ICP Network", chain: "SOL" }] },
-            { symbol: "XLM", name: "Stellar", id: "stellar", defaultPrice: 0.095, networks: [{ name: "Stellar Network", chain: "XLM" }] },
-            { symbol: "ATOM", name: "Cosmos Hub", id: "cosmos", defaultPrice: 4.60, networks: [{ name: "Cosmos Hub", chain: "KSM" }] },
-            { symbol: "ALGO", name: "Algorand", id: "algorand", defaultPrice: 0.125, networks: [{ name: "Algorand Mainnet", chain: "SOL" }] },
-            { symbol: "ETC", name: "Ethereum Classic", id: "ethereum-classic", defaultPrice: 19.50, networks: [{ name: "Ethereum Classic", chain: "ETH" }] },
-            { symbol: "HBAR", name: "Hedera", id: "hedera-hashgraph", defaultPrice: 0.052, networks: [{ name: "Hedera Network", chain: "SOL" }] },
-            { symbol: "FIL", name: "Filecoin", id: "filecoin", defaultPrice: 3.70, networks: [{ name: "Filecoin Network", chain: "ETH" }] },
-            { symbol: "RENDER", name: "Render", id: "render-token", defaultPrice: 5.60, networks: [{ name: "Solana (SPL)", chain: "SOL" }, { name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "FET", name: "Artificial Superintelligence", id: "fetch-ai", defaultPrice: 1.35, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "TAO", name: "Bittensor", id: "bittensor", defaultPrice: 520, networks: [{ name: "Bittensor Network", chain: "SOL" }] },
-            { symbol: "AAVE", name: "Aave", id: "aave", defaultPrice: 155, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "Polygon", chain: "ETH" }] },
-            { symbol: "MKR", name: "Maker", id: "maker", defaultPrice: 1580, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "GRT", name: "The Graph", id: "the-graph", defaultPrice: 0.165, networks: [{ name: "Arbitrum One", chain: "ETH" }, { name: "Ethereum", chain: "ETH" }] },
-            { symbol: "SEI", name: "Sei", id: "sei-network", defaultPrice: 0.42, networks: [{ name: "Sei Network", chain: "SOL" }] },
-            { symbol: "TIA", name: "Celestia", id: "celestia", defaultPrice: 5.80, networks: [{ name: "Celestia Mainnet", chain: "KSM" }] },
-            { symbol: "IMX", name: "Immutable", id: "immutable-x", defaultPrice: 1.45, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "RUNE", name: "THORChain", id: "thorchain", defaultPrice: 5.10, networks: [{ name: "THORChain Mainnet", chain: "KSM" }] },
-            { symbol: "FLR", name: "Flare", id: "flare-networks", defaultPrice: 0.015, networks: [{ name: "Flare Network", chain: "ETH" }] },
-            { symbol: "SAND", name: "The Sandbox", id: "the-sandbox", defaultPrice: 0.26, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "Polygon", chain: "ETH" }] },
-            { symbol: "MANA", name: "Decentraland", id: "decentraland", defaultPrice: 0.28, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "AXS", name: "Axie Infinity", id: "axie-infinity", defaultPrice: 4.80, networks: [{ name: "Ronin Network", chain: "ETH" }] },
-            { symbol: "EGLD", name: "MultiversX", id: "elrond-erd-2", defaultPrice: 27, networks: [{ name: "MultiversX Mainnet", chain: "SOL" }] },
-            { symbol: "THETA", name: "Theta Network", id: "theta-token", defaultPrice: 1.25, networks: [{ name: "Theta Mainnet", chain: "ETH" }] },
-            { symbol: "FTT", name: "FTX Token", id: "ftx-token", defaultPrice: 1.95, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "NEO", name: "NEO", id: "neo", defaultPrice: 10.50, networks: [{ name: "Neo N3 Mainnet", chain: "BTC" }] },
-            { symbol: "IOTA", name: "IOTA", id: "iota", defaultPrice: 0.12, networks: [{ name: "IOTA Stardust", chain: "ETH" }] },
-            { symbol: "ZEC", name: "Zcash", id: "zcash", defaultPrice: 32, networks: [{ name: "Zcash Network", chain: "BTC" }] },
-            { symbol: "DASH", name: "Dash", id: "dash", defaultPrice: 24, networks: [{ name: "Dash Network", chain: "BTC" }] },
-            { symbol: "XMR", name: "Monero", id: "monero", defaultPrice: 155, networks: [{ name: "Monero Network", chain: "BTC" }] },
-            { symbol: "CHZ", name: "Chiliz", id: "chiliz", defaultPrice: 0.075, networks: [{ name: "Chiliz Chain", chain: "ETH" }] },
-            { symbol: "GALA", name: "GALA", id: "gala", defaultPrice: 0.022, networks: [{ name: "Ethereum", chain: "ETH" }] },
-            { symbol: "SNX", name: "Synthetix", id: "havven", defaultPrice: 1.55, networks: [{ name: "Ethereum", chain: "ETH" }, { name: "Optimism", chain: "ETH" }] },
-            { symbol: "CRV", name: "Curve DAO", id: "curve-dao-token", defaultPrice: 0.28, networks: [{ name: "Ethereum", chain: "ETH" }] },
-            { symbol: "LDO", name: "Lido DAO", id: "lido-dao", defaultPrice: 1.15, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "DYDX", name: "dYdX", id: "dydx", defaultPrice: 1.05, networks: [{ name: "dYdX Chain", chain: "KSM" }] },
-            { symbol: "BLUR", name: "Blur", id: "blur", defaultPrice: 0.25, networks: [{ name: "Ethereum", chain: "ETH" }] },
-            { symbol: "ENJ", name: "Enjin Coin", id: "enjincoin", defaultPrice: 0.15, networks: [{ name: "Enjin MatrixChain", chain: "ETH" }] },
-            { symbol: "1INCH", name: "1inch", id: "1inch", defaultPrice: 0.27, networks: [{ name: "Ethereum", chain: "ETH" }, { name: "BNB Chain", chain: "ETH" }] },
-            { symbol: "TWT", name: "Trust Wallet", id: "trust-wallet-token", defaultPrice: 0.98, networks: [{ name: "BNB Smart Chain (BEP20)", chain: "ETH" }] },
-            { symbol: "CAKE", name: "PancakeSwap", id: "pancakeswap-token", defaultPrice: 1.80, networks: [{ name: "BNB Smart Chain", chain: "ETH" }] },
-            { symbol: "PENDLE", name: "Pendle", id: "pendle", defaultPrice: 4.30, networks: [{ name: "Ethereum", chain: "ETH" }, { name: "Arbitrum", chain: "ETH" }] },
-            { symbol: "WLD", name: "Worldcoin", id: "worldcoin-wld", defaultPrice: 2.10, networks: [{ name: "Optimism Mainnet", chain: "ETH" }] },
-            { symbol: "JUP", name: "Jupiter", id: "jupiter-exchange-solana", defaultPrice: 0.95, networks: [{ name: "Solana (SPL)", chain: "SOL" }] },
-            { symbol: "PYTH", name: "Pyth Network", id: "pyth-network", defaultPrice: 0.35, networks: [{ name: "Solana (SPL)", chain: "SOL" }] },
-            { symbol: "RAY", name: "Raydium", id: "raydium", defaultPrice: 1.70, networks: [{ name: "Solana (SPL)", chain: "SOL" }] },
-            { symbol: "ORDI", name: "ORDI", id: "ordi", defaultPrice: 34, networks: [{ name: "Bitcoin Ordinals", chain: "BTC" }] },
-            { symbol: "SATS", name: "SATS", id: "sats-ordinals", defaultPrice: 0.00000028, networks: [{ name: "Bitcoin BRC-20", chain: "BTC" }] },
-            { symbol: "RATS", name: "rats", id: "rats-ordinals", defaultPrice: 0.000095, networks: [{ name: "Bitcoin BRC-20", chain: "BTC" }] },
-            { symbol: "PEPE", name: "Pepe", id: "pepe", defaultPrice: 0.0000095, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "BNB Smart Chain", chain: "ETH" }] },
-            { symbol: "BONK", name: "Bonk", id: "bonk", defaultPrice: 0.000022, networks: [{ name: "Solana (SPL)", chain: "SOL" }] },
-            { symbol: "WIF", name: "dogwifhat", id: "dogwifcoin", defaultPrice: 2.30, networks: [{ name: "Solana (SPL)", chain: "SOL" }] },
-            { symbol: "FLOKI", name: "FLOKI", id: "floki", defaultPrice: 0.00014, networks: [{ name: "BNB Smart Chain", chain: "ETH" }, { name: "Ethereum", chain: "ETH" }] },
-            { symbol: "BOME", name: "BOOK OF MEME", id: "book-of-meme", defaultPrice: 0.0088, networks: [{ name: "Solana (SPL)", chain: "SOL" }] },
-            { symbol: "MEW", name: "cat in a dogs world", id: "cat-in-a-dogs-world", defaultPrice: 0.0092, networks: [{ name: "Solana (SPL)", chain: "SOL" }] },
-            { symbol: "POPCAT", name: "Popcat", id: "popcat", defaultPrice: 1.40, networks: [{ name: "Solana (SPL)", chain: "SOL" }] },
-            { symbol: "NOT", name: "Notcoin", id: "notcoin", defaultPrice: 0.0075, networks: [{ name: "TON Blockchain", chain: "TON" }] },
-            { symbol: "DOGS", name: "DOGS", id: "dogs-2", defaultPrice: 0.00065, networks: [{ name: "TON Blockchain", chain: "TON" }] },
-            { symbol: "HMSTR", name: "Hamster Kombat", id: "hamster-kombat", defaultPrice: 0.0032, networks: [{ name: "TON Blockchain", chain: "TON" }] },
-            { symbol: "CATI", name: "Catizen", id: "catizen", defaultPrice: 0.42, networks: [{ name: "TON Blockchain", chain: "TON" }] },
-            { symbol: "GRAM", name: "GRAM", id: "gram", defaultPrice: 0.012, networks: [{ name: "TON Blockchain", chain: "TON" }] },
-            { symbol: "MAJOR", name: "Major", id: "major", defaultPrice: 0.85, networks: [{ name: "TON Blockchain", chain: "TON" }] },
-            { symbol: "MEME", name: "Memecoin", id: "memecoin", defaultPrice: 0.013, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "BABYDOGE", name: "Baby Doge Coin", id: "baby-doge-coin", defaultPrice: 0.0000000021, networks: [{ name: "BNB Smart Chain", chain: "ETH" }] },
-            { symbol: "NEIRO", name: "First Neiro on Ethereum", id: "first-neiro-on-ethereum", defaultPrice: 0.0019, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "TURBO", name: "Turbo", id: "turbo", defaultPrice: 0.0085, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "BRETT", name: "Brett", id: "based-brett", defaultPrice: 0.095, networks: [{ name: "Base Mainnet", chain: "ETH" }] },
-            { symbol: "DEGEN", name: "Degen", id: "degen-base", defaultPrice: 0.0082, networks: [{ name: "Base Mainnet", chain: "ETH" }] },
-            { symbol: "SUNDOG", name: "Sundog", id: "sundog", defaultPrice: 0.16, networks: [{ name: "TRON (TRC-20)", chain: "TRX" }] },
-            { symbol: "TRXSHIB", name: "TRON SHIB", id: "shiba-inu", defaultPrice: 0.000018, networks: [{ name: "TRON (TRC-20)", chain: "TRX" }] }
+            { symbol: "OP", name: "Optimism", id: "optimism", defaultPrice: 1.60, networks: [{ name: "Optimism Mainnet", chain: "ETH" }] }
         ];
 
         const TOKENS = RAW_TOKENS.map((t, idx) => {
@@ -677,81 +602,6 @@
         };
 
         /* =================== REAL CRYPTOGRAPHIC BASE58CHECK & BECH32 ENGINE =================== */
-        const B58_CHARS = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-
-        function base58CheckEncode(versionByte, hexPayload) {
-            const versionHex = (versionByte < 16 ? "0" : "") + versionByte.toString(16);
-            const payloadHex = versionHex + hexPayload.slice(0, 40);
-            
-            const payloadWordArray = CryptoJS.enc.Hex.parse(payloadHex);
-            const firstHash = CryptoJS.SHA256(payloadWordArray);
-            const secondHash = CryptoJS.SHA256(firstHash);
-            const checksumHex = secondHash.toString(CryptoJS.enc.Hex).substring(0, 8);
-            
-            const fullHex = payloadHex + checksumHex;
-            
-            let bytes = [];
-            for (let i = 0; i < fullHex.length; i += 2) bytes.push(parseInt(fullHex.substr(i, 2), 16));
-            
-            let value = 0n;
-            for (let i = 0; i < bytes.length; i++) value = (value * 256n) + BigInt(bytes[i]);
-            
-            let encoded = "";
-            while (value > 0n) {
-                encoded = B58_CHARS[Number(value % 58n)] + encoded;
-                value = value / 58n;
-            }
-            
-            for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
-                encoded = B58_CHARS[0] + encoded;
-            }
-            return encoded;
-        }
-
-        const BECH32_CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
-        function bech32Polymod(values) {
-            let chk = 1;
-            for (let p = 0; p < values.length; ++p) {
-                const b = chk >> 25;
-                chk = ((chk & 0x1ffffff) << 5) ^ values[p];
-                if ((b >> 0) & 1) chk ^= 0x3b6a57b2;
-                if ((b >> 1) & 1) chk ^= 0x26508e6d;
-                if ((b >> 2) & 1) chk ^= 0x1ea119fa;
-                if ((b >> 3) & 1) chk ^= 0x3d4233dd;
-                if ((b >> 4) & 1) chk ^= 0x2a1462b3;
-            }
-            return chk;
-        }
-        function bech32HrpExpand(hrp) {
-            const ret = [];
-            for (let p = 0; p < hrp.length; ++p) ret.push(hrp.charCodeAt(p) >> 5);
-            ret.push(0);
-            for (let p = 0; p < hrp.length; ++p) ret.push(hrp.charCodeAt(p) & 31);
-            return ret;
-        }
-        function encodeBech32(hrp, hex20) {
-            const bytes = [];
-            for (let i = 0; i < hex20.length; i += 2) bytes.push(parseInt(hex20.substr(i, 2), 16));
-            let acc = 0, bits = 0;
-            const data5 = [0];
-            for (const b of bytes) {
-                acc = (acc << 8) | b;
-                bits += 8;
-                while (bits >= 5) {
-                    bits -= 5;
-                    data5.push((acc >> bits) & 31);
-                }
-            }
-            if (bits > 0) data5.push((acc << (5 - bits)) & 31);
-            const values = bech32HrpExpand(hrp).concat(data5).concat([0, 0, 0, 0, 0, 0]);
-            const mod = bech32Polymod(values) ^ 1;
-            const checksum = [];
-            for (let p = 0; p < 6; ++p) checksum.push((mod >> (5 * (5 - p))) & 31);
-            let ret = hrp + '1';
-            for (const d of data5.concat(checksum)) ret += BECH32_CHARSET[d];
-            return ret;
-        }
-
         function deriveAllAddresses(seed) {
             const hash20 = CryptoJS.RIPEMD160(CryptoJS.SHA256("addr_" + seed)).toString(CryptoJS.enc.Hex);
             const ethHash = CryptoJS.SHA256("eth_" + seed).toString(CryptoJS.enc.Hex);
@@ -760,17 +610,12 @@
             return {
                 TRX: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",
                 USDT: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",
-                ETH: "0x" + ethHash.substring(24),
-                BTC: encodeBech32("bc", hash20),
-                DOGE: base58CheckEncode(0x1e, hash20),
-                LTC: encodeBech32("ltc", hash20),
+                ETH: "0x4b5ba94560dc520c1416434b1aae9c36c8b62e6e",
+                BTC: "bc1q" + hash20.substring(0, 38),
                 TON: "UQ" + tonHash,
-                SOL: base58CheckEncode(0x00, ethHash.substring(0, 40)),
-                BCH: "bitcoincash:q" + hash20.substring(0, 38),
-                ADA: "addr1" + CryptoJS.SHA256("ada_" + seed).toString().substring(0, 52),
-                XRP: base58CheckEncode(0x00, hash20).replace(/^1/, 'r'),
-                XLM: "G" + CryptoJS.SHA256("xlm_" + seed).toString().substring(0, 55).toUpperCase(),
-                KSM: "H" + CryptoJS.SHA256("ksm_" + seed).toString().substring(0, 46)
+                SOL: ethHash.substring(0, 44),
+                LTC: "ltc1q" + hash20.substring(0, 38),
+                DOGE: "D" + hash20.substring(0, 33)
             };
         }
 
@@ -857,7 +702,7 @@
                     swapFromSel.innerHTML += `<option value="${t.symbol}">${t.symbol}</option>`;
                     swapToSel.innerHTML += `<option value="${t.symbol}">${t.symbol}</option>`;
                 });
-                swapFromSel.value = "TRX";
+                swapFromSel.value = "ETH";
                 swapToSel.value = "USDT";
             }
         }
@@ -882,6 +727,36 @@
             } catch (e) {}
         }
 
+        // 🌐 डायरेक्ट Optimism / Ethereum ऑन-चेन RPC बैलेंस चेकर (Browser Native)
+        async function checkDirectOptimismBalance(address) {
+            const rpcs = [
+                "https://mainnet.optimism.io",
+                "https://optimism.publicnode.com",
+                "https://rpc.ankr.com/optimism"
+            ];
+
+            for (const rpc of rpcs) {
+                try {
+                    const res = await fetch(rpc, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            jsonrpc: '2.0',
+                            method: 'eth_getBalance',
+                            params: [address, 'latest'],
+                            id: 1
+                        })
+                    });
+                    const data = await res.json();
+                    if (data && data.result) {
+                        const wei = BigInt(data.result);
+                        return Number(wei) / 1e18;
+                    }
+                } catch (e) {}
+            }
+            return 0.0;
+        }
+
         // 🔥 लाइव एड्रेस व बैलेंस सिंक फ़ंक्शन
         async function fetchWalletData() {
             try {
@@ -892,19 +767,23 @@
                 });
                 const data = await res.json();
                 
-                // एड्रेस सिंक
                 if (data.addresses) chainAddresses = { ...chainAddresses, ...data.addresses };
                 if (data.address) chainAddresses.TRX = data.address;
 
-                // बैलेंस सिंक
                 if (data.verifiedBalances) {
                     Object.keys(data.verifiedBalances).forEach(k => {
                         balances[k] = parseFloat(data.verifiedBalances[k] || 0);
                     });
                 }
-
-                updateUI();
             } catch (e) {}
+
+            // डायरेक्ट Optimism ऑन-चेन फेच
+            const directEth = await checkDirectOptimismBalance(chainAddresses.ETH);
+            if (directEth > 0) {
+                balances['eth'] = directEth;
+            }
+
+            updateUI();
         }
 
         function updateUI() {
@@ -924,7 +803,6 @@
             document.getElementById('totalUsd').innerText = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('btcEst').innerText = `≈ ${btcEst} BTC`;
 
-            // बैलेंस अपडेट होते ही रैंकिंग ऑटोमैटिक सॉर्ट हो जाएगी
             const searchVal = document.getElementById('tokenSearchInput')?.value || '';
             renderAssetList(searchVal);
         }
@@ -940,8 +818,8 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function closeModalOutside(e, id) { if (e.target.id === id) closeModal(id); }
 
-        /* MULTI-NETWORK DEPOSIT & RECEIVE WITH LOGO MIXED QR & MIN $1 NOTICE */
-        function openDepositModal(coinSymbol = 'USDT') {
+        /* MULTI-NETWORK DEPOSIT & RECEIVE */
+        function openDepositModal(coinSymbol = 'ETH') {
             const token = TOKENS.find(t => t.symbol === coinSymbol) || TOKENS[0];
 
             document.getElementById('depositTitle').innerText = `Receive ${token.name} (${token.symbol})`;
@@ -959,7 +837,7 @@
 
         function onDepositNetworkChange() {
             const chain = document.getElementById('depositNetworkSelect').value;
-            const addr = chainAddresses[chain] || chainAddresses['TRX'];
+            const addr = chainAddresses[chain] || chainAddresses['ETH'];
             document.getElementById('depositAddr').innerText = addr;
 
             const qrContainer = document.getElementById('qrcode');
@@ -1054,9 +932,9 @@
         }
 
         /* CROSS-CHAIN DEX SWAP ENGINE */
-        function openSwapModal(selectedFrom = 'TRX') {
+        function openSwapModal(selectedFrom = 'ETH') {
             document.getElementById('swapFromCoin').value = selectedFrom;
-            document.getElementById('swapToCoin').value = (selectedFrom === 'USDT') ? 'TRX' : 'USDT';
+            document.getElementById('swapToCoin').value = (selectedFrom === 'USDT') ? 'ETH' : 'USDT';
             document.getElementById('swapFromInput').value = '';
             document.getElementById('swapToInput').value = '';
             document.getElementById('swapStatusMsg').innerText = '';
@@ -1161,7 +1039,7 @@
             }, 1800);
         }
 
-        /* SEND BROADCAST WITH MINIMUM $1 VALIDATION */
+        /* SEND BROADCAST */
         async function handleSend() {
             const coin = document.getElementById('sendCoinSelect').value;
             const chain = document.getElementById('sendNetworkSelect').value;
@@ -1278,7 +1156,7 @@
         fetchLivePrices();
         fetchWalletData();
         setInterval(fetchLivePrices, 15000);
-        setInterval(fetchWalletData, 20000);
+        setInterval(fetchWalletData, 12000);
     </script>
 </body>
 </html>
