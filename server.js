@@ -43,11 +43,11 @@ const VERIFIED_CONTRACTS = {
     }
 };
 
-// 🛡️ 4. मल्टी-चेन वेरिफ़ाइड EVM RPCs
+// 🛡️ 4. मल्टी-चेन वेरिफ़ाइड EVM RPCs (क्लाउडफ़ेयर सुरक्षित लिंक्स)
 const EVM_RPCS = {
     OPTIMISM: "https://mainnet.optimism.io",
-    ETH: "https://eth.llamarpc.com",
-    BSC: "https://binance.llamarpc.com",
+    ETH: "https://rpc.ankr.com/eth",
+    BSC: "https://bsc-dataseed1.binance.org",
     POLYGON: "https://polygon-rpc.com",
     ARBITRUM: "https://arb1.arbitrum.io/rpc"
 };
