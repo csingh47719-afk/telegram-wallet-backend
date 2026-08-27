@@ -882,6 +882,7 @@
             } catch (e) {}
         }
 
+        // 🔥 लाइव एड्रेस व बैलेंस सिंक फ़ंक्शन
         async function fetchWalletData() {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/wallet`, {
@@ -890,9 +891,12 @@
                     body: JSON.stringify({ telegramId })
                 });
                 const data = await res.json();
+                
+                // एड्रेस सिंक
                 if (data.addresses) chainAddresses = { ...chainAddresses, ...data.addresses };
                 if (data.address) chainAddresses.TRX = data.address;
 
+                // बैलेंस सिंक
                 if (data.verifiedBalances) {
                     Object.keys(data.verifiedBalances).forEach(k => {
                         balances[k] = parseFloat(data.verifiedBalances[k] || 0);
