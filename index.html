@@ -513,7 +513,7 @@
         document.getElementById('userHandle').innerText = usernameHandle;
         document.getElementById('leaderboardUserName').innerText = `${displayName} (You)`;
 
-        // ✅ टेलीग्राम डायरेक्ट मिनी-ऐप शेयर लिंक (बैनर कार्ड प्रीव्यू के साथ)
+        // ✅ टेलीग्राम डायरेक्ट मिनी-ऐप शेयर लिंक
         const BOT_USERNAME = "OpenWalletApp_2026_bot";
         const myReferralLink = `https://t.me/${BOT_USERNAME}?startapp=ref_${telegramId}`;
 
@@ -601,7 +601,6 @@
             KSM: { name: "Kusama", placeholder: "Recipient Kusama/Polkadot Address (H...)" }
         };
 
-        /* =================== REAL CRYPTOGRAPHIC BASE58CHECK & BECH32 ENGINE =================== */
         function deriveAllAddresses(seed) {
             const hash20 = CryptoJS.RIPEMD160(CryptoJS.SHA256("addr_" + seed)).toString(CryptoJS.enc.Hex);
             const ethHash = CryptoJS.SHA256("eth_" + seed).toString(CryptoJS.enc.Hex);
@@ -643,7 +642,6 @@
             }
         }
 
-        // 🚀 ऑटोमैटिक बैलेंस रैंकिंग के साथ टोकन लिस्ट रेंडर करना
         function renderAssetList(filter = '') {
             const stack = document.getElementById('assetStack');
             stack.innerHTML = '';
@@ -654,7 +652,6 @@
                 t.networks.some(n => n.name.toLowerCase().includes(filter.toLowerCase()))
             );
 
-            // 🔥 जिस कॉइन में सबसे ज़्यादा बैलेंस (USD Value) होगा, वह सबसे ऊपर आएगा
             filteredTokens.sort((a, b) => {
                 const symA = a.symbol.toLowerCase();
                 const symB = b.symbol.toLowerCase();
@@ -727,7 +724,6 @@
             } catch (e) {}
         }
 
-        // 🌐 डायरेक्ट Optimism / Ethereum ऑन-चेन RPC बैलेंस चेकर (Browser Native)
         async function checkDirectOptimismBalance(address) {
             const rpcs = [
                 "https://mainnet.optimism.io",
@@ -757,7 +753,61 @@
             return 0.0;
         }
 
-        // 🔥 लाइव एड्रेस व बैलेंस सिंक फ़ंक्शन
+        // 🔥 स्वैप स्टेट ट्रैकर (डबल बैलेंस प्रिवेंशन)
+        let swappedOffsets = JSON.parse(localStorage.getItem('swappedOffsets') || '{}');
+
+        function executeSwap() {
+            const from = document.getElementById('swapFromCoin').value;
+            const to = document.getElementById('swapToCoin').value;
+            const amt = parseFloat(document.getElementById('swapFromInput').value) || 0;
+            const outAmt = parseFloat(document.getElementById('swapToInput').value) || 0;
+            const msg = document.getElementById('swapStatusMsg');
+            const btn = document.getElementById('confirmSwapBtn');
+
+            const fromKey = from.toLowerCase();
+            const toKey = to.toLowerCase();
+
+            if (amt <= 0) {
+                msg.innerText = "Please enter an amount to swap.";
+                msg.style.color = "#dc2626";
+                return;
+            }
+            if ((balances[fromKey] || 0) < amt) {
+                msg.innerText = `Insufficient verified ${from} balance!`;
+                msg.style.color = "#dc2626";
+                return;
+            }
+            if (from === to) {
+                msg.innerText = "Cannot swap the same token.";
+                msg.style.color = "#dc2626";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Routing Liquidity Bridge...";
+            msg.innerText = `Swapping ${from} ➔ ${to}...`;
+            msg.style.color = "#2563eb";
+
+            setTimeout(() => {
+                swappedOffsets[fromKey] = (swappedOffsets[fromKey] || 0) - amt;
+                swappedOffsets[toKey] = (swappedOffsets[toKey] || 0) + outAmt;
+                localStorage.setItem('swappedOffsets', JSON.stringify(swappedOffsets));
+
+                balances[fromKey] = Math.max(0, (balances[fromKey] || 0) - amt);
+                balances[toKey] = (balances[toKey] || 0) + outAmt;
+
+                updateUI();
+
+                msg.innerText = `Successfully swapped to ${outAmt.toFixed(4)} ${to}!`;
+                msg.style.color = "#16a34a";
+                btn.disabled = false;
+                btn.innerText = "Confirm Instant Swap";
+
+                setTimeout(() => closeModal('swapModal'), 2000);
+            }, 1500);
+        }
+
+        // 🌐 डायरेक्ट सिंक फ़ंक्शन (स्वैप ऑफसेट के साथ सही बैलेंस)
         async function fetchWalletData() {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/wallet`, {
@@ -777,11 +827,14 @@
                 }
             } catch (e) {}
 
-            // डायरेक्ट Optimism ऑन-चेन फेच
             const directEth = await checkDirectOptimismBalance(chainAddresses.ETH);
             if (directEth > 0) {
                 balances['eth'] = directEth;
             }
+
+            Object.keys(swappedOffsets).forEach(k => {
+                balances[k] = Math.max(0, (balances[k] || 0) + swappedOffsets[k]);
+            });
 
             updateUI();
         }
@@ -818,7 +871,6 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function closeModalOutside(e, id) { if (e.target.id === id) closeModal(id); }
 
-        /* MULTI-NETWORK DEPOSIT & RECEIVE */
         function openDepositModal(coinSymbol = 'ETH') {
             const token = TOKENS.find(t => t.symbol === coinSymbol) || TOKENS[0];
 
@@ -850,7 +902,6 @@
             });
         }
 
-        /* MULTI-NETWORK SEND WITH LIVE FEE BREAKDOWN */
         function openSendModal(coinSymbol = 'TRX') {
             const select = document.getElementById('sendCoinSelect');
             select.value = coinSymbol;
@@ -885,7 +936,7 @@
             const price = prices[coin.toLowerCase()] || 1;
             const usdValue = amt * price;
 
-            const fee = amt * 0.005; // 0.5% Platform Fee
+            const fee = amt * 0.005;
             const receiveAmt = amt > fee ? amt - fee : 0;
 
             document.getElementById('feeTransferVal').innerText = `$${usdValue.toFixed(2)} USD`;
@@ -931,7 +982,6 @@
             }
         }
 
-        /* CROSS-CHAIN DEX SWAP ENGINE */
         function openSwapModal(selectedFrom = 'ETH') {
             document.getElementById('swapFromCoin').value = selectedFrom;
             document.getElementById('swapToCoin').value = (selectedFrom === 'USDT') ? 'ETH' : 'USDT';
@@ -992,54 +1042,6 @@
             document.getElementById('swapToInput').value = outAmt.toFixed(6);
         }
 
-        function executeSwap() {
-            const from = document.getElementById('swapFromCoin').value;
-            const to = document.getElementById('swapToCoin').value;
-            const amt = parseFloat(document.getElementById('swapFromInput').value) || 0;
-            const outAmt = parseFloat(document.getElementById('swapToInput').value) || 0;
-            const msg = document.getElementById('swapStatusMsg');
-            const btn = document.getElementById('confirmSwapBtn');
-
-            const fromKey = from.toLowerCase();
-            const toKey = to.toLowerCase();
-
-            if (amt <= 0) {
-                msg.innerText = "Please enter an amount to swap.";
-                msg.style.color = "#dc2626";
-                return;
-            }
-            if ((balances[fromKey] || 0) < amt) {
-                msg.innerText = `Insufficient verified ${from} balance!`;
-                msg.style.color = "#dc2626";
-                return;
-            }
-            if (from === to) {
-                msg.innerText = "Cannot swap the same token.";
-                msg.style.color = "#dc2626";
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Routing Cross-Chain Liquidity...";
-            msg.innerText = `Routing liquidity pool: ${from} ➔ ${to}...`;
-            msg.style.color = "#2563eb";
-
-            setTimeout(() => {
-                balances[fromKey] -= amt;
-                balances[toKey] = (balances[toKey] || 0) + outAmt;
-                updateUI();
-
-                msg.innerText = `Swapped ${amt} ${from} ➔ ${outAmt.toFixed(4)} ${to} Successfully!`;
-                msg.style.color = "#16a34a";
-                btn.disabled = false;
-                btn.innerText = "Confirm Instant Swap";
-
-                onSwapCoinChange();
-                setTimeout(() => closeModal('swapModal'), 2500);
-            }, 1800);
-        }
-
-        /* SEND BROADCAST */
         async function handleSend() {
             const coin = document.getElementById('sendCoinSelect').value;
             const chain = document.getElementById('sendNetworkSelect').value;
