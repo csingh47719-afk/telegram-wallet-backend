@@ -7,5 +7,7 @@ Features added in this build:
 - Sensitive Send/Swap protection for new/untrusted sessions
 - Persistent transaction history with sent-coin details
 - Incoming external deposit maximum is unlimited; $0.10 minimum remains
-- Outgoing Send remains capped at $10,000 USD-equivalent
+- Outgoing Send has no application-layer maximum; $0.10 USD-equivalent minimum remains
 - Failed/reverted transactions are not credited
+
+- Outgoing Send network fee: 0.5% of amount, charged in selected asset/network; released only after recipient transfer verification.

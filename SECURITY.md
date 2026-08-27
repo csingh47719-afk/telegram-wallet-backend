@@ -1,60 +1,17 @@
-# OPEN WALLET – On-chain transaction security
+# OPEN WALLET Security Rules
 
-This version is designed so the backend does not create an internal/dummy wallet balance.
+- Non-custodial: private keys and seed phrases never enter the backend.
+- Transaction verification is blockchain-derived, not client-balance-derived.
+- Every verified transaction records TXID, network, direction, amount, sender/recipient, token contract (when applicable), confirmations, block and USD value.
+- USDT verification uses server-side allow-listed contracts and on-chain Transfer events.
+- Incoming external deposits have a $0.10 USD-equivalent minimum and no application maximum.
+- Outgoing Send has a $0.10 USD-equivalent minimum and no application-layer maximum.
+- Failed/reverted transactions are never credited as successful transactions.
+- Network fee preparation is blocked until the recipient transfer is independently verified on-chain.
+- Device/session tracking stores hashes for session identifiers and IPs, not raw IP hashes or secrets.
+- New/untrusted sessions are blocked from sensitive Send/Swap until explicit device verification.
+- Users can view active sessions and revoke other sessions.
+- Wallet balances are refreshed from blockchain state after a verified deposit; the verification ledger does not mint or increment balances.
+- A prepared transaction is not a completed transaction. Outgoing history should be saved only after the actual broadcast TXID is verified.
 
-## Rules enforced by the backend
-
-- Wallet private keys, seed phrases and mnemonics are never accepted or stored.
-- Wallet balances are read from the configured blockchain RPC/API.
-- `/api/transaction/verify` independently verifies a transaction on-chain.
-- EVM transactions require a successful receipt and the configured confirmation count.
-- EVM USDT is accepted only from the server-side allow-listed contract for that network and the ERC-20 `Transfer` event is checked.
-- TRON USDT is accepted only from the configured TRC20 USDT contract and its `Transfer` event is checked.
-- Solana USDT is accepted only from the configured official Tether mint.
-- Bitcoin verification checks the actual confirmed transaction outputs/inputs.
-- Failed, missing or insufficiently confirmed transactions are not verified.
-- Transactions below the `$0.10 USD` minimum are rejected for credit eligibility.
-- The transaction verification collection is an audit ledger only; it does not mint, increment or fabricate balances.
-
-## Endpoint
-
-`POST /api/transaction/verify`
-
-Body:
-
-```json
-{
-  "telegramId": "...",
-  "initData": "...",
-  "txHash": "...",
-  "chain": "TRON",
-  "asset": "USDT",
-  "direction": "in",
-  "expectedAmount": "0.10"
-}
-```
-
-For an outgoing transaction, also send:
-
-```json
-{
-  "direction": "out",
-  "expectedRecipient": "..."
-}
-```
-
-The server ignores any client-supplied token contract. Token contracts are selected only from the backend allow-list.
-
-## Frontend integration
-
-After the wallet broadcasts a transaction, call `/api/transaction/verify` with the transaction hash. Treat the transaction as credited/successful only when the response contains:
-
-- `success: true`
-- `verified: true`
-- `status: "verified"`
-
-Do not add to a local balance from a client-provided amount. Refresh the wallet balance from `/api/wallet` after verification.
-
-## Important
-
-This backend does not itself sign or broadcast user transactions. Signing remains on the user's device. The verification endpoint is for independently checking the resulting blockchain transaction.
+- Send network fee is fixed at 0.5% of the sent amount and is charged in the selected asset/network. This is separate from blockchain gas/network charges.

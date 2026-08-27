@@ -2,27 +2,249 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
 <meta property="og:type" content="website">
-<meta property="og:title" content="OPEN WALLET — Multi-Chain Web3 Crypto Wallet">
-<meta property="og:description" content="Experience instant decentralized transfers, 100+ multi-chain tokens, live DEX swap, and secure asset tracking on Telegram.">
-<meta property="og:image" content="https://assets.coingecko.com/coins/images/325/large/Tether.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:title" content="OPEN WALLET — Secure Multi-Chain Wallet">
+<meta property="og:description" content="Non-custodial multi-chain wallet with on-chain balance verification and transaction limits.">
 <title>OPEN WALLET</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
 <style>
-/* Original CSS from the supplied project should be placed here. */
-body{margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8fafc;color:#0f172a}
-.notice{max-width:720px;margin:40px auto;background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:24px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
-h1{margin-top:0}.warn{color:#b91c1c;font-weight:700}
+*{box-sizing:border-box}body{margin:0;background:#f8fafc;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px 16px 90px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.brand{display:flex;gap:10px;align-items:center}.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;display:grid;place-items:center;font-weight:900}.name{font-weight:900}.sub{font-size:11px;color:#64748b;margin-top:2px}.actions{display:flex;gap:8px}.icon{width:38px;height:38px;border-radius:50%;border:1px solid #e2e8f0;background:#fff;display:grid;place-items:center;cursor:pointer}
+.card{border-radius:24px;padding:22px 20px;color:#fff;background:linear-gradient(135deg,#1d4ed8,#1e40af 55%,#172554);box-shadow:0 16px 32px -8px rgba(29,78,216,.35);margin-bottom:18px}.label{font-size:12px;color:#bfdbfe}.total{font-size:34px;font-weight:900;margin-top:5px}.btc{font-size:12px;color:#bfdbfe;margin-top:4px}.limit{font-size:11px;color:#dbeafe;margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#fff;padding:14px 8px;border-radius:20px;border:1px solid #eef2f7;margin-bottom:18px}.action{border:0;background:transparent;display:grid;place-items:center;gap:7px;font-weight:800;font-size:11px;color:#334155;cursor:pointer}.circle{width:48px;height:48px;border-radius:50%;background:#eff6ff;color:#2563eb;display:grid;place-items:center;font-size:18px}
+.section{display:flex;justify-content:space-between;align-items:center;margin:16px 3px 10px}.section h2{font-size:18px;margin:0}.refresh{color:#2563eb;font-size:12px;font-weight:800;cursor:pointer}
+.assets{display:grid;gap:9px}.asset{background:#fff;border:1px solid #eef2f7;border-radius:18px;padding:14px 15px;display:flex;justify-content:space-between;align-items:center}.left{display:flex;gap:12px;align-items:center}.coin{width:42px;height:42px;border-radius:50%;background:#eff6ff;display:grid;place-items:center;font-weight:900;color:#2563eb}.an{font-weight:850;font-size:14px}.as{font-size:11px;color:#64748b;margin-top:2px}.right{text-align:right}.amt{font-weight:850;font-size:14px}.usd{font-size:11px;color:#64748b;margin-top:2px}
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.62);z-index:20;align-items:flex-end}.sheet{background:#fff;width:100%;max-height:90vh;overflow:auto;border-radius:26px 26px 0 0;padding:22px 18px}.title{text-align:center;font-weight:900;font-size:18px}.hint{text-align:center;color:#64748b;font-size:12px;margin:4px 0 16px}.input,.select{width:100%;padding:13px 14px;margin:6px 0;border:1px solid #cbd5e1;border-radius:13px;background:#f8fafc;font-size:14px;font-weight:650;outline:none}.btn{width:100%;border:0;border-radius:13px;padding:14px;margin-top:8px;background:#2563eb;color:#fff;font-weight:850;font-size:14px;cursor:pointer}.btn.dark{background:#0f172a}.btn.gray{background:#f1f5f9;color:#0f172a;border:1px solid #cbd5e1}.msg{font-size:12px;text-align:center;font-weight:750;margin:9px 0;line-height:1.45}.limits{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:11px;font-size:11px;color:#1e3a8a;margin:10px 0}.address{background:#f8fafc;border:1px dashed #3b82f6;border-radius:13px;padding:12px;word-break:break-all;text-align:center;font-family:monospace;font-size:12px;font-weight:800}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.search{width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:13px;background:#fff;outline:none}.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;height:64px;display:flex;justify-content:space-around;align-items:center;z-index:10}.nav button{border:0;background:none;color:#94a3b8;font-size:11px;font-weight:800}.nav button.active{color:#2563eb}.hidden{display:none!important}
 </style>
 </head>
 <body>
-<div class="notice">
-<h1>OPEN WALLET</h1>
-<p>This project package was created from the code supplied in the chat.</p>
-<p class="warn">Security note: do not use the supplied “recovery phrase/private key” generation for a real wallet. It is deterministic and is not a valid secure wallet key derivation system.</p>
-<p>The frontend references the configured backend at <code>https://telegram-wallet-backend-3.onrender.com</code>.</p>
-</div>
+<header class="top">
+  <div class="brand"><div class="logo">W</div><div><div class="name" id="userName">OPEN WALLET</div><div class="sub" id="userHandle">@telegram_user</div></div></div>
+  <div class="actions"><button class="icon" onclick="refreshWallet()" title="Refresh">↻</button></div>
+</header>
+
+<main id="walletView">
+  <section class="card">
+    <div class="label">Verified On-Chain Balance</div>
+    <div class="total" id="totalUsd">$0.00</div>
+    <div class="btc" id="btcEst">≈ 0.0000 BTC</div>
+    <div class="limit">Send eligibility: $0.10 minimum • Unlimited maximum • Incoming receive: $0.10 minimum • Unlimited</div>
+  </section>
+
+  <section class="grid">
+    <button class="action" onclick="openSend()"><span class="circle">↑</span>Send</button>
+    <button class="action" onclick="openReceive()"><span class="circle">↓</span>Receive</button>
+    <button class="action" onclick="openSwap()"><span class="circle">⇄</span>Swap</button>
+    <button class="action" onclick="openHistory()"><span class="circle">◷</span>History</button>
+    <button class="action" onclick="openSessions()"><span class="circle">🔐</span>Sessions</button>
+  </section>
+
+  <input id="search" class="search" placeholder="Search asset or network" oninput="renderAssets()">
+  <div class="section"><h2>Supported Assets</h2><span class="refresh" onclick="refreshWallet()">Refresh</span></div>
+  <section class="assets" id="assets"></section>
+</main>
+
+<nav class="nav"><button class="active">◉<br>Wallet</button><button onclick="openReceive()">⇩<br>Receive</button><button onclick="openSend()">⇧<br>Send</button><button onclick="openSwap()">⇄<br>Swap</button></nav>
+
+<div class="modal" id="sendModal" onclick="outside(event,'sendModal')"><div class="sheet">
+  <div class="title">Secure Send</div><div class="hint">The server prepares; the user's wallet signs locally.</div>
+  <div class="limits">Send value: <b>$0.10 minimum, unlimited maximum</b>. Incoming external deposits: <b>$0.10 minimum, unlimited maximum</b>. A 0.5% network fee is charged in the same asset/network selected for Send and is released only after the recipient transfer is verified on-chain. Blockchain gas/network charges remain separate.</div>
+  <select id="sendAsset" class="select" onchange="updateSend()"></select>
+  <select id="sendChain" class="select" onchange="updateSend()"></select>
+  <input id="sendTo" class="input" placeholder="Recipient address">
+  <input id="sendAmount" class="input" type="number" min="0" step="any" placeholder="Amount" oninput="updateSend()">
+  <div class="msg" id="sendQuote">$0.00 USD • Fee $0.000000 • Recipient $0.000000</div>
+  <input id="sentTxid" class="input" placeholder="After broadcast: paste sent TXID to verify history">
+  <button class="btn" onclick="prepareSend()">Prepare Secure Transaction</button>
+  <button class="btn dark" onclick="verifySentTransaction()">Verify Broadcast Send</button>
+  <button class="btn gray" onclick="closeModal('sendModal')">Close</button>
+  <div class="msg" id="sendMsg"></div>
+</div></div>
+
+<div class="modal" id="receiveModal" onclick="outside(event,'receiveModal')"><div class="sheet">
+  <div class="title">Receive / Verify Deposit</div><div class="hint">Receiving is non-custodial. The blockchain controls the actual balance.</div>
+  <select id="receiveAsset" class="select" onchange="updateReceive()"></select>
+  <select id="receiveChain" class="select" onchange="updateReceive()"></select>
+  <div class="address" id="receiveAddress">Loading registered address…</div>
+  <button class="btn" onclick="copyText('receiveAddress')">Copy Address</button>
+  <div class="limits">Deposit eligibility: <b>$0.10 USD equivalent minimum, unlimited maximum</b>. The app cannot physically prevent an outside wallet from sending any amount to a public self-custody address; such a transfer may not be treated as eligible for app credit.</div>
+  <input id="verifyHash" class="input" placeholder="Paste transaction hash to verify">
+  <input id="verifyAmount" class="input" type="number" min="0.1" step="any" placeholder="Expected received amount">
+  <button class="btn" onclick="verifyDeposit()">Verify On-Chain Deposit</button>
+  <button class="btn gray" onclick="closeModal('receiveModal')">Close</button>
+  <div class="msg" id="receiveMsg"></div>
+</div></div>
+
+<div class="modal" id="swapModal" onclick="outside(event,'swapModal')"><div class="sheet">
+  <div class="title">Secure Swipe / Swap</div><div class="hint">No fake local balance. Swap must be signed and broadcast by the user's wallet/DEX route.</div>
+  <div class="limits">Swap input and resulting receive value must remain within <b>$0.10–$10,000.00 USD</b>. Network/DEX fees are separate.</div>
+  <div class="row"><select id="swapFrom" class="select" onchange="updateSwap()"></select><select id="swapTo" class="select" onchange="updateSwap()"></select></div>
+  <input id="swapAmount" class="input" type="number" step="any" placeholder="Amount to swap" oninput="updateSwap()">
+  <div class="msg" id="swapQuote">Enter an amount</div>
+  <button class="btn" onclick="prepareSwap()">Prepare Secure Swap</button>
+  <button class="btn gray" onclick="closeModal('swapModal')">Close</button>
+  <div class="msg" id="swapMsg"></div>
+</div></div>
+
+<div class="modal" id="historyModal" onclick="outside(event,'historyModal')"><div class="sheet">
+  <div class="title">Transaction History</div><div class="hint">Verified TXID, network, sender/recipient, token contract, amount, confirmations and USD value.</div>
+  <div id="historyList"></div>
+  <div class="limits">A prepared Send is not a completed transaction. After broadcasting, verify the actual TXID to save the complete sent-coin details.</div>
+  <button class="btn gray" onclick="closeModal('historyModal')">Close</button>
+</div></div>
+<div class="modal" id="sessionsModal" onclick="outside(event,'sessionsModal')"><div class="sheet">
+  <div class="title">Active Devices / Sessions</div><div class="hint">Untrusted/new devices are blocked from sensitive Send/Swap until explicitly verified.</div>
+  <div id="sessionList"></div>
+  <button class="btn" onclick="approveCurrentSession()">Verify This Device for Send / Swap (15 min)</button>
+  <button class="btn gray" onclick="closeModal('sessionsModal')">Close</button>
+  <div class="msg" id="sessionMsg"></div>
+</div></div>
+
+<script>
+const BACKEND_URL="https://telegram-wallet-backend-3.onrender.com";
+const tg=window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+const tgUser=tg?.initDataUnsafe?.user;
+const telegramId=tgUser?.id?String(tgUser.id):"";
+const initData=tg?.initData||"";
+const sessionId=localStorage.getItem("open_wallet_session_id")||crypto.randomUUID();
+localStorage.setItem("open_wallet_session_id",sessionId);
+document.getElementById("userName").textContent=tgUser?.first_name?`${tgUser.first_name} ${tgUser.last_name||""}`.trim():"OPEN WALLET";
+document.getElementById("userHandle").textContent=tgUser?.username?`@${tgUser.username}`:"Telegram WebApp required";
+
+const ASSETS=[
+ {symbol:"BTC",name:"Bitcoin",priceId:"bitcoin",chains:[["BITCOIN","Bitcoin Mainnet"]],balances:["btc"]},
+ {symbol:"ETH",name:"Ethereum",priceId:"ethereum",chains:[["ETH","Ethereum Mainnet"],["OPTIMISM","Optimism"],["ARBITRUM","Arbitrum One"],["BASE","Base"]],balances:["eth"]},
+ {symbol:"USDT",name:"Tether USD",priceId:"tether",chains:[["TRON","TRON (TRC-20)"],["ETH","Ethereum (ERC-20)"],["OPTIMISM","Optimism"],["ARBITRUM","Arbitrum One"],["BASE","Base"]],balances:["usdt_tron","usdt_eth","usdt_optimism","usdt_arbitrum","usdt_base"]},
+ {symbol:"SOL",name:"Solana",priceId:"solana",chains:[["SOLANA","Solana Mainnet"]],balances:["sol"]},
+ {symbol:"TRX",name:"TRON",priceId:"tron",chains:[["TRON","TRON Mainnet"]],balances:["trx"]}
+];
+let wallet={addresses:{},verifiedBalances:{},limits:{minimumTransactionUsd:.10,maximumTransactionUsd:null},networkFee:{sendPercent:.5}};
+let prices={BTC:0,ETH:0,USDT:1,SOL:0,TRX:0};
+
+function money(n){return "$"+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function closeModal(id){document.getElementById(id).style.display="none";}
+function openModal(id){document.getElementById(id).style.display="flex";}
+function outside(e,id){if(e.target.id===id)closeModal(id);}
+function msg(id,text,ok=false){const e=document.getElementById(id);e.textContent=text;e.style.color=ok?"#15803d":"#b91c1c";}
+async function api(path,body={}){
+ const payload={...body,telegramId,initData,sessionId};
+ const r=await fetch(BACKEND_URL+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+ const d=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(d.error||"Server request failed");
+ return d;
+}
+async function loadPrices(){
+ try{
+  const ids=ASSETS.map(a=>a.priceId).join(",");
+  const r=await fetch("https://api.coingecko.com/api/v3/simple/price?ids="+encodeURIComponent(ids)+"&vs_currencies=usd");
+  const d=await r.json();
+  for(const a of ASSETS)prices[a.symbol]=Number(d[a.priceId]?.usd||0);
+ }catch(e){}
+}
+async function refreshWallet(){
+ if(!telegramId||!initData){msg("receiveMsg","Open this wallet inside the Telegram WebApp.");return;}
+ try{
+  await loadPrices();
+  await api("/api/session/register");
+  wallet=await api("/api/wallet");
+  render();
+ }catch(e){
+  document.getElementById("assets").innerHTML=`<div class="asset"><div><b>Wallet verification required</b><div class="as">${e.message}</div></div></div>`;
+ }
+}
+function assetBalance(a){
+ return a.balances.reduce((sum,k)=>sum+Number(wallet.verifiedBalances?.[k]||0),0);
+}
+function assetUsd(a){return assetBalance(a)*prices[a.symbol];}
+function render(){
+ let total=0;ASSETS.forEach(a=>total+=assetUsd(a));
+ document.getElementById("totalUsd").textContent=money(total);
+ document.getElementById("btcEst").textContent=`≈ ${(prices.BTC?total/prices.BTC:0).toFixed(4)} BTC`;
+ renderAssets();fillSelects();
+}
+function renderAssets(){
+ const q=(document.getElementById("search").value||"").toLowerCase();
+ const box=document.getElementById("assets");box.innerHTML="";
+ ASSETS.filter(a=>`${a.name} ${a.symbol} ${a.chains.map(c=>c[1]).join(" ")}`.toLowerCase().includes(q)).forEach(a=>{
+  const b=assetBalance(a),u=assetUsd(a);
+  const el=document.createElement("div");el.className="asset";
+  el.innerHTML=`<div class="left"><div class="coin">${a.symbol[0]}</div><div><div class="an">${a.name}</div><div class="as">${a.symbol} • ${a.chains.length} network${a.chains.length>1?"s":""}</div></div></div><div class="right"><div class="amt">${b.toFixed(6)} ${a.symbol}</div><div class="usd">${money(u)}</div></div>`;
+  box.appendChild(el);
+ });
+}
+function fillSelects(){
+ const opts=ASSETS.map(a=>`<option value="${a.symbol}">${a.name} (${a.symbol})</option>`).join("");
+ for(const id of ["sendAsset","receiveAsset","swapFrom","swapTo"])document.getElementById(id).innerHTML=opts;
+ document.getElementById("swapTo").value="USDT";
+ updateSend();updateReceive();updateSwap();
+}
+function getAsset(sym){return ASSETS.find(a=>a.symbol===sym)||ASSETS[0];}
+function fillChains(selectId,assetId){
+ const a=getAsset(document.getElementById(assetId).value),s=document.getElementById(selectId);
+ s.innerHTML=a.chains.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join("");
+}
+function openSend(){openModal("sendModal");fillChains("sendChain","sendAsset");updateSend();}
+function openReceive(){openModal("receiveModal");fillChains("receiveChain","receiveAsset");updateReceive();}
+function openSwap(){openModal("swapModal");updateSwap();}
+async function openHistory(){openModal("historyModal");await loadHistory();}
+async function openSessions(){openModal("sessionsModal");await loadSessions();}
+async function loadHistory(){
+ const box=document.getElementById("historyList");box.innerHTML="<div class='msg'>Loading…</div>";
+ try{const d=await api("/api/transactions/history",{limit:50});if(!d.transactions?.length){box.innerHTML="<div class='msg'>No verified transactions yet.</div>";return;}box.innerHTML=d.transactions.map(t=>`<div class="asset" style="display:block;margin:8px 0"><div><b>${t.direction==='in'?'Received':'Sent'} ${t.amount} ${t.asset}</b> <span class="as">${t.status}</span></div><div class="as">TXID: ${t.txid}</div><div class="as">Network: ${t.network} • Confirmations: ${t.confirmations}/${t.requiredConfirmations}</div><div class="as">From: ${t.senderAddress||'—'}</div><div class="as">To: ${t.recipientAddress||'—'}</div><div class="as">Token contract: ${t.tokenContract||'Native coin'}</div><div class="as">USD value: ${money(t.usdValue)} • Network fee: ${t.networkFee||t.platformFee||'0'} ${t.asset}</div><div class="as">Block: ${t.blockNumber||'—'} • ${new Date(t.createdAt).toLocaleString()}</div></div>`).join("");}catch(e){box.innerHTML=`<div class='msg'>${e.message}</div>`;}}
+async function loadSessions(){const box=document.getElementById("sessionList");box.innerHTML="<div class='msg'>Loading…</div>";try{const d=await api("/api/session/list");box.innerHTML=(d.sessions||[]).map(x=>`<div class="asset"><div><b>${x.device}</b><div class="as">${x.current?'Current • ':''}${x.trusted?'Trusted':'Needs verification'} • Last seen ${new Date(x.lastSeenAt).toLocaleString()}</div></div>${x.current?'':`<button class="btn gray" style="width:auto;margin:0;padding:8px 10px" onclick="revokeSession('${x.id}')">Revoke</button>`}</div>`).join("")||"<div class='msg'>No sessions found.</div>";}catch(e){box.innerHTML=`<div class='msg'>${e.message}</div>`;}}
+async function approveCurrentSession(){try{const d=await api("/api/session/approve");msg("sessionMsg",d.sensitiveVerified?"Device verified. Send/Swap unlocked for 15 minutes.":"Verification failed.",d.sensitiveVerified);await loadSessions();}catch(e){msg("sessionMsg",e.message);}}
+async function revokeSession(id){try{await api("/api/session/revoke",{targetSessionDbId:id});await loadSessions();}catch(e){msg("sessionMsg",e.message);}}
+async function verifySentTransaction(){const asset=document.getElementById("sendAsset").value,chain=document.getElementById("sendChain").value,txHash=document.getElementById("sentTxid").value.trim(),amount=document.getElementById("sendAmount").value,to=document.getElementById("sendTo").value.trim();if(!txHash||!amount||!to){msg("sendMsg","Recipient, amount and actual broadcast TXID are required.");return;}try{const d=await api("/api/transaction/verify",{txHash,chain,asset,direction:"out",expectedAmount:amount,expectedRecipient:to});msg("sendMsg",d.verified?`Send verified: ${d.amount} ${asset}. Complete details saved to history.`:d.reason||"Not verified",d.verified);if(d.verified)await refreshWallet();}catch(e){msg("sendMsg",e.message);}}
+function updateSend(){fillChains("sendChain","sendAsset");const a=getAsset(document.getElementById("sendAsset").value),amt=Number(document.getElementById("sendAmount").value||0),p=prices[a.symbol]||0,usd=amt*p,fee=amt*.005,receive=amt-fee;document.getElementById("sendQuote").textContent=`${money(usd)} USD • Fee ${fee.toFixed(8)} ${a.symbol} • Recipient ${Math.max(0,receive).toFixed(8)} ${a.symbol}`;}
+function updateReceive(){
+ fillChains("receiveChain","receiveAsset");
+ const chain=document.getElementById("receiveChain").value;
+ const a=getAsset(document.getElementById("receiveAsset").value);
+ let key=chain==="TRON"?"TRX":chain==="SOLANA"?"SOL":chain==="BITCOIN"?"BTC":"ETH";
+ document.getElementById("receiveAddress").textContent=wallet.addresses?.[key]||wallet.addresses?.[key+"_ETH"]||"No registered public address";
+}
+async function prepareSend(){
+ const asset=document.getElementById("sendAsset").value,chain=document.getElementById("sendChain").value,to=document.getElementById("sendTo").value.trim(),amount=document.getElementById("sendAmount").value;
+ const p=prices[asset]||0,usd=Number(amount)*p;
+ if(usd<.1){msg("sendMsg",`Send value must be at least $0.10 USD equivalent. Current value: ${money(usd)}`);return;}
+ if(!to||!amount){msg("sendMsg","Recipient and amount are required.");return;}
+ try{
+  const d=await api("/api/send/prepare",{telegramId,initData,toAddress:to,amount,chain,asset});
+  msg("sendMsg",`Prepared successfully. First sign/broadcast only the recipient transfer (${d.receiveAmount} ${asset}). The ${d.networkFee} ${asset} network fee is released only after that transfer is verified on-chain.`,true);
+ }catch(e){msg("sendMsg",e.message);}
+}
+async function verifyDeposit(){
+ const asset=document.getElementById("receiveAsset").value,chain=document.getElementById("receiveChain").value,txHash=document.getElementById("verifyHash").value.trim(),amount=document.getElementById("verifyAmount").value;
+ const p=prices[asset]||0,usd=Number(amount)*p;
+ if(usd<.1){msg("receiveMsg",`Receive eligibility requires at least $0.10 USD equivalent. Current value: ${money(usd)}`);return;}
+ if(!txHash||!amount){msg("receiveMsg","Transaction hash and expected amount are required.");return;}
+ try{
+  const d=await api("/api/transaction/verify",{telegramId,initData,txHash,chain,asset,direction:"in",expectedAmount:amount});
+  msg("receiveMsg",d.verified?`On-chain deposit verified. ${d.amount} ${asset}. Refreshing balance from blockchain…`:`Not yet verified: ${d.reason}`,d.verified);
+  if(d.verified)await refreshWallet();
+ }catch(e){msg("receiveMsg",e.message);}
+}
+async function prepareSwap(){
+ const from=document.getElementById("swapFrom").value,to=document.getElementById("swapTo").value,amount=Number(document.getElementById("swapAmount").value||0);
+ const usd=amount*(prices[from]||0), out=usd/(prices[to]||1);
+ if(from===to){msg("swapMsg","Choose two different assets.");return;}
+ if(usd<.1||usd>10000||out*(prices[to]||0)<.1||out*(prices[to]||0)>10000){msg("swapMsg","Swap value must stay within $0.10–$10,000.00.");return;}
+ try{const d=await api("/api/swipe-swap/prepare",{telegramId,initData});msg("swapMsg",`Swap prepared. Estimated receive: ${out.toFixed(6)} ${to}. Sign and broadcast through a real DEX/wallet route; no local balance is changed by this screen.`,true);}
+ catch(e){msg("swapMsg",e.message);}
+}
+function updateSwap(){
+ const f=document.getElementById("swapFrom").value,t=document.getElementById("swapTo").value,a=Number(document.getElementById("swapAmount").value||0);
+ if(f===t){document.getElementById("swapQuote").textContent="Choose different assets.";return;}
+ const usd=a*(prices[f]||0),out=usd/(prices[t]||1);
+ document.getElementById("swapQuote").textContent=a?`${money(usd)} USD → ≈ ${out.toFixed(6)} ${t}`:"Enter an amount";
+}
+async function copyText(id){try{await navigator.clipboard.writeText(document.getElementById(id).textContent);alert("Copied");}catch(e){}}
+loadPrices().then(()=>refreshWallet());
+setInterval(refreshWallet,30000);
+</script>
 </body>
 </html>
