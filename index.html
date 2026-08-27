@@ -169,6 +169,11 @@
         .modal-subtitle { font-size: 12px; color: #64748b; text-align: center; margin-top: 4px; margin-bottom: 16px; font-weight: 600; }
         .input-box { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 14px; margin: 8px 0; font-size: 14px; background: #f8fafc; font-weight: 600; }
         .select-box { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 14px; margin: 8px 0; font-size: 14px; background: #f8fafc; font-weight: 700; }
+        
+        .input-group-row { position: relative; display: flex; align-items: center; margin: 8px 0; }
+        .input-group-row .input-box { margin: 0; padding-right: 70px; }
+        .input-inline-btn { position: absolute; right: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; }
+        
         .primary-btn { width: 100%; background: #2563eb; color: #ffffff; border: none; padding: 15px; border-radius: 14px; font-weight: 800; font-size: 15px; margin-top: 10px; cursor: pointer; }
         .sec-btn { width: 100%; background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 15px; margin-top: 8px; cursor: pointer; }
         .copy-btn-sm { background: #e2e8f0; color: #1e293b; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 4px; }
@@ -262,11 +267,11 @@
         </div>
 
         <div class="actions-grid">
-            <button class="act-btn" onclick="openSendModal('SOL')">
+            <button class="act-btn" onclick="openSendModal()">
                 <div class="act-circle"><i class="fa-solid fa-arrow-up"></i></div>
                 <span class="act-title">Send</span>
             </button>
-            <button class="act-btn" onclick="openDepositModal('SOL')">
+            <button class="act-btn" onclick="openDepositModal()">
                 <div class="act-circle"><i class="fa-solid fa-arrow-down"></i></div>
                 <span class="act-title">Receive</span>
             </button>
@@ -382,24 +387,32 @@
         </div>
     </div>
 
+    <!-- 🚀 SEND MODAL WITH DYNAMIC BALANCE & MAX BUTTON -->
     <div class="modal" id="sendModal" onclick="closeModalOutside(event, 'sendModal')">
         <div class="modal-body">
             <div class="modal-title">Send on Blockchain</div>
             <div class="modal-subtitle" id="sendSubtitle">Multi-Chain Broadcast</div>
 
-            <div style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;">Asset:</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size:12px; font-weight:700; color:#334155;">Asset:</span>
+                <span id="sendAvailBal" style="font-size:12px; font-weight:800; color:#2563eb; cursor:pointer;" onclick="setMaxSend()">Available: 0.0000</span>
+            </div>
             <select id="sendCoinSelect" class="select-box" onchange="onSendCoinChange()"></select>
 
             <div style="font-size:12px; font-weight:700; color:#334155; margin-top:8px; margin-bottom:4px;">Choose Network:</div>
             <select id="sendNetworkSelect" class="select-box" onchange="onSendNetworkChange()"></select>
 
             <input type="text" id="sendTo" class="input-box" placeholder="Recipient Address">
-            <input type="number" id="sendAmount" class="input-box" placeholder="Amount" oninput="calculateSendFee()">
+
+            <div class="input-group-row">
+                <input type="number" id="sendAmount" class="input-box" placeholder="Amount to send" oninput="calculateSendFee()">
+                <button type="button" class="input-inline-btn" onclick="setMaxSend()">MAX</button>
+            </div>
 
             <div class="min-alert" id="minSendAlert"><i class="fa-solid fa-circle-exclamation"></i> Minimum Send Amount: <b>$1.00 USD</b></div>
 
             <div class="fee-calc-box" id="feeBreakdownBox">
-                <div class="fee-row"><span>Transfer Value:</span><span id="feeTransferVal">$0.00</span></div>
+                <div class="fee-row"><span>Transfer Value:</span><span id="feeTransferVal">$0.00 USD</span></div>
                 <div class="fee-row"><span>Platform Fee (0.5%):</span><span id="feePlatformVal">0.0000 (0.5%)</span></div>
                 <div class="fee-row total"><span>Recipient Receives:</span><span id="feeReceiveVal">0.0000</span></div>
             </div>
@@ -588,7 +601,6 @@
         let prices = {};
         let balances = {};
 
-        // 🔥 यूनिवर्सल स्वैप लेज़र (Universal Ledger)
         let swapLedger = JSON.parse(localStorage.getItem('open_wallet_ledger_' + telegramId) || '{}');
 
         TOKENS.forEach(t => {
@@ -608,6 +620,17 @@
             }
         }
 
+        function getTopBalanceCoin() {
+            let topCoin = "SOL";
+            let maxUsd = -1;
+            TOKENS.forEach(t => {
+                let sym = t.symbol.toLowerCase();
+                let usd = (balances[sym] || 0) * (prices[sym] || 1);
+                if (usd > maxUsd) { maxUsd = usd; topCoin = t.symbol; }
+            });
+            return topCoin;
+        }
+
         function renderAssetList(filter = '') {
             const stack = document.getElementById('assetStack');
             stack.innerHTML = '';
@@ -618,7 +641,6 @@
                 t.networks.some(n => n.name.toLowerCase().includes(filter.toLowerCase()))
             );
 
-            // 🔥 लाइव USD वैल्यू के हिसाब से ऑटोमैटिक रैंकिंग
             filteredTokens.sort((a, b) => {
                 const symA = a.symbol.toLowerCase();
                 const symB = b.symbol.toLowerCase();
@@ -674,7 +696,6 @@
             renderAssetList(val);
         }
 
-        // 🚀 100% हाई-स्पीड रियल-टाइम लाइव प्राइस टिकर (Binance Multi-Ticker Stream)
         async function fetchLivePrices() {
             try {
                 const popularSymbols = ["SOLUSDT","ETHUSDT","BTCUSDT","BNBUSDT","DOGEUSDT","ADAUSDT","XRPUSDT","TRXUSDT","AVAXUSDT","TONUSDT","SUIUSDT","LINKUSDT","SHIBUSDT","NEARUSDT","DOTUSDT","LTCUSDT","BCHUSDT","APTUSDT","POLUSDT","UNIUSDT","ARBUSDT","OPUSDT"];
@@ -727,7 +748,6 @@
             return 0.0;
         }
 
-        // 🌐 यूनिवर्सल एंटी-रीसेट सिंक फ़ंक्शन
         async function fetchWalletData() {
             let rawOnChain = {};
 
@@ -752,7 +772,6 @@
             const onChainEth = await checkDirectOptimismBalance(chainAddresses.ETH);
             if (onChainEth > 0) rawOnChain['eth'] = onChainEth;
 
-            // 🛡️ यूनिवर्सल लेज़र ऑफ़सेट जोड़ें
             TOKENS.forEach(t => {
                 const sym = t.symbol.toLowerCase();
                 let base = rawOnChain[sym] || 0.0;
@@ -763,7 +782,6 @@
             updateUI();
         }
 
-        // 🚀 यूनिवर्सल ऑल-कॉइन स्वैप इंजन (लाइव एक्सचेंज रेट के साथ)
         function executeSwap() {
             const from = document.getElementById('swapFromCoin').value;
             const to = document.getElementById('swapToCoin').value;
@@ -816,7 +834,6 @@
             }, 1200);
         }
 
-        // 💰 सभी कॉइन्स की रीयल-टाइम वैल्यू का मुख्य स्क्रीन पर सम
         function updateUI() {
             let total = 0;
 
@@ -849,8 +866,9 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function closeModalOutside(e, id) { if (e.target.id === id) closeModal(id); }
 
-        function openDepositModal(coinSymbol = 'SOL') {
-            const token = TOKENS.find(t => t.symbol === coinSymbol) || TOKENS[0];
+        function openDepositModal(coinSymbol) {
+            const chosenCoin = coinSymbol || getTopBalanceCoin();
+            const token = TOKENS.find(t => t.symbol === chosenCoin) || TOKENS[0];
 
             document.getElementById('depositTitle').innerText = `Receive ${token.name} (${token.symbol})`;
             document.getElementById('qrCenterLogo').src = token.icon;
@@ -880,13 +898,20 @@
             });
         }
 
-        function openSendModal(coinSymbol = 'SOL') {
+        // 🚀 सेंड मॉडल ओपनर (स्मार्ट कॉइन सेलेक्टर के साथ)
+        function openSendModal(coinSymbol) {
+            const chosenCoin = coinSymbol || getTopBalanceCoin();
             const select = document.getElementById('sendCoinSelect');
-            select.value = coinSymbol;
+            select.value = chosenCoin;
+            
+            document.getElementById('sendAmount').value = '';
+            document.getElementById('sendResult').innerText = '';
+            
             onSendCoinChange();
             openModal('sendModal');
         }
 
+        // 🚀 कॉइन बदलते ही लाइव बैलेंस व नेटवर्क रिफ्रेश
         function onSendCoinChange() {
             const coin = document.getElementById('sendCoinSelect').value;
             const token = TOKENS.find(t => t.symbol === coin) || TOKENS[0];
@@ -896,6 +921,17 @@
             token.networks.forEach(net => {
                 netSelect.innerHTML += `<option value="${net.chain}">${net.name}</option>`;
             });
+
+            const sym = coin.toLowerCase();
+            const curBal = balances[sym] || 0;
+            const curPrice = prices[sym] || token.defaultPrice;
+            const usdVal = (curBal * curPrice).toFixed(2);
+
+            // लाइव बैलेंस हेडर अपडेट
+            const balElem = document.getElementById('sendAvailBal');
+            if (balElem) {
+                balElem.innerHTML = `Available: <b>${curBal.toFixed(4)} ${coin}</b> ($${usdVal})`;
+            }
 
             onSendNetworkChange();
             calculateSendFee();
@@ -908,7 +944,16 @@
             input.placeholder = info.placeholder;
         }
 
-        // 🔥 लाइव प्राइस के आधार पर सेंड फ़ीस और रिसीव वैल्यू कैलकुलेशन
+        // 🚀 MAX बटन फ़ंक्शन: क्लिक करते ही पूरा बैलेंस बॉक्स में भरे
+        function setMaxSend() {
+            const coin = document.getElementById('sendCoinSelect').value;
+            const sym = coin.toLowerCase();
+            const curBal = balances[sym] || 0;
+            document.getElementById('sendAmount').value = curBal > 0 ? curBal : 0;
+            calculateSendFee();
+        }
+
+        // 🚀 लाइव सेंड फ़ीस व रिसीव अमाउंट कैलकुलेशन
         function calculateSendFee() {
             const coin = document.getElementById('sendCoinSelect')?.value || 'SOL';
             const amt = parseFloat(document.getElementById('sendAmount')?.value) || 0;
@@ -967,19 +1012,13 @@
             }
         }
 
-        function openSwapModal(selectedFrom = 'SOL') {
+        function openSwapModal(selectedFrom) {
             const fromSel = document.getElementById('swapFromCoin');
             const toSel = document.getElementById('swapToCoin');
 
-            let topCoin = "SOL";
-            let maxUsd = 0;
-            TOKENS.forEach(t => {
-                let sym = t.symbol.toLowerCase();
-                let usd = (balances[sym] || 0) * (prices[sym] || 1);
-                if (usd > maxUsd) { maxUsd = usd; topCoin = t.symbol; }
-            });
+            const chosenCoin = selectedFrom || getTopBalanceCoin();
 
-            fromSel.value = selectedFrom || topCoin;
+            fromSel.value = chosenCoin;
             toSel.value = (fromSel.value === 'USDT') ? 'SOL' : 'USDT';
 
             document.getElementById('swapFromInput').value = '';
@@ -989,7 +1028,6 @@
             openModal('swapModal');
         }
 
-        // 🔥 लाइव मार्केट प्राइस के अनुसार रियल-टाइम स्वैप दर
         function onSwapCoinChange() {
             const from = document.getElementById('swapFromCoin')?.value || 'SOL';
             const to = document.getElementById('swapToCoin')?.value || 'USDT';
@@ -1046,6 +1084,7 @@
             swapToInput.value = outAmt.toFixed(6);
         }
 
+        // 🚀 सेंड ब्रॉडकास्ट (सेंड के तुरंत बाद बैलेंस डिडक्ट)
         async function handleSend() {
             const coin = document.getElementById('sendCoinSelect').value;
             const chain = document.getElementById('sendNetworkSelect').value;
@@ -1168,7 +1207,6 @@
 
         fetchLivePrices();
         fetchWalletData();
-        // 🔥 हर 3 सेकंड में रियल-टाइम लाइव प्राइस अपडेट
         setInterval(fetchLivePrices, 3000);
         setInterval(fetchWalletData, 10000);
     </script>
