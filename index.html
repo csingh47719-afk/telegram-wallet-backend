@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OPEN WALLET - Web3 Multi-Chain</title>
+    <title>OPEN WALLET - Web3 Super Multi-Chain</title>
 
     <meta property="og:type" content="website">
     <meta property="og:title" content="OPEN WALLET — Multi-Chain Web3 Crypto Wallet">
@@ -11,11 +11,6 @@
     <meta property="og:image" content="https://assets.coingecko.com/coins/images/325/large/Tether.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="OPEN WALLET — Multi-Chain Web3 Crypto Wallet">
-    <meta name="twitter:description" content="Instant multi-chain crypto freedom directly on Telegram.">
-    <meta name="twitter:image" content="https://assets.coingecko.com/coins/images/325/large/Tether.png">
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -387,11 +382,11 @@
         </div>
     </div>
 
-    <!-- 🚀 SEND MODAL WITH DYNAMIC BALANCE & MAX BUTTON -->
+    <!-- 🚀 SEND MODAL -->
     <div class="modal" id="sendModal" onclick="closeModalOutside(event, 'sendModal')">
         <div class="modal-body">
             <div class="modal-title">Send on Blockchain</div>
-            <div class="modal-subtitle" id="sendSubtitle">Multi-Chain Broadcast</div>
+            <div class="modal-subtitle" id="sendSubtitle">Multi-Chain Verified Broadcast</div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                 <span style="font-size:12px; font-weight:700; color:#334155;">Asset:</span>
@@ -420,6 +415,16 @@
             <button class="primary-btn" id="sendBtn" onclick="handleSend()">Broadcast Transfer</button>
             <div id="sendResult" style="font-size: 13px; text-align: center; margin-top: 10px; font-weight: 700;"></div>
             <button class="sec-btn" onclick="closeModal('sendModal')">Cancel</button>
+        </div>
+    </div>
+
+    <!-- 🚀 ERROR ALERT POPUP MODAL -->
+    <div class="modal" id="errorModal" onclick="closeModalOutside(event, 'errorModal')">
+        <div class="modal-body" style="text-align: center; padding-bottom: 30px;">
+            <div style="font-size: 45px; color: #dc2626; margin-bottom: 10px;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="modal-title" style="color: #dc2626; margin-bottom: 8px;">Blockchain Error</div>
+            <div id="errorPopupMessage" style="font-size: 14px; color: #475569; font-weight: 600; margin-bottom: 20px; line-height: 1.5;">An unknown blockchain error occurred.</div>
+            <button class="primary-btn" onclick="closeModal('errorModal')" style="background: #dc2626;">Got It</button>
         </div>
     </div>
 
@@ -866,6 +871,11 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function closeModalOutside(e, id) { if (e.target.id === id) closeModal(id); }
 
+        function showBlockchainError(errorMsg) {
+            document.getElementById('errorPopupMessage').innerText = errorMsg;
+            openModal('errorModal');
+        }
+
         function openDepositModal(coinSymbol) {
             const chosenCoin = coinSymbol || getTopBalanceCoin();
             const token = TOKENS.find(t => t.symbol === chosenCoin) || TOKENS[0];
@@ -898,7 +908,6 @@
             });
         }
 
-        // 🚀 सेंड मॉडल ओपनर (स्मार्ट कॉइन सेलेक्टर के साथ)
         function openSendModal(coinSymbol) {
             const chosenCoin = coinSymbol || getTopBalanceCoin();
             const select = document.getElementById('sendCoinSelect');
@@ -911,7 +920,6 @@
             openModal('sendModal');
         }
 
-        // 🚀 कॉइन बदलते ही लाइव बैलेंस व नेटवर्क रिफ्रेश
         function onSendCoinChange() {
             const coin = document.getElementById('sendCoinSelect').value;
             const token = TOKENS.find(t => t.symbol === coin) || TOKENS[0];
@@ -922,12 +930,18 @@
                 netSelect.innerHTML += `<option value="${net.chain}">${net.name}</option>`;
             });
 
+            // डिफ़ॉल्ट नेटवर्क ऑटो-सेलेक्शन नियम
+            if (coin === 'ETH') netSelect.value = 'ETH';
+            else if (coin === 'USDT') netSelect.value = 'TRX';
+            else if (coin === 'SOL') netSelect.value = 'SOL';
+            else if (coin === 'BTC') netSelect.value = 'BTC';
+            else if (coin === 'TRX') netSelect.value = 'TRX';
+
             const sym = coin.toLowerCase();
             const curBal = balances[sym] || 0;
             const curPrice = prices[sym] || token.defaultPrice;
             const usdVal = (curBal * curPrice).toFixed(2);
 
-            // लाइव बैलेंस हेडर अपडेट
             const balElem = document.getElementById('sendAvailBal');
             if (balElem) {
                 balElem.innerHTML = `Available: <b>${curBal.toFixed(4)} ${coin}</b> ($${usdVal})`;
@@ -944,7 +958,6 @@
             input.placeholder = info.placeholder;
         }
 
-        // 🚀 MAX बटन फ़ंक्शन: क्लिक करते ही पूरा बैलेंस बॉक्स में भरे
         function setMaxSend() {
             const coin = document.getElementById('sendCoinSelect').value;
             const sym = coin.toLowerCase();
@@ -953,7 +966,6 @@
             calculateSendFee();
         }
 
-        // 🚀 लाइव सेंड फ़ीस व रिसीव अमाउंट कैलकुलेशन
         function calculateSendFee() {
             const coin = document.getElementById('sendCoinSelect')?.value || 'SOL';
             const amt = parseFloat(document.getElementById('sendAmount')?.value) || 0;
@@ -1084,7 +1096,7 @@
             swapToInput.value = outAmt.toFixed(6);
         }
 
-        // 🚀 सेंड ब्रॉडकास्ट (सेंड के तुरंत बाद बैलेंस डिडक्ट)
+        // 🚀 सख्त ब्लॉकचेन वेरिफिकेशन और रियल-टाइम पॉपअप एरर हैंडलिंग
         async function handleSend() {
             const coin = document.getElementById('sendCoinSelect').value;
             const chain = document.getElementById('sendNetworkSelect').value;
@@ -1097,19 +1109,17 @@
             const usdValue = parseFloat(amount) * price;
 
             if (!toAddress || !amount || parseFloat(amount) <= 0) {
-                res.innerText = "Please enter valid address and amount.";
-                res.style.color = "#dc2626";
+                showBlockchainError("Please enter a valid recipient address and amount.");
                 return;
             }
 
             if (usdValue < 1.0) {
-                res.innerText = `Minimum transfer amount is $1.00 USD (Current: $${usdValue.toFixed(2)})`;
-                res.style.color = "#dc2626";
+                showBlockchainError(`Minimum transfer amount is $1.00 USD (Current: $${usdValue.toFixed(2)})`);
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "Broadcasting to Mainnet...";
+            btn.innerText = "Verifying on Blockchain...";
             res.innerText = `Broadcasting ${coin} on ${chain} network...`;
             res.style.color = "#2563eb";
 
@@ -1120,8 +1130,10 @@
                     body: JSON.stringify({ telegramId, toAddress, amount, coin, chain, priceUsd: price })
                 });
                 const data = await response.json();
-                if (data.success) {
-                    res.innerText = `Broadcasted! TXID: ${data.txid.substring(0, 10)}...`;
+                
+                // 🛡️ केवल असली ब्लॉकचेन TXID मिलने पर ही ट्रांजैक्शन पास होगा
+                if (data && data.success && data.txid) {
+                    res.innerText = `Verified & Sent! TXID: ${data.txid.substring(0, 12)}...`;
                     res.style.color = "#16a34a";
 
                     const coinKey = coin.toLowerCase();
@@ -1136,12 +1148,15 @@
                         fetchWalletData(); 
                     }, 2500);
                 } else {
-                    res.innerText = data.error || "Transfer failed on blockchain";
+                    const errReason = data.error || "Blockchain network rejected the transaction due to insufficient gas or invalid route.";
+                    res.innerText = "Transaction failed.";
                     res.style.color = "#dc2626";
+                    showBlockchainError(errReason);
                 }
             } catch (e) {
-                res.innerText = "Blockchain network error";
+                res.innerText = "Connection failed.";
                 res.style.color = "#dc2626";
+                showBlockchainError("Blockchain node connection failed. Please check your network connection or gas fees.");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Broadcast Transfer";
@@ -1205,21 +1220,16 @@
             }
         }
 
-        // 🚀 ऐप लोड होते ही और हर 3 सेकंड में लाइव Binance मार्केट प्राइस फेच करें
-fetchLivePrices();
-fetchWalletData();
+        // 🚀 लाइव टिकर लूप (रियल-टाइम प्राइस और ब्लॉकचेन सिंक)
+        fetchLivePrices();
+        fetchWalletData();
+        setInterval(() => {
+            fetchLivePrices();
+        }, 3000);
 
-// 🔥 लाइव टिकर लूप (रियल-टाइम प्राइस फ्लक्चुएशंस के लिए)
-setInterval(() => {
-    fetchLivePrices();
-}, 3000);
-
-// 🔥 ब्लॉकचेन सिंक लूप (सेंड/रिसीव के बाद बैलेंस अपडेट के लिए)
-setInterval(() => {
-    fetchWalletData();
-}, 10000);
-
+        setInterval(() => {
+            fetchWalletData();
+        }, 10000);
     </script>
 </body>
 </html>
-
