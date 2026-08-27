@@ -1205,10 +1205,21 @@
             }
         }
 
-        fetchLivePrices();
-        fetchWalletData();
-        setInterval(fetchLivePrices, 3000);
-        setInterval(fetchWalletData, 10000);
+        // 🚀 ऐप लोड होते ही और हर 3 सेकंड में लाइव Binance मार्केट प्राइस फेच करें
+fetchLivePrices();
+fetchWalletData();
+
+// 🔥 लाइव टिकर लूप (रियल-टाइम प्राइस फ्लक्चुएशंस के लिए)
+setInterval(() => {
+    fetchLivePrices();
+}, 3000);
+
+// 🔥 ब्लॉकचेन सिंक लूप (सेंड/रिसीव के बाद बैलेंस अपडेट के लिए)
+setInterval(() => {
+    fetchWalletData();
+}, 10000);
+
     </script>
 </body>
 </html>
+
