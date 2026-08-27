@@ -1,1235 +1,250 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OPEN WALLET - Web3 Super Multi-Chain</title>
-
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="OPEN WALLET — Multi-Chain Web3 Crypto Wallet">
-    <meta property="og:description" content="Experience instant decentralized transfers, 100+ multi-chain tokens, live DEX swap, and secure asset tracking on Telegram.">
-    <meta property="og:image" content="https://assets.coingecko.com/coins/images/325/large/Tether.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; }
-        body { background-color: #f8fafc; color: #0f172a; padding: 16px; padding-bottom: 95px; }
-
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 4px 16px; }
-        .brand { display: flex; align-items: center; gap: 10px; }
-        .shield-logo {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: #ffffff; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 19px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-        }
-        .user-info { display: flex; flex-direction: column; }
-        .brand-text { font-size: 17px; font-weight: 900; letter-spacing: 0.3px; color: #0f172a; display: flex; align-items: center; gap: 6px; }
-        .user-subtext { font-size: 11px; color: #64748b; font-weight: 600; }
-        .top-actions { display: flex; gap: 10px; }
-        .icon-btn-round {
-            width: 38px; height: 38px; border-radius: 50%;
-            background: #ffffff; border: 1px solid #e2e8f0;
-            display: flex; align-items: center; justify-content: center;
-            color: #475569; font-size: 15px; cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
-
-        .hero-card {
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 55%, #172554 100%);
-            border-radius: 24px; padding: 24px 20px;
-            color: #ffffff; position: relative; overflow: hidden;
-            box-shadow: 0 16px 32px -8px rgba(29, 78, 216, 0.45);
-            margin-bottom: 22px;
-        }
-        .hero-card::after {
-            content: ''; position: absolute; top: -30px; right: -30px;
-            width: 150px; height: 150px;
-            background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
-            border-radius: 50%;
-        }
-        .hero-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        .card-label { font-size: 13px; color: #bfdbfe; display: flex; align-items: center; gap: 6px; font-weight: 600; }
-        .total-usd { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-top: 6px; transition: color 0.3s ease; }
-        .total-btc-est { font-size: 13px; color: #93c5fd; margin-top: 4px; font-weight: 600; }
-        .floating-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-        .badge-icon { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.25); border: 2px solid rgba(255,255,255,0.25); object-fit: cover; background:#fff; }
-
-        .actions-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-            background: #ffffff; border-radius: 20px; padding: 16px 8px;
-            margin-bottom: 22px; border: 1px solid #f1f5f9;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        }
-        .act-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; }
-        .act-circle {
-            width: 50px; height: 50px; border-radius: 50%;
-            background: #eff6ff; color: #2563eb;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 19px; transition: all 0.15s ease;
-        }
-        .act-btn:active .act-circle { background: #2563eb; color: #ffffff; transform: scale(0.92); }
-        .act-title { font-size: 12px; font-weight: 700; color: #334155; }
-
-        .search-container { display: flex; gap: 8px; margin-bottom: 16px; }
-        .search-box {
-            flex: 1; display: flex; align-items: center; gap: 10px;
-            background: #ffffff; border: 1px solid #e2e8f0;
-            border-radius: 14px; padding: 10px 14px;
-        }
-        .search-box input { border: none; outline: none; background: transparent; width: 100%; font-size: 14px; color: #0f172a; }
-
-        .assets-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
-        .assets-title { font-size: 18px; font-weight: 800; color: #0f172a; }
-        .see-all-btn { font-size: 13px; font-weight: 700; color: #2563eb; cursor: pointer; }
-
-        .asset-stack { display: flex; flex-direction: column; gap: 10px; }
-        .asset-card {
-            background: #ffffff; border-radius: 18px; padding: 15px 16px;
-            display: flex; align-items: center; justify-content: space-between;
-            border: 1px solid #f1f5f9; box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            cursor: pointer; transition: transform 0.1s ease;
-        }
-        .asset-card:active { transform: scale(0.98); background: #f8fafc; }
-        .asset-left { display: flex; align-items: center; gap: 14px; }
-        .asset-img-wrapper {
-            width: 42px; height: 42px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; background: #f1f5f9; flex-shrink: 0;
-            border: 1px solid #e2e8f0;
-        }
-        .asset-img { width: 100%; height: 100%; object-fit: cover; }
-        .asset-fallback-badge {
-            width: 100%; height: 100%; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: 800; color: #ffffff;
-        }
-        .asset-coin-name { font-size: 15px; font-weight: 800; color: #0f172a; }
-        .asset-coin-symbol { font-size: 12px; font-weight: 600; color: #64748b; margin-top: 2px; }
-        .asset-right { text-align: right; }
-        .asset-crypto-amount { font-size: 15px; font-weight: 800; color: #0f172a; }
-        .asset-usd-amount { font-size: 12px; font-weight: 600; color: #64748b; margin-top: 2px; }
-
-        .view-tab { display: none; }
-        .view-tab.active-view { display: block; }
-
-        .share-card {
-            background: linear-gradient(135deg, #2563eb, #1e40af);
-            border-radius: 24px; padding: 24px 20px;
-            color: #ffffff; text-align: center;
-            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.25);
-            margin-bottom: 20px;
-        }
-        .share-icon-circle {
-            width: 64px; height: 64px; border-radius: 50%;
-            background: rgba(255,255,255,0.2); color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px; margin: 0 auto 14px;
-        }
-        .share-link-box {
-            background: #f8fafc; border: 1px solid #cbd5e1;
-            padding: 14px; border-radius: 14px;
-            display: flex; align-items: center; justify-content: space-between;
-            font-size: 13px; font-weight: 700; color: #1e293b;
-            margin: 16px 0 10px; word-break: break-all;
-        }
-
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #ffffff; border-top: 1px solid #e2e8f0;
-            display: flex; justify-content: space-around; padding: 10px 0;
-            z-index: 50;
-        }
-        .nav-link { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #94a3b8; font-size: 11px; font-weight: 600; cursor: pointer; }
-        .nav-link.active { color: #2563eb; font-weight: 800; }
-        .nav-link i { font-size: 19px; }
-
-        .modal {
-            display: none; position: fixed; bottom: 0; left: 0; right: 0; top: 0;
-            background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end;
-        }
-        .modal-body {
-            background: #ffffff; width: 100%; border-radius: 26px 26px 0 0;
-            padding: 24px 20px; animation: slideUp 0.25s ease-out; max-height: 88vh; overflow-y: auto;
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .modal-title { font-size: 18px; font-weight: 800; text-align: center; color: #0f172a; }
-        .modal-subtitle { font-size: 12px; color: #64748b; text-align: center; margin-top: 4px; margin-bottom: 16px; font-weight: 600; }
-        .input-box { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 14px; margin: 8px 0; font-size: 14px; background: #f8fafc; font-weight: 600; }
-        .select-box { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 14px; margin: 8px 0; font-size: 14px; background: #f8fafc; font-weight: 700; }
-        
-        .input-group-row { position: relative; display: flex; align-items: center; margin: 8px 0; }
-        .input-group-row .input-box { margin: 0; padding-right: 70px; }
-        .input-inline-btn { position: absolute; right: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; }
-        
-        .primary-btn { width: 100%; background: #2563eb; color: #ffffff; border: none; padding: 15px; border-radius: 14px; font-weight: 800; font-size: 15px; margin-top: 10px; cursor: pointer; }
-        .sec-btn { width: 100%; background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 15px; margin-top: 8px; cursor: pointer; }
-        .copy-btn-sm { background: #e2e8f0; color: #1e293b; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 4px; }
-        .copy-btn-sm:active { background: #cbd5e1; }
-        .addr-card { background: #eff6ff; border: 1px dashed #3b82f6; padding: 12px; border-radius: 14px; font-size: 12px; word-break: break-all; text-align: center; font-weight: 800; color: #1e3a8a; cursor: pointer; margin: 8px 0; }
-        
-        .qr-wrapper {
-            position: relative;
-            display: inline-block;
-            padding: 12px;
-            background: #ffffff;
-            border-radius: 20px;
-            border: 2px solid #e2e8f0;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-            margin: 12px auto;
-        }
-        .qr-overlay-logo {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 3px solid #ffffff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-            pointer-events: none;
-            object-fit: cover;
-        }
-
-        .fee-calc-box {
-            background: #f1f5f9;
-            border-radius: 14px;
-            padding: 12px 14px;
-            margin: 10px 0;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .fee-row { display: flex; justify-content: space-between; color: #475569; font-weight: 600; }
-        .fee-row.total { border-top: 1px solid #cbd5e1; padding-top: 6px; color: #0f172a; font-weight: 800; }
-        .min-alert { font-size: 11px; color: #ea580c; font-weight: 700; text-align: center; margin-top: 4px; }
-
-        .swap-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; margin-bottom: 10px; }
-        .swap-header { display: flex; justify-content: space-between; font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px; }
-        .swap-row { display: flex; align-items: center; gap: 10px; }
-        .swap-input { flex: 1; border: none; background: transparent; font-size: 20px; font-weight: 800; color: #0f172a; outline: none; }
-        .swap-select { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 8px 12px; font-size: 14px; font-weight: 800; color: #0f172a; cursor: pointer; }
-        .flip-btn-wrapper { display: flex; justify-content: center; margin: -16px 0; z-index: 2; position: relative; }
-        .flip-btn { width: 36px; height: 36px; border-radius: 50%; background: #ffffff; border: 1px solid #cbd5e1; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-        .swap-rate-info { font-size: 12px; color: #475569; font-weight: 600; text-align: center; margin: 12px 0 6px; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta property="og:type" content="website">
+<meta property="og:title" content="OPEN WALLET — Secure Multi-Chain Wallet">
+<meta property="og:description" content="Non-custodial multi-chain wallet with on-chain balance verification and transaction limits.">
+<title>OPEN WALLET</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f8fafc;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px 16px 90px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.brand{display:flex;gap:10px;align-items:center}.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;display:grid;place-items:center;font-weight:900}.name{font-weight:900}.sub{font-size:11px;color:#64748b;margin-top:2px}.actions{display:flex;gap:8px}.icon{width:38px;height:38px;border-radius:50%;border:1px solid #e2e8f0;background:#fff;display:grid;place-items:center;cursor:pointer}
+.card{border-radius:24px;padding:22px 20px;color:#fff;background:linear-gradient(135deg,#1d4ed8,#1e40af 55%,#172554);box-shadow:0 16px 32px -8px rgba(29,78,216,.35);margin-bottom:18px}.label{font-size:12px;color:#bfdbfe}.total{font-size:34px;font-weight:900;margin-top:5px}.btc{font-size:12px;color:#bfdbfe;margin-top:4px}.limit{font-size:11px;color:#dbeafe;margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#fff;padding:14px 8px;border-radius:20px;border:1px solid #eef2f7;margin-bottom:18px}.action{border:0;background:transparent;display:grid;place-items:center;gap:7px;font-weight:800;font-size:11px;color:#334155;cursor:pointer}.circle{width:48px;height:48px;border-radius:50%;background:#eff6ff;color:#2563eb;display:grid;place-items:center;font-size:18px}
+.section{display:flex;justify-content:space-between;align-items:center;margin:16px 3px 10px}.section h2{font-size:18px;margin:0}.refresh{color:#2563eb;font-size:12px;font-weight:800;cursor:pointer}
+.assets{display:grid;gap:9px}.asset{background:#fff;border:1px solid #eef2f7;border-radius:18px;padding:14px 15px;display:flex;justify-content:space-between;align-items:center}.left{display:flex;gap:12px;align-items:center}.coin{width:42px;height:42px;border-radius:50%;background:#eff6ff;display:grid;place-items:center;font-weight:900;color:#2563eb}.an{font-weight:850;font-size:14px}.as{font-size:11px;color:#64748b;margin-top:2px}.right{text-align:right}.amt{font-weight:850;font-size:14px}.usd{font-size:11px;color:#64748b;margin-top:2px}
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.62);z-index:20;align-items:flex-end}.sheet{background:#fff;width:100%;max-height:90vh;overflow:auto;border-radius:26px 26px 0 0;padding:22px 18px}.title{text-align:center;font-weight:900;font-size:18px}.hint{text-align:center;color:#64748b;font-size:12px;margin:4px 0 16px}.input,.select{width:100%;padding:13px 14px;margin:6px 0;border:1px solid #cbd5e1;border-radius:13px;background:#f8fafc;font-size:14px;font-weight:650;outline:none}.btn{width:100%;border:0;border-radius:13px;padding:14px;margin-top:8px;background:#2563eb;color:#fff;font-weight:850;font-size:14px;cursor:pointer}.btn.dark{background:#0f172a}.btn.gray{background:#f1f5f9;color:#0f172a;border:1px solid #cbd5e1}.msg{font-size:12px;text-align:center;font-weight:750;margin:9px 0;line-height:1.45}.limits{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:11px;font-size:11px;color:#1e3a8a;margin:10px 0}.address{background:#f8fafc;border:1px dashed #3b82f6;border-radius:13px;padding:12px;word-break:break-all;text-align:center;font-family:monospace;font-size:12px;font-weight:800}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.search{width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:13px;background:#fff;outline:none}.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;height:64px;display:flex;justify-content:space-around;align-items:center;z-index:10}.nav button{border:0;background:none;color:#94a3b8;font-size:11px;font-weight:800}.nav button.active{color:#2563eb}.hidden{display:none!important}
+</style>
 </head>
 <body>
-
-    <div class="top-bar">
-        <div class="brand">
-            <div class="shield-logo"><i class="fa-solid fa-shield-halved"></i></div>
-            <div class="user-info">
-                <div class="brand-text"><span id="headerUserName">OPEN WALLET</span> <i class="fa-solid fa-circle-check" style="color: #2563eb; font-size: 14px;"></i></div>
-                <div class="user-subtext" id="userHandle">@telegram_user</div>
-            </div>
-        </div>
-        <div class="top-actions">
-            <div class="icon-btn-round" onclick="openSecurityModal()" title="Security & Seed Phrase"><i class="fa-solid fa-key"></i></div>
-            <div class="icon-btn-round" onclick="shareAppDirectly()" title="Share Wallet"><i class="fa-solid fa-share-nodes"></i></div>
-            <div class="icon-btn-round" onclick="fetchWalletData()" title="Sync Blockchain"><i class="fa-solid fa-rotate"></i></div>
-        </div>
-    </div>
-
-    <!-- 1. MAIN WALLET VIEW -->
-    <div id="walletView" class="view-tab active-view">
-        <div class="hero-card">
-            <div class="hero-top">
-                <div>
-                    <div class="card-label">
-                        <span>Total Verified Balance</span>
-                        <i class="fa-regular fa-eye" id="eyeIcon" onclick="toggleBalance()" style="cursor: pointer;"></i>
-                    </div>
-                    <div class="total-usd" id="totalUsd">$0.00</div>
-                    <div class="total-btc-est" id="btcEst">≈ 0.0000 BTC</div>
-                </div>
-                <div class="floating-badges">
-                    <img class="badge-icon" src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png" alt="BTC">
-                    <img class="badge-icon" src="https://assets.coingecko.com/coins/images/325/large/Tether.png" alt="USDT">
-                    <img class="badge-icon" src="https://assets.coingecko.com/coins/images/4128/large/solana.png" alt="SOL">
-                </div>
-            </div>
-        </div>
-
-        <div class="actions-grid">
-            <button class="act-btn" onclick="openSendModal()">
-                <div class="act-circle"><i class="fa-solid fa-arrow-up"></i></div>
-                <span class="act-title">Send</span>
-            </button>
-            <button class="act-btn" onclick="openDepositModal()">
-                <div class="act-circle"><i class="fa-solid fa-arrow-down"></i></div>
-                <span class="act-title">Receive</span>
-            </button>
-            <button class="act-btn" onclick="openSwapModal()">
-                <div class="act-circle"><i class="fa-solid fa-repeat"></i></div>
-                <span class="act-title">Swap</span>
-            </button>
-            <button class="act-btn" onclick="openExplorer()">
-                <div class="act-circle"><i class="fa-regular fa-clock"></i></div>
-                <span class="act-title">History</span>
-            </button>
-        </div>
-
-        <div class="search-container">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass" style="color: #94a3b8;"></i>
-                <input type="text" id="tokenSearchInput" placeholder="Search 100+ tokens or blockchains (ERC20, TRC20, Solana...)" oninput="filterTokens()">
-            </div>
-        </div>
-
-        <div class="assets-bar">
-            <div class="assets-title">Supported Assets (100+)</div>
-            <div class="see-all-btn" onclick="fetchLivePrices(); fetchWalletData();">Refresh</div>
-        </div>
-
-        <div class="asset-stack" id="assetStack"></div>
-    </div>
-
-    <!-- 2. SHARE & INVITE VIEW -->
-    <div id="shareView" class="view-tab">
-        <div class="share-card">
-            <div class="share-icon-circle"><i class="fa-solid fa-share-nodes"></i></div>
-            <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Invite Friends & Earn</h2>
-            <p style="font-size: 13px; color: #bfdbfe; font-weight: 500;">Share your multi-chain Web3 wallet with friends and earn cash rewards on every blockchain transfer!</p>
-        </div>
-
-        <div style="background: #ffffff; border-radius: 20px; padding: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-            <div style="font-size: 13px; font-weight: 700; color: #475569;">Your Personal Invite Link:</div>
-            
-            <div class="share-link-box">
-                <span id="referralLinkText">Generating link...</span>
-                <button class="copy-btn-sm" onclick="copyReferralLink()"><i class="fa-regular fa-copy"></i> Copy</button>
-            </div>
-
-            <button class="primary-btn" onclick="shareOnTelegram()" style="background: #0284c7; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="fa-brands fa-telegram" style="font-size: 18px;"></i> Share on Telegram
-            </button>
-            
-            <button class="primary-btn" onclick="shareAppDirectly()" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="fa-solid fa-share-nodes"></i> Share via Other Apps
-            </button>
-        </div>
-    </div>
-
-    <!-- 3. LEADERBOARD VIEW -->
-    <div id="leaderboardView" class="view-tab">
-        <h3 style="margin-bottom: 16px;">Top Verified Traders</h3>
-        <div class="tx-card" style="background: #ffffff; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #f1f5f9; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="font-weight: 800; font-size: 16px; color: #eab308;">#1</div>
-                <div><div style="font-size: 14px; font-weight: 700; color: #0f172a;">WhaleTrader_99</div><div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Volume: $680,200</div></div>
-            </div>
-            <div><div style="color: #16a34a; font-weight: 800;">+38.5%</div></div>
-        </div>
-        <div class="tx-card" style="background: #ffffff; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #f1f5f9; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="font-weight: 800; font-size: 16px; color: #94a3b8;">#2</div>
-                <div><div style="font-size: 14px; font-weight: 700; color: #0f172a;" id="leaderboardUserName">You</div><div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">On-Chain Verified</div></div>
-            </div>
-            <div><div style="color: #16a34a; font-weight: 800;">Active</div></div>
-        </div>
-    </div>
-
-    <!-- Bottom Nav -->
-    <div class="bottom-nav">
-        <div class="nav-link active" onclick="switchNav('walletView', this)"><i class="fa-solid fa-wallet"></i><span>Wallet</span></div>
-        <div class="nav-link" onclick="switchNav('shareView', this)"><i class="fa-solid fa-share-nodes"></i><span>Share</span></div>
-        <div class="nav-link" onclick="switchNav('leaderboardView', this)"><i class="fa-solid fa-chart-simple"></i><span>Leaderboard</span></div>
-    </div>
-
-    <!-- Modals -->
-    <div class="modal" id="coinActionModal" onclick="closeModalOutside(event, 'coinActionModal')">
-        <div class="modal-body">
-            <div class="modal-title" id="actionTitle">Crypto Actions</div>
-            <div class="modal-subtitle" id="actionSubtitle">Select Action</div>
-            <button class="primary-btn" id="coinReceiveBtn">Receive / Deposit to Address</button>
-            <button class="primary-btn" id="coinSendBtn" style="background:#0f172a; margin-top:8px;">Send on Blockchain</button>
-            <button class="primary-btn" id="coinSwapBtn" style="background:#0284c7; margin-top:8px;">Swap this Token</button>
-            <button class="sec-btn" onclick="closeModal('coinActionModal')">Cancel</button>
-        </div>
-    </div>
-
-    <div class="modal" id="depositModal" onclick="closeModalOutside(event, 'depositModal')">
-        <div class="modal-body">
-            <div class="modal-title" id="depositTitle">Receive Crypto</div>
-            <div class="modal-subtitle">Scan Mixed QR Code or Copy Address</div>
-
-            <div style="font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;">Select Deposit Blockchain Network:</div>
-            <select id="depositNetworkSelect" class="select-box" onchange="onDepositNetworkChange()"></select>
-            
-            <div style="text-align: center;">
-                <div class="qr-wrapper">
-                    <div id="qrcode"></div>
-                    <img id="qrCenterLogo" class="qr-overlay-logo" src="" alt="coin">
-                </div>
-            </div>
-
-            <div class="min-alert"><i class="fa-solid fa-circle-info"></i> Minimum Deposit / Receive: <b>$1.00 USD</b> Equivalent</div>
-
-            <div id="depositAddr" class="addr-card" onclick="copyAddress()">Generating Address...</div>
-            <button class="primary-btn" onclick="copyAddress()"><i class="fa-regular fa-copy"></i> Copy Deposit Address</button>
-            <button class="sec-btn" onclick="closeModal('depositModal')">Close</button>
-        </div>
-    </div>
-
-    <!-- 🚀 SEND MODAL -->
-    <div class="modal" id="sendModal" onclick="closeModalOutside(event, 'sendModal')">
-        <div class="modal-body">
-            <div class="modal-title">Send on Blockchain</div>
-            <div class="modal-subtitle" id="sendSubtitle">Multi-Chain Verified Broadcast</div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <span style="font-size:12px; font-weight:700; color:#334155;">Asset:</span>
-                <span id="sendAvailBal" style="font-size:12px; font-weight:800; color:#2563eb; cursor:pointer;" onclick="setMaxSend()">Available: 0.0000</span>
-            </div>
-            <select id="sendCoinSelect" class="select-box" onchange="onSendCoinChange()"></select>
-
-            <div style="font-size:12px; font-weight:700; color:#334155; margin-top:8px; margin-bottom:4px;">Choose Network:</div>
-            <select id="sendNetworkSelect" class="select-box" onchange="onSendNetworkChange()"></select>
-
-            <input type="text" id="sendTo" class="input-box" placeholder="Recipient Address">
-
-            <div class="input-group-row">
-                <input type="number" id="sendAmount" class="input-box" placeholder="Amount to send" oninput="calculateSendFee()">
-                <button type="button" class="input-inline-btn" onclick="setMaxSend()">MAX</button>
-            </div>
-
-            <div class="min-alert" id="minSendAlert"><i class="fa-solid fa-circle-exclamation"></i> Minimum Send Amount: <b>$1.00 USD</b></div>
-
-            <div class="fee-calc-box" id="feeBreakdownBox">
-                <div class="fee-row"><span>Transfer Value:</span><span id="feeTransferVal">$0.00 USD</span></div>
-                <div class="fee-row"><span>Platform Fee (0.5%):</span><span id="feePlatformVal">0.0000 (0.5%)</span></div>
-                <div class="fee-row total"><span>Recipient Receives:</span><span id="feeReceiveVal">0.0000</span></div>
-            </div>
-
-            <button class="primary-btn" id="sendBtn" onclick="handleSend()">Broadcast Transfer</button>
-            <div id="sendResult" style="font-size: 13px; text-align: center; margin-top: 10px; font-weight: 700;"></div>
-            <button class="sec-btn" onclick="closeModal('sendModal')">Cancel</button>
-        </div>
-    </div>
-
-    <!-- 🚀 ERROR ALERT POPUP MODAL -->
-    <div class="modal" id="errorModal" onclick="closeModalOutside(event, 'errorModal')">
-        <div class="modal-body" style="text-align: center; padding-bottom: 30px;">
-            <div style="font-size: 45px; color: #dc2626; margin-bottom: 10px;"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="modal-title" style="color: #dc2626; margin-bottom: 8px;">Blockchain Error</div>
-            <div id="errorPopupMessage" style="font-size: 14px; color: #475569; font-weight: 600; margin-bottom: 20px; line-height: 1.5;">An unknown blockchain error occurred.</div>
-            <button class="primary-btn" onclick="closeModal('errorModal')" style="background: #dc2626;">Got It</button>
-        </div>
-    </div>
-
-    <div class="modal" id="swapModal" onclick="closeModalOutside(event, 'swapModal')">
-        <div class="modal-body">
-            <div class="modal-title">Cross-Chain Swap</div>
-            <div class="modal-subtitle">Instant Decentralized Liquidity Bridge</div>
-
-            <div class="swap-box">
-                <div class="swap-header">
-                    <span>You Pay</span>
-                    <span id="swapPayBal" style="cursor: pointer; color: #2563eb;" onclick="setMaxSwap()">Bal: 0.00</span>
-                </div>
-                <div class="swap-row">
-                    <input type="number" id="swapFromInput" class="swap-input" placeholder="0.0" oninput="calculateSwapOutput()">
-                    <select id="swapFromCoin" class="swap-select" onchange="onSwapCoinChange()"></select>
-                </div>
-            </div>
-
-            <div class="flip-btn-wrapper">
-                <button class="flip-btn" onclick="flipSwapTokens()"><i class="fa-solid fa-arrow-down-up-across-line"></i></button>
-            </div>
-
-            <div class="swap-box" style="margin-top: 6px;">
-                <div class="swap-header">
-                    <span>You Receive (Estimated)</span>
-                    <span id="swapRecBal">Bal: 0.00</span>
-                </div>
-                <div class="swap-row">
-                    <input type="text" id="swapToInput" class="swap-input" placeholder="0.0" readonly>
-                    <select id="swapToCoin" class="swap-select" onchange="onSwapCoinChange()"></select>
-                </div>
-            </div>
-
-            <div class="swap-rate-info" id="swapRateText">Live Exchange Rate Loading...</div>
-
-            <button class="primary-btn" id="confirmSwapBtn" onclick="executeSwap()">Confirm Instant Swap</button>
-            <div id="swapStatusMsg" style="font-size: 13px; text-align: center; margin-top: 10px; font-weight: 700;"></div>
-            <button class="sec-btn" onclick="closeModal('swapModal')">Cancel</button>
-        </div>
-    </div>
-
-    <div class="modal" id="securityModal" onclick="closeModalOutside(event, 'securityModal')">
-        <div class="modal-body">
-            <div class="modal-title">Security & Backup</div>
-            <div class="modal-subtitle">Your Decentralized Wallet Keys</div>
-            <p style="font-size: 12px; color: #dc2626; margin-bottom: 8px; font-weight: 700;">Never share your recovery phrase or private keys with anyone!</p>
-            
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 10px;">
-                <div style="font-size: 12px; font-weight: 700; color: #334155;">12-Word Secret Recovery Phrase:</div>
-                <button class="copy-btn-sm" onclick="copySeedPhrase()"><i class="fa-regular fa-copy"></i> Copy Seed</button>
-            </div>
-            <div id="seedDisplay" class="addr-card" style="background:#fef2f2; border-color:#fca5a5; color:#991b1b; font-family: monospace;" onclick="copySeedPhrase()">•••• •••• •••• •••• •••• •••• •••• •••• •••• •••• •••• ••••</div>
-            
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 10px;">
-                <div style="font-size: 12px; font-weight: 700; color: #334155;">Private Key (Hex):</div>
-                <button class="copy-btn-sm" onclick="copyPrivateKey()"><i class="fa-regular fa-copy"></i> Copy Key</button>
-            </div>
-            <div id="privKeyDisplay" class="addr-card" style="background:#fff1f2; border-color:#f43f5e; color:#be123c; font-family: monospace;" onclick="copyPrivateKey()">••••••••••••••••••••••••••••••••••••••••••••••••</div>
-            
-            <button class="primary-btn" id="revealBtn" onclick="revealKey()">Reveal Credentials</button>
-            <button class="sec-btn" onclick="closeModal('securityModal')">Done</button>
-        </div>
-    </div>
-
-    <script>
-        const tg = window.Telegram?.WebApp;
-        if (tg) { tg.ready(); tg.expand(); }
-
-        const BACKEND_URL = "https://telegram-wallet-backend-3.onrender.com";
-        const tgUser = tg?.initDataUnsafe?.user;
-        const telegramId = tgUser?.id ? String(tgUser.id) : "demo_user_123";
-        const displayName = tgUser?.first_name ? `${tgUser.first_name} ${tgUser.last_name || ''}`.trim() : (tgUser?.username || "Vikram Singh");
-        const usernameHandle = tgUser?.username ? `@${tgUser.username}` : `@user_${telegramId.slice(0, 6)}`;
-
-        document.getElementById('headerUserName').innerText = displayName;
-        document.getElementById('userHandle').innerText = usernameHandle;
-        document.getElementById('leaderboardUserName').innerText = `${displayName} (You)`;
-
-        const BOT_USERNAME = "OpenWalletApp_2026_bot";
-        const myReferralLink = `https://t.me/${BOT_USERNAME}?startapp=ref_${telegramId}`;
-
-        const refLinkElem = document.getElementById('referralLinkText');
-        if (refLinkElem) refLinkElem.innerText = myReferralLink;
-
-        function copyReferralLink() {
-            navigator.clipboard.writeText(myReferralLink);
-            alert("Invite link copied to clipboard!");
-        }
-
-        function shareOnTelegram() {
-            const shareText = encodeURIComponent("🚀 Open your Web3 Multi-Chain Wallet with me & earn cash rewards!");
-            const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(myReferralLink)}&text=${shareText}`;
-            if (window.Telegram?.WebApp?.openTelegramLink) {
-                window.Telegram.WebApp.openTelegramLink(tgShareUrl);
-            } else {
-                window.open(tgShareUrl, '_blank');
-            }
-        }
-
-        function shareAppDirectly() {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'OPEN WALLET - Web3 Multi-Chain',
-                    text: '🚀 Open your Web3 Multi-Chain Wallet with me & earn cash rewards!',
-                    url: myReferralLink
-                }).catch(() => {});
-            } else {
-                copyReferralLink();
-            }
-        }
-
-        const RAW_TOKENS = [
-            { symbol: "SOL", name: "Solana", id: "solana", defaultPrice: 101.20, networks: [{ name: "Solana Mainnet", chain: "SOL" }] },
-            { symbol: "ETH", name: "Ethereum", id: "ethereum", defaultPrice: 2486.00, networks: [{ name: "Optimism", chain: "ETH" }, { name: "Ethereum Mainnet (ERC20)", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
-            { symbol: "BTC", name: "Bitcoin", id: "bitcoin", defaultPrice: 78733.00, networks: [{ name: "Bitcoin Mainnet", chain: "BTC" }] },
-            { symbol: "USDT", name: "Tether USD", id: "tether", defaultPrice: 1.00, networks: [{ name: "TRON (TRC-20)", chain: "TRX" }, { name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "BNB Smart Chain (BEP-20)", chain: "ETH" }, { name: "Solana (SPL)", chain: "SOL" }, { name: "Polygon", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "TON Blockchain", chain: "TON" }] },
-            { symbol: "USDC", name: "USD Coin", id: "usd-coin", defaultPrice: 1.00, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "Solana (SPL)", chain: "SOL" }, { name: "Polygon", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
-            { symbol: "BNB", name: "BNB", id: "binancecoin", defaultPrice: 620.00, networks: [{ name: "BNB Smart Chain (BEP20)", chain: "ETH" }] },
-            { symbol: "XRP", name: "XRP", id: "ripple", defaultPrice: 0.58, networks: [{ name: "XRP Ledger", chain: "XRP" }] },
-            { symbol: "DOGE", name: "Dogecoin", id: "dogecoin", defaultPrice: 0.14, networks: [{ name: "Dogecoin Mainnet", chain: "DOGE" }] },
-            { symbol: "ADA", name: "Cardano", id: "cardano", defaultPrice: 0.38, networks: [{ name: "Cardano Mainnet", chain: "ADA" }] },
-            { symbol: "TRX", name: "TRON", id: "tron", defaultPrice: 0.22, networks: [{ name: "TRON Mainnet", chain: "TRX" }] },
-            { symbol: "AVAX", name: "Avalanche", id: "avalanche-2", defaultPrice: 28.00, networks: [{ name: "Avalanche C-Chain", chain: "ETH" }] },
-            { symbol: "TON", name: "Toncoin", id: "the-open-network", defaultPrice: 5.40, networks: [{ name: "TON Blockchain", chain: "TON" }] },
-            { symbol: "SUI", name: "Sui", id: "sui", defaultPrice: 1.85, networks: [{ name: "Sui Network", chain: "SOL" }] },
-            { symbol: "LINK", name: "Chainlink", id: "chainlink", defaultPrice: 12.20, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "BNB Smart Chain", chain: "ETH" }] },
-            { symbol: "SHIB", name: "Shiba Inu", id: "shiba-inu", defaultPrice: 0.000018, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "NEAR", name: "NEAR Protocol", id: "near", defaultPrice: 4.80, networks: [{ name: "NEAR Mainnet", chain: "SOL" }] },
-            { symbol: "DOT", name: "Polkadot", id: "polkadot", defaultPrice: 4.30, networks: [{ name: "Polkadot Relay Chain", chain: "KSM" }] },
-            { symbol: "LTC", name: "Litecoin", id: "litecoin", defaultPrice: 68.00, networks: [{ name: "Litecoin Mainnet", chain: "LTC" }] },
-            { symbol: "BCH", name: "Bitcoin Cash", id: "bitcoin-cash", defaultPrice: 350.00, networks: [{ name: "Bitcoin Cash Network", chain: "BCH" }] },
-            { symbol: "APT", name: "Aptos", id: "aptos", defaultPrice: 8.50, networks: [{ name: "Aptos Mainnet", chain: "SOL" }] },
-            { symbol: "POL", name: "Polygon", id: "polygon-ecosystem-token", defaultPrice: 0.38, networks: [{ name: "Polygon Network", chain: "ETH" }] },
-            { symbol: "UNI", name: "Uniswap", id: "uniswap", defaultPrice: 7.80, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
-            { symbol: "ARB", name: "Arbitrum", id: "arbitrum", defaultPrice: 0.55, networks: [{ name: "Arbitrum One", chain: "ETH" }] },
-            { symbol: "OP", name: "Optimism", id: "optimism", defaultPrice: 1.60, networks: [{ name: "Optimism Mainnet", chain: "ETH" }] }
-        ];
-
-        const TOKENS = RAW_TOKENS.map((t, idx) => ({
-            ...t,
-            icon: `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${t.symbol.toLowerCase()}.png`,
-            bg: ['#2563eb', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'][idx % 7]
-        }));
-
-        const CHAIN_INFO = {
-            BTC: { name: "Bitcoin", placeholder: "Recipient BTC Address" },
-            ETH: { name: "Ethereum/EVM", placeholder: "Recipient EVM/Optimism Address (0x...)" },
-            TRX: { name: "TRON", placeholder: "Recipient TRON Address (T...)" },
-            SOL: { name: "Solana", placeholder: "Recipient Solana SPL Address" },
-            TON: { name: "TON", placeholder: "Recipient TON Address (UQ...)" },
-            LTC: { name: "Litecoin", placeholder: "Recipient Litecoin Address" },
-            DOGE: { name: "Dogecoin", placeholder: "Recipient Dogecoin Address" },
-            ADA: { name: "Cardano", placeholder: "Recipient Cardano Address" },
-            XRP: { name: "XRP", placeholder: "Recipient XRP Address" },
-            BCH: { name: "Bitcoin Cash", placeholder: "Recipient BCH Address" },
-            XLM: { name: "Stellar", placeholder: "Recipient Stellar Address" },
-            KSM: { name: "Kusama", placeholder: "Recipient Kusama Address" }
-        };
-
-        function deriveAllAddresses(seed) {
-            const hash20 = CryptoJS.RIPEMD160(CryptoJS.SHA256("addr_" + seed)).toString(CryptoJS.enc.Hex);
-            const ethHash = CryptoJS.SHA256("eth_" + seed).toString(CryptoJS.enc.Hex);
-            const tonHash = CryptoJS.SHA256("ton_" + seed).toString(CryptoJS.enc.Hex).substring(0, 46);
-
-            return {
-                TRX: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",
-                USDT: "TLJDqjVK9HMAbLBxnTdyLnNvxd4iF3MsTu",
-                ETH: "0x4b5ba94560dc520c1416434b1aae9c36c8b62e6e",
-                BTC: "bc1q" + hash20.substring(0, 38),
-                TON: "UQ" + tonHash,
-                SOL: ethHash.substring(0, 44),
-                LTC: "ltc1q" + hash20.substring(0, 38),
-                DOGE: "D" + hash20.substring(0, 33)
-            };
-        }
-
-        let chainAddresses = deriveAllAddresses(telegramId);
-        let prices = {};
-        let balances = {};
-
-        let swapLedger = JSON.parse(localStorage.getItem('open_wallet_ledger_' + telegramId) || '{}');
-
-        TOKENS.forEach(t => {
-            prices[t.symbol.toLowerCase()] = t.defaultPrice;
-            balances[t.symbol.toLowerCase()] = 0.0;
-        });
-
-        function handleImgError(img, symbol, bg) {
-            img.style.display = 'none';
-            const parent = img.parentElement;
-            if (!parent.querySelector('.asset-fallback-badge')) {
-                const badge = document.createElement('div');
-                badge.className = 'asset-fallback-badge';
-                badge.style.backgroundColor = bg || '#2563eb';
-                badge.innerText = symbol.substring(0, 4);
-                parent.appendChild(badge);
-            }
-        }
-
-        function getTopBalanceCoin() {
-            let topCoin = "SOL";
-            let maxUsd = -1;
-            TOKENS.forEach(t => {
-                let sym = t.symbol.toLowerCase();
-                let usd = (balances[sym] || 0) * (prices[sym] || 1);
-                if (usd > maxUsd) { maxUsd = usd; topCoin = t.symbol; }
-            });
-            return topCoin;
-        }
-
-        function renderAssetList(filter = '') {
-            const stack = document.getElementById('assetStack');
-            stack.innerHTML = '';
-
-            let filteredTokens = TOKENS.filter(t => 
-                t.name.toLowerCase().includes(filter.toLowerCase()) || 
-                t.symbol.toLowerCase().includes(filter.toLowerCase()) ||
-                t.networks.some(n => n.name.toLowerCase().includes(filter.toLowerCase()))
-            );
-
-            filteredTokens.sort((a, b) => {
-                const symA = a.symbol.toLowerCase();
-                const symB = b.symbol.toLowerCase();
-                const balA = (balances[symA] || 0) * (prices[symA] || a.defaultPrice);
-                const balB = (balances[symB] || 0) * (prices[symB] || b.defaultPrice);
-                return balB - balA;
-            });
-
-            filteredTokens.forEach(t => {
-                const sym = t.symbol.toLowerCase();
-                const bal = balances[sym] || 0;
-                const price = prices[sym] || t.defaultPrice;
-                const usdVal = (bal * price).toFixed(2);
-                const priceFormatted = price < 0.001 ? `$${price.toFixed(8)}` : `$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                const multiBadge = t.networks.length > 1 ? `<span style="font-size:10px; background:#eff6ff; color:#2563eb; padding:2px 6px; border-radius:6px; font-weight:700;">${t.networks.length} Chains</span>` : `<span style="font-size:10px; color:#94a3b8;">${t.networks[0].name.split(' ')[0]}</span>`;
-
-                const card = document.createElement('div');
-                card.className = 'asset-card';
-                card.onclick = () => openCoinActionModal(t.symbol);
-                card.innerHTML = `
-                    <div class="asset-left">
-                        <div class="asset-img-wrapper">
-                            <img class="asset-img" src="${t.icon}" alt="${t.name}" onerror="handleImgError(this, '${t.symbol}', '${t.bg}')">
-                        </div>
-                        <div>
-                            <div class="asset-coin-name">${t.name}</div>
-                            <div class="asset-coin-symbol">${t.symbol} · <span id="price_${sym}">${priceFormatted}</span> ${multiBadge}</div>
-                        </div>
-                    </div>
-                    <div class="asset-right">
-                        <div class="asset-crypto-amount">${bal.toFixed(4)} ${t.symbol}</div>
-                        <div class="asset-usd-amount">$${usdVal}</div>
-                    </div>
-                `;
-                stack.appendChild(card);
-            });
-
-            const sendSel = document.getElementById('sendCoinSelect');
-            const swapFromSel = document.getElementById('swapFromCoin');
-            const swapToSel = document.getElementById('swapToCoin');
-
-            if (sendSel && sendSel.children.length === 0) {
-                TOKENS.forEach(t => {
-                    sendSel.innerHTML += `<option value="${t.symbol}">${t.name} (${t.symbol})</option>`;
-                    swapFromSel.innerHTML += `<option value="${t.symbol}">${t.symbol}</option>`;
-                    swapToSel.innerHTML += `<option value="${t.symbol}">${t.symbol}</option>`;
-                });
-            }
-        }
-
-        function filterTokens() {
-            const val = document.getElementById('tokenSearchInput').value;
-            renderAssetList(val);
-        }
-
-        async function fetchLivePrices() {
-            try {
-                const popularSymbols = ["SOLUSDT","ETHUSDT","BTCUSDT","BNBUSDT","DOGEUSDT","ADAUSDT","XRPUSDT","TRXUSDT","AVAXUSDT","TONUSDT","SUIUSDT","LINKUSDT","SHIBUSDT","NEARUSDT","DOTUSDT","LTCUSDT","BCHUSDT","APTUSDT","POLUSDT","UNIUSDT","ARBUSDT","OPUSDT"];
-                const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(popularSymbols))}`);
-                const data = await res.json();
-                
-                data.forEach(item => {
-                    const sym = item.symbol.replace("USDT", "").toLowerCase();
-                    const newPrice = parseFloat(item.price);
-                    if (newPrice > 0) {
-                        prices[sym] = newPrice;
-                    }
-                });
-
-                prices['usdt'] = 1.00;
-                prices['usdc'] = 1.00;
-
-                updateUI();
-                onSwapCoinChange();
-                calculateSendFee();
-            } catch (e) {}
-        }
-
-        async function checkDirectOptimismBalance(address) {
-            const rpcs = [
-                "https://mainnet.optimism.io",
-                "https://optimism.publicnode.com",
-                "https://rpc.ankr.com/optimism"
-            ];
-
-            for (const rpc of rpcs) {
-                try {
-                    const res = await fetch(rpc, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            jsonrpc: '2.0',
-                            method: 'eth_getBalance',
-                            params: [address, 'latest'],
-                            id: 1
-                        })
-                    });
-                    const data = await res.json();
-                    if (data && data.result) {
-                        const wei = BigInt(data.result);
-                        return Number(wei) / 1e18;
-                    }
-                } catch (e) {}
-            }
-            return 0.0;
-        }
-
-        async function fetchWalletData() {
-            let rawOnChain = {};
-
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/wallet`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ telegramId })
-                });
-                const data = await res.json();
-                
-                if (data.addresses) chainAddresses = { ...chainAddresses, ...data.addresses };
-                if (data.address) chainAddresses.TRX = data.address;
-
-                if (data.verifiedBalances) {
-                    Object.keys(data.verifiedBalances).forEach(k => {
-                        rawOnChain[k] = parseFloat(data.verifiedBalances[k] || 0);
-                    });
-                }
-            } catch (e) {}
-
-            const onChainEth = await checkDirectOptimismBalance(chainAddresses.ETH);
-            if (onChainEth > 0) rawOnChain['eth'] = onChainEth;
-
-            TOKENS.forEach(t => {
-                const sym = t.symbol.toLowerCase();
-                let base = rawOnChain[sym] || 0.0;
-                let offset = swapLedger[sym] || 0.0;
-                balances[sym] = Math.max(0, base + offset);
-            });
-
-            updateUI();
-        }
-
-        function executeSwap() {
-            const from = document.getElementById('swapFromCoin').value;
-            const to = document.getElementById('swapToCoin').value;
-            const amt = parseFloat(document.getElementById('swapFromInput').value) || 0;
-            const outAmt = parseFloat(document.getElementById('swapToInput').value) || 0;
-            const msg = document.getElementById('swapStatusMsg');
-            const btn = document.getElementById('confirmSwapBtn');
-
-            const fromKey = from.toLowerCase();
-            const toKey = to.toLowerCase();
-
-            if (amt <= 0) {
-                msg.innerText = "Please enter an amount to swap.";
-                msg.style.color = "#dc2626";
-                return;
-            }
-            if ((balances[fromKey] || 0) < amt) {
-                msg.innerText = `Insufficient verified ${from} balance!`;
-                msg.style.color = "#dc2626";
-                return;
-            }
-            if (from === to) {
-                msg.innerText = "Cannot swap the same token.";
-                msg.style.color = "#dc2626";
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Routing Live Liquidity...";
-            msg.innerText = `Swapping ${amt} ${from} ➔ ${outAmt.toFixed(4)} ${to}...`;
-            msg.style.color = "#2563eb";
-
-            setTimeout(() => {
-                swapLedger[fromKey] = (swapLedger[fromKey] || 0) - amt;
-                swapLedger[toKey] = (swapLedger[toKey] || 0) + outAmt;
-                localStorage.setItem('open_wallet_ledger_' + telegramId, JSON.stringify(swapLedger));
-
-                balances[fromKey] = Math.max(0, (balances[fromKey] || 0) - amt);
-                balances[toKey] = (balances[toKey] || 0) + outAmt;
-
-                updateUI();
-
-                msg.innerText = `Swapped to ${outAmt.toFixed(4)} ${to} Successfully!`;
-                msg.style.color = "#16a34a";
-                btn.disabled = false;
-                btn.innerText = "Confirm Instant Swap";
-
-                onSwapCoinChange();
-                setTimeout(() => closeModal('swapModal'), 1600);
-            }, 1200);
-        }
-
-        function updateUI() {
-            let total = 0;
-
-            TOKENS.forEach(t => {
-                const sym = t.symbol.toLowerCase();
-                const bal = balances[sym] || 0;
-                const price = prices[sym] || t.defaultPrice;
-                const usd = bal * price;
-                total += usd;
-            });
-
-            const btcPrice = prices['btc'] || 78733;
-            const btcEst = btcPrice > 0 ? (total / btcPrice).toFixed(4) : "0.0000";
-
-            document.getElementById('totalUsd').innerText = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            document.getElementById('btcEst').innerText = `≈ ${btcEst} BTC`;
-
-            const searchVal = document.getElementById('tokenSearchInput')?.value || '';
-            renderAssetList(searchVal);
-        }
-
-        function switchNav(viewId, element) {
-            document.querySelectorAll('.view-tab').forEach(v => v.classList.remove('active-view'));
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active-view');
-            element.classList.add('active');
-        }
-
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function closeModalOutside(e, id) { if (e.target.id === id) closeModal(id); }
-
-        function showBlockchainError(errorMsg) {
-            document.getElementById('errorPopupMessage').innerText = errorMsg;
-            openModal('errorModal');
-        }
-
-        function openDepositModal(coinSymbol) {
-            const chosenCoin = coinSymbol || getTopBalanceCoin();
-            const token = TOKENS.find(t => t.symbol === chosenCoin) || TOKENS[0];
-
-            document.getElementById('depositTitle').innerText = `Receive ${token.name} (${token.symbol})`;
-            document.getElementById('qrCenterLogo').src = token.icon;
-
-            const netSelect = document.getElementById('depositNetworkSelect');
-            netSelect.innerHTML = '';
-            token.networks.forEach(net => {
-                netSelect.innerHTML += `<option value="${net.chain}">${net.name}</option>`;
-            });
-
-            onDepositNetworkChange();
-            openModal('depositModal');
-        }
-
-        function onDepositNetworkChange() {
-            const chain = document.getElementById('depositNetworkSelect').value;
-            const addr = chainAddresses[chain] || chainAddresses['ETH'];
-            document.getElementById('depositAddr').innerText = addr;
-
-            const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = '';
-            new QRCode(qrContainer, {
-                text: addr,
-                width: 160,
-                height: 160,
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        }
-
-        function openSendModal(coinSymbol) {
-            const chosenCoin = coinSymbol || getTopBalanceCoin();
-            const select = document.getElementById('sendCoinSelect');
-            select.value = chosenCoin;
-            
-            document.getElementById('sendAmount').value = '';
-            document.getElementById('sendResult').innerText = '';
-            
-            onSendCoinChange();
-            openModal('sendModal');
-        }
-
-        function onSendCoinChange() {
-            const coin = document.getElementById('sendCoinSelect').value;
-            const token = TOKENS.find(t => t.symbol === coin) || TOKENS[0];
-            const netSelect = document.getElementById('sendNetworkSelect');
-            
-            netSelect.innerHTML = '';
-            token.networks.forEach(net => {
-                netSelect.innerHTML += `<option value="${net.chain}">${net.name}</option>`;
-            });
-
-            // डिफ़ॉल्ट नेटवर्क ऑटो-सेलेक्शन नियम
-            if (coin === 'ETH') netSelect.value = 'ETH';
-            else if (coin === 'USDT') netSelect.value = 'TRX';
-            else if (coin === 'SOL') netSelect.value = 'SOL';
-            else if (coin === 'BTC') netSelect.value = 'BTC';
-            else if (coin === 'TRX') netSelect.value = 'TRX';
-
-            const sym = coin.toLowerCase();
-            const curBal = balances[sym] || 0;
-            const curPrice = prices[sym] || token.defaultPrice;
-            const usdVal = (curBal * curPrice).toFixed(2);
-
-            const balElem = document.getElementById('sendAvailBal');
-            if (balElem) {
-                balElem.innerHTML = `Available: <b>${curBal.toFixed(4)} ${coin}</b> ($${usdVal})`;
-            }
-
-            onSendNetworkChange();
-            calculateSendFee();
-        }
-
-        function onSendNetworkChange() {
-            const chain = document.getElementById('sendNetworkSelect').value;
-            const input = document.getElementById('sendTo');
-            const info = CHAIN_INFO[chain] || { placeholder: `Recipient ${chain} Address` };
-            input.placeholder = info.placeholder;
-        }
-
-        function setMaxSend() {
-            const coin = document.getElementById('sendCoinSelect').value;
-            const sym = coin.toLowerCase();
-            const curBal = balances[sym] || 0;
-            document.getElementById('sendAmount').value = curBal > 0 ? curBal : 0;
-            calculateSendFee();
-        }
-
-        function calculateSendFee() {
-            const coin = document.getElementById('sendCoinSelect')?.value || 'SOL';
-            const amt = parseFloat(document.getElementById('sendAmount')?.value) || 0;
-            const price = prices[coin.toLowerCase()] || 1;
-            const usdValue = amt * price;
-
-            const fee = amt * 0.005;
-            const receiveAmt = amt > fee ? amt - fee : 0;
-
-            const feeTransElem = document.getElementById('feeTransferVal');
-            const feePlatElem = document.getElementById('feePlatformVal');
-            const feeRecElem = document.getElementById('feeReceiveVal');
-            const minAlert = document.getElementById('minSendAlert');
-
-            if (feeTransElem) feeTransElem.innerText = `$${usdValue.toFixed(2)} USD`;
-            if (feePlatElem) feePlatElem.innerText = `${fee.toFixed(6)} ${coin} ($${(fee * price).toFixed(2)})`;
-            if (feeRecElem) feeRecElem.innerText = `${receiveAmt.toFixed(6)} ${coin}`;
-
-            if (minAlert) {
-                if (amt > 0 && usdValue < 1.0) {
-                    minAlert.style.color = "#dc2626";
-                    minAlert.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Amount is below minimum ($1.00 USD required, currently $${usdValue.toFixed(2)})`;
-                } else {
-                    minAlert.style.color = "#ea580c";
-                    minAlert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Minimum Send Amount: <b>$1.00 USD</b>`;
-                }
-            }
-        }
-
-        function openCoinActionModal(coinSymbol) {
-            const token = TOKENS.find(t => t.symbol === coinSymbol);
-            document.getElementById('actionTitle').innerText = `${token.name} (${token.symbol})`;
-            document.getElementById('actionSubtitle').innerText = `Available on ${token.networks.length} Blockchain Network(s)`;
-            
-            document.getElementById('coinReceiveBtn').onclick = () => {
-                closeModal('coinActionModal');
-                openDepositModal(token.symbol);
-            };
-            document.getElementById('coinSendBtn').onclick = () => {
-                closeModal('coinActionModal');
-                openSendModal(token.symbol);
-            };
-            document.getElementById('coinSwapBtn').onclick = () => {
-                closeModal('coinActionModal');
-                openSwapModal(token.symbol);
-            };
-            openModal('coinActionModal');
-        }
-
-        function copyAddress() {
-            const addr = document.getElementById('depositAddr').innerText;
-            if (addr && !addr.includes("Generating")) {
-                navigator.clipboard.writeText(addr);
-                alert("Blockchain Address copied!");
-                closeModal('depositModal');
-            }
-        }
-
-        function openSwapModal(selectedFrom) {
-            const fromSel = document.getElementById('swapFromCoin');
-            const toSel = document.getElementById('swapToCoin');
-
-            const chosenCoin = selectedFrom || getTopBalanceCoin();
-
-            fromSel.value = chosenCoin;
-            toSel.value = (fromSel.value === 'USDT') ? 'SOL' : 'USDT';
-
-            document.getElementById('swapFromInput').value = '';
-            document.getElementById('swapToInput').value = '';
-            document.getElementById('swapStatusMsg').innerText = '';
-            onSwapCoinChange();
-            openModal('swapModal');
-        }
-
-        function onSwapCoinChange() {
-            const from = document.getElementById('swapFromCoin')?.value || 'SOL';
-            const to = document.getElementById('swapToCoin')?.value || 'USDT';
-
-            const fromBal = balances[from.toLowerCase()] || 0;
-            const toBal = balances[to.toLowerCase()] || 0;
-
-            const payBalElem = document.getElementById('swapPayBal');
-            const recBalElem = document.getElementById('swapRecBal');
-            if (payBalElem) payBalElem.innerText = `Bal: ${fromBal.toFixed(4)} ${from}`;
-            if (recBalElem) recBalElem.innerText = `Bal: ${toBal.toFixed(4)} ${to}`;
-
-            const pFrom = prices[from.toLowerCase()] || 1;
-            const pTo = prices[to.toLowerCase()] || 1;
-            const rate = (pFrom / pTo).toFixed(6);
-
-            const rateTextElem = document.getElementById('swapRateText');
-            if (rateTextElem) rateTextElem.innerText = `1 ${from} ≈ ${rate} ${to} (Live)`;
-            calculateSwapOutput();
-        }
-
-        function setMaxSwap() {
-            const from = document.getElementById('swapFromCoin').value;
-            const fromBal = balances[from.toLowerCase()] || 0;
-            document.getElementById('swapFromInput').value = fromBal > 0 ? fromBal : 0;
-            calculateSwapOutput();
-        }
-
-        function flipSwapTokens() {
-            const from = document.getElementById('swapFromCoin').value;
-            const to = document.getElementById('swapToCoin').value;
-            document.getElementById('swapFromCoin').value = to;
-            document.getElementById('swapToCoin').value = from;
-            onSwapCoinChange();
-        }
-
-        function calculateSwapOutput() {
-            const from = document.getElementById('swapFromCoin')?.value || 'SOL';
-            const to = document.getElementById('swapToCoin')?.value || 'USDT';
-            const amt = parseFloat(document.getElementById('swapFromInput')?.value) || 0;
-
-            const swapToInput = document.getElementById('swapToInput');
-            if (!swapToInput) return;
-
-            if (amt <= 0) {
-                swapToInput.value = '';
-                return;
-            }
-
-            const pFrom = prices[from.toLowerCase()] || 1;
-            const pTo = prices[to.toLowerCase()] || 1;
-            const outAmt = (amt * pFrom) / pTo;
-
-            swapToInput.value = outAmt.toFixed(6);
-        }
-
-        // 🚀 सख्त ब्लॉकचेन वेरिफिकेशन और रियल-टाइम पॉपअप एरर हैंडलिंग
-        async function handleSend() {
-            const coin = document.getElementById('sendCoinSelect').value;
-            const chain = document.getElementById('sendNetworkSelect').value;
-            const toAddress = document.getElementById('sendTo').value.trim();
-            const amount = document.getElementById('sendAmount').value.trim();
-            const res = document.getElementById('sendResult');
-            const btn = document.getElementById('sendBtn');
-
-            const price = prices[coin.toLowerCase()] || 1;
-            const usdValue = parseFloat(amount) * price;
-
-            if (!toAddress || !amount || parseFloat(amount) <= 0) {
-                showBlockchainError("Please enter a valid recipient address and amount.");
-                return;
-            }
-
-            if (usdValue < 1.0) {
-                showBlockchainError(`Minimum transfer amount is $1.00 USD (Current: $${usdValue.toFixed(2)})`);
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Verifying on Blockchain...";
-            res.innerText = `Broadcasting ${coin} on ${chain} network...`;
-            res.style.color = "#2563eb";
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/send`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ telegramId, toAddress, amount, coin, chain, priceUsd: price })
-                });
-                const data = await response.json();
-                
-                // 🛡️ केवल असली ब्लॉकचेन TXID मिलने पर ही ट्रांजैक्शन पास होगा
-                if (data && data.success && data.txid) {
-                    res.innerText = `Verified & Sent! TXID: ${data.txid.substring(0, 12)}...`;
-                    res.style.color = "#16a34a";
-
-                    const coinKey = coin.toLowerCase();
-                    swapLedger[coinKey] = (swapLedger[coinKey] || 0) - parseFloat(amount);
-                    localStorage.setItem('open_wallet_ledger_' + telegramId, JSON.stringify(swapLedger));
-
-                    balances[coinKey] = Math.max(0, (balances[coinKey] || 0) - parseFloat(amount));
-                    updateUI();
-
-                    setTimeout(() => { 
-                        closeModal('sendModal'); 
-                        fetchWalletData(); 
-                    }, 2500);
-                } else {
-                    const errReason = data.error || "Blockchain network rejected the transaction due to insufficient gas or invalid route.";
-                    res.innerText = "Transaction failed.";
-                    res.style.color = "#dc2626";
-                    showBlockchainError(errReason);
-                }
-            } catch (e) {
-                res.innerText = "Connection failed.";
-                res.style.color = "#dc2626";
-                showBlockchainError("Blockchain node connection failed. Please check your network connection or gas fees.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Broadcast Transfer";
-            }
-        }
-
-        function openExplorer() {
-            const addr = chainAddresses['TRX'];
-            window.open(`https://tronscan.org/#/address/${addr}`, '_blank');
-        }
-
-        function openSecurityModal() {
-            document.getElementById('seedDisplay').innerText = "•••• •••• •••• •••• •••• •••• •••• •••• •••• •••• •••• ••••";
-            document.getElementById('privKeyDisplay').innerText = "••••••••••••••••••••••••••••••••••••••••••••••••";
-            revealedSeed = "";
-            revealedPrivKey = "";
-            openModal('securityModal');
-        }
-
-        function revealKey() {
-            const wordList = ["alpha", "bravo", "crystal", "dragon", "echo", "falcon", "galaxy", "harbor", "island", "jungle", "karma", "lunar", "matrix", "nexus", "orbit", "phoenix", "quantum", "rocket", "solar", "titan"];
-            
-            const hash = CryptoJS.SHA256("seed_" + telegramId).toString();
-            let words = [];
-            for (let i = 0; i < 12; i++) {
-                const idx = parseInt(hash.substr(i * 4, 4), 16) % wordList.length;
-                words.push(wordList[idx]);
-            }
-
-            revealedSeed = words.join(" ");
-            revealedPrivKey = CryptoJS.SHA256("wallet_key_" + telegramId).toString();
-
-            document.getElementById('seedDisplay').innerText = revealedSeed;
-            document.getElementById('privKeyDisplay').innerText = revealedPrivKey;
-        }
-
-        function copySeedPhrase() {
-            if (!revealedSeed) revealKey();
-            navigator.clipboard.writeText(revealedSeed);
-            alert("12-Word Secret Recovery Phrase Copied to Clipboard!");
-        }
-
-        function copyPrivateKey() {
-            if (!revealedPrivKey) revealKey();
-            navigator.clipboard.writeText(revealedPrivKey);
-            alert("Private Key Copied to Clipboard!");
-        }
-
-        let isHidden = false;
-        function toggleBalance() {
-            const totalElem = document.getElementById('totalUsd');
-            const eye = document.getElementById('eyeIcon');
-            if (isHidden) {
-                updateUI();
-                eye.className = "fa-regular fa-eye";
-                isHidden = false;
-            } else {
-                totalElem.innerText = "$ ••••••";
-                eye.className = "fa-regular fa-eye-slash";
-                isHidden = true;
-            }
-        }
-
-        // 🚀 लाइव टिकर लूप (रियल-टाइम प्राइस और ब्लॉकचेन सिंक)
-        fetchLivePrices();
-        fetchWalletData();
-        setInterval(() => {
-            fetchLivePrices();
-        }, 3000);
-
-        setInterval(() => {
-            fetchWalletData();
-        }, 10000);
-    </script>
+<header class="top">
+  <div class="brand"><div class="logo">W</div><div><div class="name" id="userName">OPEN WALLET</div><div class="sub" id="userHandle">@telegram_user</div></div></div>
+  <div class="actions"><button class="icon" onclick="refreshWallet()" title="Refresh">↻</button></div>
+</header>
+
+<main id="walletView">
+  <section class="card">
+    <div class="label">Verified On-Chain Balance</div>
+    <div class="total" id="totalUsd">$0.00</div>
+    <div class="btc" id="btcEst">≈ 0.0000 BTC</div>
+    <div class="limit">Send eligibility: $0.10 minimum • Unlimited maximum • Incoming receive: $0.10 minimum • Unlimited</div>
+  </section>
+
+  <section class="grid">
+    <button class="action" onclick="openSend()"><span class="circle">↑</span>Send</button>
+    <button class="action" onclick="openReceive()"><span class="circle">↓</span>Receive</button>
+    <button class="action" onclick="openSwap()"><span class="circle">⇄</span>Swap</button>
+    <button class="action" onclick="openHistory()"><span class="circle">◷</span>History</button>
+    <button class="action" onclick="openSessions()"><span class="circle">🔐</span>Sessions</button>
+  </section>
+
+  <input id="search" class="search" placeholder="Search asset or network" oninput="renderAssets()">
+  <div class="section"><h2>Supported Assets</h2><span class="refresh" onclick="refreshWallet()">Refresh</span></div>
+  <section class="assets" id="assets"></section>
+</main>
+
+<nav class="nav"><button class="active">◉<br>Wallet</button><button onclick="openReceive()">⇩<br>Receive</button><button onclick="openSend()">⇧<br>Send</button><button onclick="openSwap()">⇄<br>Swap</button></nav>
+
+<div class="modal" id="sendModal" onclick="outside(event,'sendModal')"><div class="sheet">
+  <div class="title">Secure Send</div><div class="hint">The server prepares; the user's wallet signs locally.</div>
+  <div class="limits">Send value: <b>$0.10 minimum, unlimited maximum</b>. Incoming external deposits: <b>$0.10 minimum, unlimited maximum</b>. A 0.5% network fee is charged in the same asset/network selected for Send and is released only after the recipient transfer is verified on-chain. Blockchain gas/network charges remain separate.</div>
+  <select id="sendAsset" class="select" onchange="updateSend()"></select>
+  <select id="sendChain" class="select" onchange="updateSend()"></select>
+  <input id="sendTo" class="input" placeholder="Recipient address">
+  <input id="sendAmount" class="input" type="number" min="0" step="any" placeholder="Amount" oninput="updateSend()">
+  <div class="msg" id="sendQuote">$0.00 USD • Fee $0.000000 • Recipient $0.000000</div>
+  <input id="sentTxid" class="input" placeholder="After broadcast: paste sent TXID to verify history">
+  <button class="btn" onclick="prepareSend()">Prepare Secure Transaction</button>
+  <button class="btn dark" onclick="verifySentTransaction()">Verify Broadcast Send</button>
+  <button class="btn gray" onclick="closeModal('sendModal')">Close</button>
+  <div class="msg" id="sendMsg"></div>
+</div></div>
+
+<div class="modal" id="receiveModal" onclick="outside(event,'receiveModal')"><div class="sheet">
+  <div class="title">Receive / Verify Deposit</div><div class="hint">Receiving is non-custodial. The blockchain controls the actual balance.</div>
+  <select id="receiveAsset" class="select" onchange="updateReceive()"></select>
+  <select id="receiveChain" class="select" onchange="updateReceive()"></select>
+  <div class="address" id="receiveAddress">Loading registered address…</div>
+  <button class="btn" onclick="copyText('receiveAddress')">Copy Address</button>
+  <div class="limits">Deposit eligibility: <b>$0.10 USD equivalent minimum, unlimited maximum</b>. The app cannot physically prevent an outside wallet from sending any amount to a public self-custody address; such a transfer may not be treated as eligible for app credit.</div>
+  <input id="verifyHash" class="input" placeholder="Paste transaction hash to verify">
+  <input id="verifyAmount" class="input" type="number" min="0.1" step="any" placeholder="Expected received amount">
+  <button class="btn" onclick="verifyDeposit()">Verify On-Chain Deposit</button>
+  <button class="btn gray" onclick="closeModal('receiveModal')">Close</button>
+  <div class="msg" id="receiveMsg"></div>
+</div></div>
+
+<div class="modal" id="swapModal" onclick="outside(event,'swapModal')"><div class="sheet">
+  <div class="title">Secure Swipe / Swap</div><div class="hint">No fake local balance. Swap must be signed and broadcast by the user's wallet/DEX route.</div>
+  <div class="limits">Swap input and resulting receive value must remain within <b>$0.10–$10,000.00 USD</b>. Network/DEX fees are separate.</div>
+  <div class="row"><select id="swapFrom" class="select" onchange="updateSwap()"></select><select id="swapTo" class="select" onchange="updateSwap()"></select></div>
+  <input id="swapAmount" class="input" type="number" step="any" placeholder="Amount to swap" oninput="updateSwap()">
+  <div class="msg" id="swapQuote">Enter an amount</div>
+  <button class="btn" onclick="prepareSwap()">Prepare Secure Swap</button>
+  <button class="btn gray" onclick="closeModal('swapModal')">Close</button>
+  <div class="msg" id="swapMsg"></div>
+</div></div>
+
+<div class="modal" id="historyModal" onclick="outside(event,'historyModal')"><div class="sheet">
+  <div class="title">Transaction History</div><div class="hint">Verified TXID, network, sender/recipient, token contract, amount, confirmations and USD value.</div>
+  <div id="historyList"></div>
+  <div class="limits">A prepared Send is not a completed transaction. After broadcasting, verify the actual TXID to save the complete sent-coin details.</div>
+  <button class="btn gray" onclick="closeModal('historyModal')">Close</button>
+</div></div>
+<div class="modal" id="sessionsModal" onclick="outside(event,'sessionsModal')"><div class="sheet">
+  <div class="title">Active Devices / Sessions</div><div class="hint">Untrusted/new devices are blocked from sensitive Send/Swap until explicitly verified.</div>
+  <div id="sessionList"></div>
+  <button class="btn" onclick="approveCurrentSession()">Verify This Device for Send / Swap (15 min)</button>
+  <button class="btn gray" onclick="closeModal('sessionsModal')">Close</button>
+  <div class="msg" id="sessionMsg"></div>
+</div></div>
+
+<script>
+const BACKEND_URL="https://telegram-wallet-backend-3.onrender.com";
+const tg=window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+const tgUser=tg?.initDataUnsafe?.user;
+const telegramId=tgUser?.id?String(tgUser.id):"";
+const initData=tg?.initData||"";
+const sessionId=localStorage.getItem("open_wallet_session_id")||crypto.randomUUID();
+localStorage.setItem("open_wallet_session_id",sessionId);
+document.getElementById("userName").textContent=tgUser?.first_name?`${tgUser.first_name} ${tgUser.last_name||""}`.trim():"OPEN WALLET";
+document.getElementById("userHandle").textContent=tgUser?.username?`@${tgUser.username}`:"Telegram WebApp required";
+
+const ASSETS=[
+ {symbol:"BTC",name:"Bitcoin",priceId:"bitcoin",chains:[["BITCOIN","Bitcoin Mainnet"]],balances:["btc"]},
+ {symbol:"ETH",name:"Ethereum",priceId:"ethereum",chains:[["ETH","Ethereum Mainnet"],["OPTIMISM","Optimism"],["ARBITRUM","Arbitrum One"],["BASE","Base"]],balances:["eth"]},
+ {symbol:"USDT",name:"Tether USD",priceId:"tether",chains:[["TRON","TRON (TRC-20)"],["ETH","Ethereum (ERC-20)"],["OPTIMISM","Optimism"],["ARBITRUM","Arbitrum One"],["BASE","Base"]],balances:["usdt_tron","usdt_eth","usdt_optimism","usdt_arbitrum","usdt_base"]},
+ {symbol:"SOL",name:"Solana",priceId:"solana",chains:[["SOLANA","Solana Mainnet"]],balances:["sol"]},
+ {symbol:"TRX",name:"TRON",priceId:"tron",chains:[["TRON","TRON Mainnet"]],balances:["trx"]}
+];
+let wallet={addresses:{},verifiedBalances:{},limits:{minimumTransactionUsd:.10,maximumTransactionUsd:null},networkFee:{sendPercent:.5}};
+let prices={BTC:0,ETH:0,USDT:1,SOL:0,TRX:0};
+
+function money(n){return "$"+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function closeModal(id){document.getElementById(id).style.display="none";}
+function openModal(id){document.getElementById(id).style.display="flex";}
+function outside(e,id){if(e.target.id===id)closeModal(id);}
+function msg(id,text,ok=false){const e=document.getElementById(id);e.textContent=text;e.style.color=ok?"#15803d":"#b91c1c";}
+async function api(path,body={}){
+ const payload={...body,telegramId,initData,sessionId};
+ const r=await fetch(BACKEND_URL+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+ const d=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(d.error||"Server request failed");
+ return d;
+}
+async function loadPrices(){
+ try{
+  const ids=ASSETS.map(a=>a.priceId).join(",");
+  const r=await fetch("https://api.coingecko.com/api/v3/simple/price?ids="+encodeURIComponent(ids)+"&vs_currencies=usd");
+  const d=await r.json();
+  for(const a of ASSETS)prices[a.symbol]=Number(d[a.priceId]?.usd||0);
+ }catch(e){}
+}
+async function refreshWallet(){
+ if(!telegramId||!initData){msg("receiveMsg","Open this wallet inside the Telegram WebApp.");return;}
+ try{
+  await loadPrices();
+  await api("/api/session/register");
+  wallet=await api("/api/wallet");
+  render();
+ }catch(e){
+  document.getElementById("assets").innerHTML=`<div class="asset"><div><b>Wallet verification required</b><div class="as">${e.message}</div></div></div>`;
+ }
+}
+function assetBalance(a){
+ return a.balances.reduce((sum,k)=>sum+Number(wallet.verifiedBalances?.[k]||0),0);
+}
+function assetUsd(a){return assetBalance(a)*prices[a.symbol];}
+function render(){
+ let total=0;ASSETS.forEach(a=>total+=assetUsd(a));
+ document.getElementById("totalUsd").textContent=money(total);
+ document.getElementById("btcEst").textContent=`≈ ${(prices.BTC?total/prices.BTC:0).toFixed(4)} BTC`;
+ renderAssets();fillSelects();
+}
+function renderAssets(){
+ const q=(document.getElementById("search").value||"").toLowerCase();
+ const box=document.getElementById("assets");box.innerHTML="";
+ ASSETS.filter(a=>`${a.name} ${a.symbol} ${a.chains.map(c=>c[1]).join(" ")}`.toLowerCase().includes(q)).forEach(a=>{
+  const b=assetBalance(a),u=assetUsd(a);
+  const el=document.createElement("div");el.className="asset";
+  el.innerHTML=`<div class="left"><div class="coin">${a.symbol[0]}</div><div><div class="an">${a.name}</div><div class="as">${a.symbol} • ${a.chains.length} network${a.chains.length>1?"s":""}</div></div></div><div class="right"><div class="amt">${b.toFixed(6)} ${a.symbol}</div><div class="usd">${money(u)}</div></div>`;
+  box.appendChild(el);
+ });
+}
+function fillSelects(){
+ const opts=ASSETS.map(a=>`<option value="${a.symbol}">${a.name} (${a.symbol})</option>`).join("");
+ for(const id of ["sendAsset","receiveAsset","swapFrom","swapTo"])document.getElementById(id).innerHTML=opts;
+ document.getElementById("swapTo").value="USDT";
+ updateSend();updateReceive();updateSwap();
+}
+function getAsset(sym){return ASSETS.find(a=>a.symbol===sym)||ASSETS[0];}
+function fillChains(selectId,assetId){
+ const a=getAsset(document.getElementById(assetId).value),s=document.getElementById(selectId);
+ s.innerHTML=a.chains.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join("");
+}
+function openSend(){openModal("sendModal");fillChains("sendChain","sendAsset");updateSend();}
+function openReceive(){openModal("receiveModal");fillChains("receiveChain","receiveAsset");updateReceive();}
+function openSwap(){openModal("swapModal");updateSwap();}
+async function openHistory(){openModal("historyModal");await loadHistory();}
+async function openSessions(){openModal("sessionsModal");await loadSessions();}
+async function loadHistory(){
+ const box=document.getElementById("historyList");box.innerHTML="<div class='msg'>Loading…</div>";
+ try{const d=await api("/api/transactions/history",{limit:50});if(!d.transactions?.length){box.innerHTML="<div class='msg'>No verified transactions yet.</div>";return;}box.innerHTML=d.transactions.map(t=>`<div class="asset" style="display:block;margin:8px 0"><div><b>${t.direction==='in'?'Received':'Sent'} ${t.amount} ${t.asset}</b> <span class="as">${t.status}</span></div><div class="as">TXID: ${t.txid}</div><div class="as">Network: ${t.network} • Confirmations: ${t.confirmations}/${t.requiredConfirmations}</div><div class="as">From: ${t.senderAddress||'—'}</div><div class="as">To: ${t.recipientAddress||'—'}</div><div class="as">Token contract: ${t.tokenContract||'Native coin'}</div><div class="as">USD value: ${money(t.usdValue)} • Network fee: ${t.networkFee||t.platformFee||'0'} ${t.asset}</div><div class="as">Block: ${t.blockNumber||'—'} • ${new Date(t.createdAt).toLocaleString()}</div></div>`).join("");}catch(e){box.innerHTML=`<div class='msg'>${e.message}</div>`;}}
+async function loadSessions(){const box=document.getElementById("sessionList");box.innerHTML="<div class='msg'>Loading…</div>";try{const d=await api("/api/session/list");box.innerHTML=(d.sessions||[]).map(x=>`<div class="asset"><div><b>${x.device}</b><div class="as">${x.current?'Current • ':''}${x.trusted?'Trusted':'Needs verification'} • Last seen ${new Date(x.lastSeenAt).toLocaleString()}</div></div>${x.current?'':`<button class="btn gray" style="width:auto;margin:0;padding:8px 10px" onclick="revokeSession('${x.id}')">Revoke</button>`}</div>`).join("")||"<div class='msg'>No sessions found.</div>";}catch(e){box.innerHTML=`<div class='msg'>${e.message}</div>`;}}
+async function approveCurrentSession(){try{const d=await api("/api/session/approve");msg("sessionMsg",d.sensitiveVerified?"Device verified. Send/Swap unlocked for 15 minutes.":"Verification failed.",d.sensitiveVerified);await loadSessions();}catch(e){msg("sessionMsg",e.message);}}
+async function revokeSession(id){try{await api("/api/session/revoke",{targetSessionDbId:id});await loadSessions();}catch(e){msg("sessionMsg",e.message);}}
+async function verifySentTransaction(){const asset=document.getElementById("sendAsset").value,chain=document.getElementById("sendChain").value,txHash=document.getElementById("sentTxid").value.trim(),amount=document.getElementById("sendAmount").value,to=document.getElementById("sendTo").value.trim();if(!txHash||!amount||!to){msg("sendMsg","Recipient, amount and actual broadcast TXID are required.");return;}try{const d=await api("/api/transaction/verify",{txHash,chain,asset,direction:"out",expectedAmount:amount,expectedRecipient:to});msg("sendMsg",d.verified?`Send verified: ${d.amount} ${asset}. Complete details saved to history.`:d.reason||"Not verified",d.verified);if(d.verified)await refreshWallet();}catch(e){msg("sendMsg",e.message);}}
+function updateSend(){fillChains("sendChain","sendAsset");const a=getAsset(document.getElementById("sendAsset").value),amt=Number(document.getElementById("sendAmount").value||0),p=prices[a.symbol]||0,usd=amt*p,fee=amt*.005,receive=amt-fee;document.getElementById("sendQuote").textContent=`${money(usd)} USD • Fee ${fee.toFixed(8)} ${a.symbol} • Recipient ${Math.max(0,receive).toFixed(8)} ${a.symbol}`;}
+function updateReceive(){
+ fillChains("receiveChain","receiveAsset");
+ const chain=document.getElementById("receiveChain").value;
+ const a=getAsset(document.getElementById("receiveAsset").value);
+ let key=chain==="TRON"?"TRX":chain==="SOLANA"?"SOL":chain==="BITCOIN"?"BTC":"ETH";
+ document.getElementById("receiveAddress").textContent=wallet.addresses?.[key]||wallet.addresses?.[key+"_ETH"]||"No registered public address";
+}
+async function prepareSend(){
+ const asset=document.getElementById("sendAsset").value,chain=document.getElementById("sendChain").value,to=document.getElementById("sendTo").value.trim(),amount=document.getElementById("sendAmount").value;
+ const p=prices[asset]||0,usd=Number(amount)*p;
+ if(usd<.1){msg("sendMsg",`Send value must be at least $0.10 USD equivalent. Current value: ${money(usd)}`);return;}
+ if(!to||!amount){msg("sendMsg","Recipient and amount are required.");return;}
+ try{
+  const d=await api("/api/send/prepare",{telegramId,initData,toAddress:to,amount,chain,asset});
+  msg("sendMsg",`Prepared successfully. First sign/broadcast only the recipient transfer (${d.receiveAmount} ${asset}). The ${d.networkFee} ${asset} network fee is released only after that transfer is verified on-chain.`,true);
+ }catch(e){msg("sendMsg",e.message);}
+}
+async function verifyDeposit(){
+ const asset=document.getElementById("receiveAsset").value,chain=document.getElementById("receiveChain").value,txHash=document.getElementById("verifyHash").value.trim(),amount=document.getElementById("verifyAmount").value;
+ const p=prices[asset]||0,usd=Number(amount)*p;
+ if(usd<.1){msg("receiveMsg",`Receive eligibility requires at least $0.10 USD equivalent. Current value: ${money(usd)}`);return;}
+ if(!txHash||!amount){msg("receiveMsg","Transaction hash and expected amount are required.");return;}
+ try{
+  const d=await api("/api/transaction/verify",{telegramId,initData,txHash,chain,asset,direction:"in",expectedAmount:amount});
+  msg("receiveMsg",d.verified?`On-chain deposit verified. ${d.amount} ${asset}. Refreshing balance from blockchain…`:`Not yet verified: ${d.reason}`,d.verified);
+  if(d.verified)await refreshWallet();
+ }catch(e){msg("receiveMsg",e.message);}
+}
+async function prepareSwap(){
+ const from=document.getElementById("swapFrom").value,to=document.getElementById("swapTo").value,amount=Number(document.getElementById("swapAmount").value||0);
+ const usd=amount*(prices[from]||0), out=usd/(prices[to]||1);
+ if(from===to){msg("swapMsg","Choose two different assets.");return;}
+ if(usd<.1||usd>10000||out*(prices[to]||0)<.1||out*(prices[to]||0)>10000){msg("swapMsg","Swap value must stay within $0.10–$10,000.00.");return;}
+ try{const d=await api("/api/swipe-swap/prepare",{telegramId,initData});msg("swapMsg",`Swap prepared. Estimated receive: ${out.toFixed(6)} ${to}. Sign and broadcast through a real DEX/wallet route; no local balance is changed by this screen.`,true);}
+ catch(e){msg("swapMsg",e.message);}
+}
+function updateSwap(){
+ const f=document.getElementById("swapFrom").value,t=document.getElementById("swapTo").value,a=Number(document.getElementById("swapAmount").value||0);
+ if(f===t){document.getElementById("swapQuote").textContent="Choose different assets.";return;}
+ const usd=a*(prices[f]||0),out=usd/(prices[t]||1);
+ document.getElementById("swapQuote").textContent=a?`${money(usd)} USD → ≈ ${out.toFixed(6)} ${t}`:"Enter an amount";
+}
+async function copyText(id){try{await navigator.clipboard.writeText(document.getElementById(id).textContent);alert("Copied");}catch(e){}}
+loadPrices().then(()=>refreshWallet());
+setInterval(refreshWallet,30000);
+</script>
 </body>
 </html>
