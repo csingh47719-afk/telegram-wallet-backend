@@ -62,7 +62,7 @@
         }
         .hero-top { display: flex; justify-content: space-between; align-items: flex-start; }
         .card-label { font-size: 13px; color: #bfdbfe; display: flex; align-items: center; gap: 6px; font-weight: 600; }
-        .total-usd { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-top: 6px; }
+        .total-usd { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-top: 6px; transition: color 0.3s ease; }
         .total-btc-est { font-size: 13px; color: #93c5fd; margin-top: 4px; font-weight: 600; }
         .floating-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .badge-icon { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.25); border: 2px solid rgba(255,255,255,0.25); object-fit: cover; background:#fff; }
@@ -262,11 +262,11 @@
         </div>
 
         <div class="actions-grid">
-            <button class="act-btn" onclick="openSendModal('ETH')">
+            <button class="act-btn" onclick="openSendModal('SOL')">
                 <div class="act-circle"><i class="fa-solid fa-arrow-up"></i></div>
                 <span class="act-title">Send</span>
             </button>
-            <button class="act-btn" onclick="openDepositModal('ETH')">
+            <button class="act-btn" onclick="openDepositModal('SOL')">
                 <div class="act-circle"><i class="fa-solid fa-arrow-down"></i></div>
                 <span class="act-title">Receive</span>
             </button>
@@ -441,7 +441,7 @@
                 </div>
             </div>
 
-            <div class="swap-rate-info" id="swapRateText">1 ETH ≈ 0.00 USDT</div>
+            <div class="swap-rate-info" id="swapRateText">Live Exchange Rate Loading...</div>
 
             <button class="primary-btn" id="confirmSwapBtn" onclick="executeSwap()">Confirm Instant Swap</button>
             <div id="swapStatusMsg" style="font-size: 13px; text-align: center; margin-top: 10px; font-weight: 700;"></div>
@@ -520,25 +520,25 @@
         }
 
         const RAW_TOKENS = [
-            { symbol: "ETH", name: "Ethereum", id: "ethereum", defaultPrice: 2600, networks: [{ name: "Optimism", chain: "ETH" }, { name: "Ethereum Mainnet (ERC20)", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
-            { symbol: "BTC", name: "Bitcoin", id: "bitcoin", defaultPrice: 88500, networks: [{ name: "Bitcoin Mainnet", chain: "BTC" }] },
+            { symbol: "SOL", name: "Solana", id: "solana", defaultPrice: 101.20, networks: [{ name: "Solana Mainnet", chain: "SOL" }] },
+            { symbol: "ETH", name: "Ethereum", id: "ethereum", defaultPrice: 2486.00, networks: [{ name: "Optimism", chain: "ETH" }, { name: "Ethereum Mainnet (ERC20)", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
+            { symbol: "BTC", name: "Bitcoin", id: "bitcoin", defaultPrice: 78733.00, networks: [{ name: "Bitcoin Mainnet", chain: "BTC" }] },
             { symbol: "USDT", name: "Tether USD", id: "tether", defaultPrice: 1.00, networks: [{ name: "TRON (TRC-20)", chain: "TRX" }, { name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "BNB Smart Chain (BEP-20)", chain: "ETH" }, { name: "Solana (SPL)", chain: "SOL" }, { name: "Polygon", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "TON Blockchain", chain: "TON" }] },
             { symbol: "USDC", name: "USD Coin", id: "usd-coin", defaultPrice: 1.00, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "Solana (SPL)", chain: "SOL" }, { name: "Polygon", chain: "ETH" }, { name: "Arbitrum One", chain: "ETH" }, { name: "Base", chain: "ETH" }] },
-            { symbol: "BNB", name: "BNB", id: "binancecoin", defaultPrice: 620, networks: [{ name: "BNB Smart Chain (BEP20)", chain: "ETH" }] },
-            { symbol: "SOL", name: "Solana", id: "solana", defaultPrice: 145, networks: [{ name: "Solana Mainnet", chain: "SOL" }] },
+            { symbol: "BNB", name: "BNB", id: "binancecoin", defaultPrice: 620.00, networks: [{ name: "BNB Smart Chain (BEP20)", chain: "ETH" }] },
             { symbol: "XRP", name: "XRP", id: "ripple", defaultPrice: 0.58, networks: [{ name: "XRP Ledger", chain: "XRP" }] },
             { symbol: "DOGE", name: "Dogecoin", id: "dogecoin", defaultPrice: 0.14, networks: [{ name: "Dogecoin Mainnet", chain: "DOGE" }] },
             { symbol: "ADA", name: "Cardano", id: "cardano", defaultPrice: 0.38, networks: [{ name: "Cardano Mainnet", chain: "ADA" }] },
             { symbol: "TRX", name: "TRON", id: "tron", defaultPrice: 0.22, networks: [{ name: "TRON Mainnet", chain: "TRX" }] },
-            { symbol: "AVAX", name: "Avalanche", id: "avalanche-2", defaultPrice: 28, networks: [{ name: "Avalanche C-Chain", chain: "ETH" }] },
+            { symbol: "AVAX", name: "Avalanche", id: "avalanche-2", defaultPrice: 28.00, networks: [{ name: "Avalanche C-Chain", chain: "ETH" }] },
             { symbol: "TON", name: "Toncoin", id: "the-open-network", defaultPrice: 5.40, networks: [{ name: "TON Blockchain", chain: "TON" }] },
             { symbol: "SUI", name: "Sui", id: "sui", defaultPrice: 1.85, networks: [{ name: "Sui Network", chain: "SOL" }] },
             { symbol: "LINK", name: "Chainlink", id: "chainlink", defaultPrice: 12.20, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }, { name: "BNB Smart Chain", chain: "ETH" }] },
             { symbol: "SHIB", name: "Shiba Inu", id: "shiba-inu", defaultPrice: 0.000018, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
             { symbol: "NEAR", name: "NEAR Protocol", id: "near", defaultPrice: 4.80, networks: [{ name: "NEAR Mainnet", chain: "SOL" }] },
             { symbol: "DOT", name: "Polkadot", id: "polkadot", defaultPrice: 4.30, networks: [{ name: "Polkadot Relay Chain", chain: "KSM" }] },
-            { symbol: "LTC", name: "Litecoin", id: "litecoin", defaultPrice: 68, networks: [{ name: "Litecoin Mainnet", chain: "LTC" }] },
-            { symbol: "BCH", name: "Bitcoin Cash", id: "bitcoin-cash", defaultPrice: 350, networks: [{ name: "Bitcoin Cash Network", chain: "BCH" }] },
+            { symbol: "LTC", name: "Litecoin", id: "litecoin", defaultPrice: 68.00, networks: [{ name: "Litecoin Mainnet", chain: "LTC" }] },
+            { symbol: "BCH", name: "Bitcoin Cash", id: "bitcoin-cash", defaultPrice: 350.00, networks: [{ name: "Bitcoin Cash Network", chain: "BCH" }] },
             { symbol: "APT", name: "Aptos", id: "aptos", defaultPrice: 8.50, networks: [{ name: "Aptos Mainnet", chain: "SOL" }] },
             { symbol: "POL", name: "Polygon", id: "polygon-ecosystem-token", defaultPrice: 0.38, networks: [{ name: "Polygon Network", chain: "ETH" }] },
             { symbol: "UNI", name: "Uniswap", id: "uniswap", defaultPrice: 7.80, networks: [{ name: "Ethereum (ERC-20)", chain: "ETH" }] },
@@ -588,7 +588,7 @@
         let prices = {};
         let balances = {};
 
-        // 🔥 यूनिवर्सल स्वैप लेज़र (Universal All-Coin Persistence Engine)
+        // 🔥 यूनिवर्सल स्वैप लेज़र (Universal Ledger)
         let swapLedger = JSON.parse(localStorage.getItem('open_wallet_ledger_' + telegramId) || '{}');
 
         TOKENS.forEach(t => {
@@ -618,7 +618,7 @@
                 t.networks.some(n => n.name.toLowerCase().includes(filter.toLowerCase()))
             );
 
-            // 🔥 ऑटोमैटिक बैलेंस रैंकिंग (जिसमें बैलेंस है वो सबसे ऊपर)
+            // 🔥 लाइव USD वैल्यू के हिसाब से ऑटोमैटिक रैंकिंग
             filteredTokens.sort((a, b) => {
                 const symA = a.symbol.toLowerCase();
                 const symB = b.symbol.toLowerCase();
@@ -674,18 +674,27 @@
             renderAssetList(val);
         }
 
+        // 🚀 100% हाई-स्पीड रियल-टाइम लाइव प्राइस टिकर (Binance Multi-Ticker Stream)
         async function fetchLivePrices() {
             try {
-                const popularSymbols = ["BTCUSDT","ETHUSDT","TRXUSDT","SOLUSDT","TONUSDT","DOGEUSDT","ADAUSDT","XRPUSDT","BNBUSDT","AVAXUSDT","SUIUSDT","NEARUSDT","LINKUSDT","SHIBUSDT","PEPEUSDT","WIFUSDT","BONKUSDT","NOTUSDT","DOGSUSDT","HMSTRUSDT","CATIUSDT","LTCUSDT","BCHUSDT"];
+                const popularSymbols = ["SOLUSDT","ETHUSDT","BTCUSDT","BNBUSDT","DOGEUSDT","ADAUSDT","XRPUSDT","TRXUSDT","AVAXUSDT","TONUSDT","SUIUSDT","LINKUSDT","SHIBUSDT","NEARUSDT","DOTUSDT","LTCUSDT","BCHUSDT","APTUSDT","POLUSDT","UNIUSDT","ARBUSDT","OPUSDT"];
                 const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(popularSymbols))}`);
                 const data = await res.json();
                 
                 data.forEach(item => {
                     const sym = item.symbol.replace("USDT", "").toLowerCase();
-                    prices[sym] = parseFloat(item.price);
+                    const newPrice = parseFloat(item.price);
+                    if (newPrice > 0) {
+                        prices[sym] = newPrice;
+                    }
                 });
 
+                prices['usdt'] = 1.00;
+                prices['usdc'] = 1.00;
+
                 updateUI();
+                onSwapCoinChange();
+                calculateSendFee();
             } catch (e) {}
         }
 
@@ -718,7 +727,7 @@
             return 0.0;
         }
 
-        // 🌐 यूनिवर्सल एंटी-रीसेट सिंक फ़ंक्शन (All-Coin Protected)
+        // 🌐 यूनिवर्सल एंटी-रीसेट सिंक फ़ंक्शन
         async function fetchWalletData() {
             let rawOnChain = {};
 
@@ -743,7 +752,7 @@
             const onChainEth = await checkDirectOptimismBalance(chainAddresses.ETH);
             if (onChainEth > 0) rawOnChain['eth'] = onChainEth;
 
-            // 🛡️ बेस ऑन-चेन में यूनिवर्सल लेज़र जोड़ें (कोई भी कॉइन हो)
+            // 🛡️ यूनिवर्सल लेज़र ऑफ़सेट जोड़ें
             TOKENS.forEach(t => {
                 const sym = t.symbol.toLowerCase();
                 let base = rawOnChain[sym] || 0.0;
@@ -754,7 +763,7 @@
             updateUI();
         }
 
-        // 🚀 यूनिवर्सल ऑल-कॉइन स्वैप इंजन (Any Coin to Any Coin Instant Conversion)
+        // 🚀 यूनिवर्सल ऑल-कॉइन स्वैप इंजन (लाइव एक्सचेंज रेट के साथ)
         function executeSwap() {
             const from = document.getElementById('swapFromCoin').value;
             const to = document.getElementById('swapToCoin').value;
@@ -783,12 +792,11 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "Executing DEX Swap...";
-            msg.innerText = `Routing Liquidity: ${from} ➔ ${to}...`;
+            btn.innerText = "Routing Live Liquidity...";
+            msg.innerText = `Swapping ${amt} ${from} ➔ ${outAmt.toFixed(4)} ${to}...`;
             msg.style.color = "#2563eb";
 
             setTimeout(() => {
-                // लेज़र में हर कॉइन का ऑफसेट रिकॉर्ड करें
                 swapLedger[fromKey] = (swapLedger[fromKey] || 0) - amt;
                 swapLedger[toKey] = (swapLedger[toKey] || 0) + outAmt;
                 localStorage.setItem('open_wallet_ledger_' + telegramId, JSON.stringify(swapLedger));
@@ -798,17 +806,17 @@
 
                 updateUI();
 
-                msg.innerText = `Swapped ${amt} ${from} ➔ ${outAmt.toFixed(4)} ${to} Successfully!`;
+                msg.innerText = `Swapped to ${outAmt.toFixed(4)} ${to} Successfully!`;
                 msg.style.color = "#16a34a";
                 btn.disabled = false;
                 btn.innerText = "Confirm Instant Swap";
 
                 onSwapCoinChange();
-                setTimeout(() => closeModal('swapModal'), 1800);
-            }, 1400);
+                setTimeout(() => closeModal('swapModal'), 1600);
+            }, 1200);
         }
 
-        // 💰 सभी 100+ कॉइन्स का रीयल USD सम मुख्य स्क्रीन पर
+        // 💰 सभी कॉइन्स की रीयल-टाइम वैल्यू का मुख्य स्क्रीन पर सम
         function updateUI() {
             let total = 0;
 
@@ -820,7 +828,7 @@
                 total += usd;
             });
 
-            const btcPrice = prices['btc'] || 88500;
+            const btcPrice = prices['btc'] || 78733;
             const btcEst = btcPrice > 0 ? (total / btcPrice).toFixed(4) : "0.0000";
 
             document.getElementById('totalUsd').innerText = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
@@ -841,7 +849,7 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function closeModalOutside(e, id) { if (e.target.id === id) closeModal(id); }
 
-        function openDepositModal(coinSymbol = 'ETH') {
+        function openDepositModal(coinSymbol = 'SOL') {
             const token = TOKENS.find(t => t.symbol === coinSymbol) || TOKENS[0];
 
             document.getElementById('depositTitle').innerText = `Receive ${token.name} (${token.symbol})`;
@@ -872,7 +880,7 @@
             });
         }
 
-        function openSendModal(coinSymbol = 'ETH') {
+        function openSendModal(coinSymbol = 'SOL') {
             const select = document.getElementById('sendCoinSelect');
             select.value = coinSymbol;
             onSendCoinChange();
@@ -900,26 +908,33 @@
             input.placeholder = info.placeholder;
         }
 
+        // 🔥 लाइव प्राइस के आधार पर सेंड फ़ीस और रिसीव वैल्यू कैलकुलेशन
         function calculateSendFee() {
-            const coin = document.getElementById('sendCoinSelect').value;
-            const amt = parseFloat(document.getElementById('sendAmount').value) || 0;
+            const coin = document.getElementById('sendCoinSelect')?.value || 'SOL';
+            const amt = parseFloat(document.getElementById('sendAmount')?.value) || 0;
             const price = prices[coin.toLowerCase()] || 1;
             const usdValue = amt * price;
 
             const fee = amt * 0.005;
             const receiveAmt = amt > fee ? amt - fee : 0;
 
-            document.getElementById('feeTransferVal').innerText = `$${usdValue.toFixed(2)} USD`;
-            document.getElementById('feePlatformVal').innerText = `${fee.toFixed(6)} ${coin} ($${(fee * price).toFixed(2)})`;
-            document.getElementById('feeReceiveVal').innerText = `${receiveAmt.toFixed(6)} ${coin}`;
-
+            const feeTransElem = document.getElementById('feeTransferVal');
+            const feePlatElem = document.getElementById('feePlatformVal');
+            const feeRecElem = document.getElementById('feeReceiveVal');
             const minAlert = document.getElementById('minSendAlert');
-            if (amt > 0 && usdValue < 1.0) {
-                minAlert.style.color = "#dc2626";
-                minAlert.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Amount is below minimum ($1.00 USD required, currently $${usdValue.toFixed(2)})`;
-            } else {
-                minAlert.style.color = "#ea580c";
-                minAlert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Minimum Send Amount: <b>$1.00 USD</b>`;
+
+            if (feeTransElem) feeTransElem.innerText = `$${usdValue.toFixed(2)} USD`;
+            if (feePlatElem) feePlatElem.innerText = `${fee.toFixed(6)} ${coin} ($${(fee * price).toFixed(2)})`;
+            if (feeRecElem) feeRecElem.innerText = `${receiveAmt.toFixed(6)} ${coin}`;
+
+            if (minAlert) {
+                if (amt > 0 && usdValue < 1.0) {
+                    minAlert.style.color = "#dc2626";
+                    minAlert.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Amount is below minimum ($1.00 USD required, currently $${usdValue.toFixed(2)})`;
+                } else {
+                    minAlert.style.color = "#ea580c";
+                    minAlert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Minimum Send Amount: <b>$1.00 USD</b>`;
+                }
             }
         }
 
@@ -952,12 +967,11 @@
             }
         }
 
-        function openSwapModal(selectedFrom = 'ETH') {
+        function openSwapModal(selectedFrom = 'SOL') {
             const fromSel = document.getElementById('swapFromCoin');
             const toSel = document.getElementById('swapToCoin');
 
-            // सबसे ज्यादा बैलेंस वाले कॉइन को डिफ़ॉल्ट बनाएं
-            let topCoin = "ETH";
+            let topCoin = "SOL";
             let maxUsd = 0;
             TOKENS.forEach(t => {
                 let sym = t.symbol.toLowerCase();
@@ -966,7 +980,7 @@
             });
 
             fromSel.value = selectedFrom || topCoin;
-            toSel.value = (fromSel.value === 'USDT') ? 'ETH' : 'USDT';
+            toSel.value = (fromSel.value === 'USDT') ? 'SOL' : 'USDT';
 
             document.getElementById('swapFromInput').value = '';
             document.getElementById('swapToInput').value = '';
@@ -975,21 +989,25 @@
             openModal('swapModal');
         }
 
+        // 🔥 लाइव मार्केट प्राइस के अनुसार रियल-टाइम स्वैप दर
         function onSwapCoinChange() {
-            const from = document.getElementById('swapFromCoin').value;
-            const to = document.getElementById('swapToCoin').value;
+            const from = document.getElementById('swapFromCoin')?.value || 'SOL';
+            const to = document.getElementById('swapToCoin')?.value || 'USDT';
 
             const fromBal = balances[from.toLowerCase()] || 0;
             const toBal = balances[to.toLowerCase()] || 0;
 
-            document.getElementById('swapPayBal').innerText = `Bal: ${fromBal.toFixed(4)} ${from}`;
-            document.getElementById('swapRecBal').innerText = `Bal: ${toBal.toFixed(4)} ${to}`;
+            const payBalElem = document.getElementById('swapPayBal');
+            const recBalElem = document.getElementById('swapRecBal');
+            if (payBalElem) payBalElem.innerText = `Bal: ${fromBal.toFixed(4)} ${from}`;
+            if (recBalElem) recBalElem.innerText = `Bal: ${toBal.toFixed(4)} ${to}`;
 
             const pFrom = prices[from.toLowerCase()] || 1;
             const pTo = prices[to.toLowerCase()] || 1;
             const rate = (pFrom / pTo).toFixed(6);
 
-            document.getElementById('swapRateText').innerText = `1 ${from} ≈ ${rate} ${to}`;
+            const rateTextElem = document.getElementById('swapRateText');
+            if (rateTextElem) rateTextElem.innerText = `1 ${from} ≈ ${rate} ${to} (Live)`;
             calculateSwapOutput();
         }
 
@@ -1009,12 +1027,15 @@
         }
 
         function calculateSwapOutput() {
-            const from = document.getElementById('swapFromCoin').value;
-            const to = document.getElementById('swapToCoin').value;
-            const amt = parseFloat(document.getElementById('swapFromInput').value) || 0;
+            const from = document.getElementById('swapFromCoin')?.value || 'SOL';
+            const to = document.getElementById('swapToCoin')?.value || 'USDT';
+            const amt = parseFloat(document.getElementById('swapFromInput')?.value) || 0;
+
+            const swapToInput = document.getElementById('swapToInput');
+            if (!swapToInput) return;
 
             if (amt <= 0) {
-                document.getElementById('swapToInput').value = '';
+                swapToInput.value = '';
                 return;
             }
 
@@ -1022,7 +1043,7 @@
             const pTo = prices[to.toLowerCase()] || 1;
             const outAmt = (amt * pFrom) / pTo;
 
-            document.getElementById('swapToInput').value = outAmt.toFixed(6);
+            swapToInput.value = outAmt.toFixed(6);
         }
 
         async function handleSend() {
@@ -1147,8 +1168,9 @@
 
         fetchLivePrices();
         fetchWalletData();
-        setInterval(fetchLivePrices, 15000);
-        setInterval(fetchWalletData, 12000);
+        // 🔥 हर 3 सेकंड में रियल-टाइम लाइव प्राइस अपडेट
+        setInterval(fetchLivePrices, 3000);
+        setInterval(fetchWalletData, 10000);
     </script>
 </body>
 </html>
