@@ -11,7 +11,6 @@ const app = express();
 app.use(express.json({ limit: '10kb' }));
 app.use(cors({ origin: '*' }));
 
-// 🛡️ एंटी-बॉट और DDoS रेट लिमिटिंग
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -34,15 +33,13 @@ const solidityNode = new HttpProvider('https://api.trongrid.io', 30000, false, f
 const eventServer = new HttpProvider('https://api.trongrid.io', 30000, false, false, headers);
 const tronWeb = new TronWeb(fullNode, solidityNode, eventServer);
 
-// 🛡️ आधिकारिक वेरिफ़ाइड स्मार्ट कॉन्ट्रैक्ट्स (फेक टोकन पूरी तरह ब्लॉक)
 const VERIFIED_CONTRACTS = {
     TRON: {
-        USDT: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t" // आधिकारिक टीआरसी-20 यूएसडीटी
+        USDT: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
     }
 };
 
 const EVM_RPCS = {
-    OPTIMISM: "https://mainnet.optimism.io",
     ETH: "https://rpc.ankr.com/eth",
     BSC: "https://bsc-dataseed1.binance.org",
     POLYGON: "https://polygon-rpc.com",
@@ -57,7 +54,6 @@ const UserSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', UserSchema);
 
-// 🛡️ फेक बॉट और अनधिकृत एक्सेस रोकने के लिए सख्त सिग्नेचर चेकिंग
 function verifyTelegramWebAppData(initData) {
     if (!initData) return false;
     if (!BOT_TOKEN) return true;
@@ -128,16 +124,15 @@ async function getEvmBalance(rpcUrl, address) {
     return 0.0;
 }
 
-app.get('/', (req, res) => res.send('🛡️ OPEN WALLET Ultra-Secure On-Chain Verified Backend Active!'));
+app.get('/', (req, res) => res.send('🛡️ OPEN WALLET Mainnet Verified Backend Active!'));
 
-// 🚀 ऑन-चेन वेरीफाइड वॉलेट डेटा (फेक बैलेंस प्रोटेक्शन के साथ)
 app.post('/api/wallet', async (req, res) => {
     try {
         const { telegramId, initData } = req.body;
         if (!telegramId) return res.status(400).json({ error: "Telegram ID required" });
 
         if (initData && !verifyTelegramWebAppData(initData)) {
-            return res.status(401).json({ error: "Unauthorized Bot or Request" });
+            return res.status(401).json({ error: "Unauthorized Request" });
         }
 
         let user = await User.findOne({ telegramId: String(telegramId) });
@@ -168,14 +163,12 @@ app.post('/api/wallet', async (req, res) => {
         derivedAddresses.TRX = tronAddr;
         derivedAddresses.USDT = tronAddr;
 
-        // 1. ऑन-चेन असली TRX बैलेंस
         let trxBalance = 0.0;
         try {
             const sun = await tronWeb.trx.getBalance(tronAddr);
             trxBalance = sun / 1e6;
         } catch (e) {}
 
-        // 2. केवल आधिकारिक वेरीफाइड स्मार्ट कॉन्ट्रैक्ट से USDT बैलेंस चेक (फेक टोकन ब्लॉक)
         let usdtBalance = 0.0;
         try {
             const contract = await tronWeb.contract().at(VERIFIED_CONTRACTS.TRON.USDT);
@@ -183,8 +176,7 @@ app.post('/api/wallet', async (req, res) => {
             usdtBalance = parseInt(raw.toString()) / 1e6;
         } catch (e) {}
 
-        // 3. ऑन-चेन EVM बैलेंस
-        const optBal = await getEvmBalance(EVM_RPCS.OPTIMISM, derivedAddresses.ETH);
+        const ethBal = await getEvmBalance(EVM_RPCS.ETH, derivedAddresses.ETH);
 
         res.json({
             address: tronAddr,
@@ -193,7 +185,7 @@ app.post('/api/wallet', async (req, res) => {
                 trx: parseFloat(trxBalance.toFixed(4)),
                 usdt: parseFloat(usdtBalance.toFixed(2)),
                 btc: 0.0,
-                eth: parseFloat(optBal.toFixed(6)),
+                eth: parseFloat(ethBal.toFixed(6)),
                 ton: 0.0,
                 sol: 0.0
             }
@@ -203,7 +195,6 @@ app.post('/api/wallet', async (req, res) => {
     }
 });
 
-// 🚀 सुरक्षित और वेरिफाइड सेंड ब्रॉडकास्ट (एंटी-स्कैम और ऑटो-रिकवरी)
 app.post('/api/send', async (req, res) => {
     try {
         const { telegramId, toAddress, amount, coin, chain, priceUsd, initData } = req.body;
@@ -249,8 +240,8 @@ app.post('/api/send', async (req, res) => {
                 const sendUnits = Math.round(sendAmountToUser * 1e6);
                 txid = await contract.transfer(toAddress, sendUnits).send({ feeLimit: 15000000 });
             } else if (coin === 'ETH') {
-                const selectedChain = (chain || 'OPTIMISM').toUpperCase();
-                const rpcUrl = EVM_RPCS[selectedChain] || EVM_RPCS.OPTIMISM;
+                const selectedChain = (chain || 'ETH').toUpperCase();
+                const rpcUrl = EVM_RPCS[selectedChain] || EVM_RPCS.ETH;
                 const provider = new ethers.JsonRpcProvider(rpcUrl);
                 const seedHash = CryptoJS.SHA256("evm_private_key_" + telegramId).toString(CryptoJS.enc.Hex);
                 const wallet = new ethers.Wallet("0x" + seedHash, provider);
@@ -263,7 +254,6 @@ app.post('/api/send', async (req, res) => {
                 txid = tx.hash;
             }
         } catch (e) {
-            // स्मार्ट ऑटो-रिकवरी फॉलबैक ताकि यूजर को कभी नेटवर्क एरर न मिले
             txid = "0x" + CryptoJS.SHA256(toAddress + amount + Date.now() + telegramId).toString();
         }
 
@@ -280,10 +270,10 @@ app.post('/api/send', async (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🛡️ OPEN WALLET On-Chain Verified Server Running on port ${PORT}`);
+    console.log(`🛡️ OPEN WALLET Mainnet Server Running on port ${PORT}`);
     if (MONGO_URI) {
         mongoose.connect(MONGO_URI)
-            .then(() => console.log("✅ Database Secured & Connected!"))
+            .then(() => console.log("✅ Database Connected!"))
             .catch(err => console.error("Database connection error:", err));
     }
 });
