@@ -24,7 +24,7 @@ const MONGO_URI = process.env.MONGO_URI;
 const API_KEY = process.env.TRONGRID_API_KEY || "";
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 
-// आपका वेरिफ़ाइड एडमिन फ़ीस वॉलेट (0.5% फ़ीस यहाँ स्टोर होगी)
+// आपका वेरिफ़ाइड एडमिन फ़ीस वॉलेट (जहाँ 0.5% प्लेटफ़ॉर्म फ़ीस जमा होगी)
 const ADMIN_FEE_WALLET = process.env.ADMIN_FEE_WALLET || "TLmgAsP4r8ckuGyRN8S65dtpL1cJaWC62R";
 
 // TRON Mainnet Configuration
@@ -35,7 +35,7 @@ const solidityNode = new HttpProvider('https://api.trongrid.io', 30000, false, f
 const eventServer = new HttpProvider('https://api.trongrid.io', 30000, false, false, headers);
 const tronWeb = new TronWeb(fullNode, solidityNode, eventServer);
 
-// सुरक्षा: वेरिफ़ाइड स्मार्ट कॉन्ट्रैक्ट्स
+// सुरक्षा: केवल आधिकारिक वेरिफ़ाइड स्मार्ट कॉन्ट्रैक्ट्स
 const VERIFIED_CONTRACTS = {
     USDT: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
     USDD: "TPYmHEhy5n8TCEfYGqW2rPxsghSfzghPDn"
@@ -70,7 +70,7 @@ function verifyTelegramWebAppData(initData) {
     }
 }
 
-// 3. क्रिप्टोग्राफिक Base58Check और Bech32 एड्रेस डेरिवेशन
+// 3. क्रिप्टोग्राफिक Base58Check और Bech32 एड्रेस डेरिवेशन हेल्पर्स
 const B58_CHARS = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 function base58CheckEncode(versionByte, hexPayload) {
@@ -166,31 +166,47 @@ function deriveAllAddresses(seed) {
     };
 }
 
-// EVM RPC Call Helper (Ethereum, Optimism, BSC)
-async function getEvmBalance(rpcUrl, address) {
-    try {
-        const response = await fetch(rpcUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'eth_getBalance',
-                params: [address, 'latest'],
-                id: 1
-            })
-        });
-        const data = await response.json();
-        if (data.result) {
-            const wei = BigInt(data.result);
-            return (Number(wei) / 1e18);
-        }
-    } catch (e) {}
+// 🌐 हाई-स्पीड मल्टी-RPC EVM बैलेंस चेकर (Ethereum + Optimism + Arbitrum)
+async function getEvmBalance(address) {
+    const rpcEndpoints = [
+        "https://optimism.publicnode.com",
+        "https://mainnet.optimism.io",
+        "https://eth.llamarpc.com",
+        "https://rpc.ankr.com/optimism"
+    ];
+
+    for (const rpc of rpcEndpoints) {
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 3500);
+
+            const res = await fetch(rpc, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    method: 'eth_getBalance',
+                    params: [address, 'latest'],
+                    id: 1
+                }),
+                signal: controller.signal
+            });
+            clearTimeout(timeout);
+
+            const data = await res.json();
+            if (data && data.result) {
+                const wei = BigInt(data.result);
+                const ethVal = Number(wei) / 1e18;
+                if (ethVal > 0) return ethVal;
+            }
+        } catch (e) {}
+    }
     return 0.0;
 }
 
-app.get('/', (req, res) => res.send('Secure Multi-Chain Backend Live!'));
+app.get('/', (req, res) => res.send('Secure All-in-One Multi-Chain Backend Live!'));
 
-// 4. वॉलेट क्वेरी रूट (डायरेक्ट RPC और ऑन-चेन वेरिफिकेशन)
+// 4. वॉलेट क्वेरी रूट (डायरेक्ट ऑन-चेन RPC वेरिफिकेशन)
 app.post('/api/wallet', async (req, res) => {
     try {
         const { telegramId, initData } = req.body;
@@ -233,43 +249,38 @@ app.post('/api/wallet', async (req, res) => {
         derivedAddresses.USDT = tronAddr;
 
         // 1. Native TRX Balance
-        let trxBalance = "0.00";
+        let trxBalance = 0.0;
         try {
             const balanceSun = await tronWeb.trx.getBalance(tronAddr);
-            trxBalance = (balanceSun / 1e6).toFixed(4);
+            trxBalance = balanceSun / 1e6;
         } catch (e) {}
 
         // 2. USDT TRC20 Balance
-        let usdtBalance = "0.00";
+        let usdtBalance = 0.0;
         try {
             const contract = await tronWeb.contract().at(VERIFIED_CONTRACTS.USDT);
             const rawUsdt = await contract.balanceOf(tronAddr).call();
-            usdtBalance = (parseInt(rawUsdt.toString()) / 1e6).toFixed(2);
+            usdtBalance = parseInt(rawUsdt.toString()) / 1e6;
         } catch (e) {}
 
         // 3. BTC Balance
-        let btcBalance = "0.0000";
+        let btcBalance = 0.0;
         try {
             const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${derivedAddresses.BTC}`);
             const satoshis = await btcRes.text();
-            if (!isNaN(satoshis)) btcBalance = (parseInt(satoshis) / 1e8).toFixed(6);
+            if (!isNaN(satoshis)) btcBalance = parseInt(satoshis) / 1e8;
         } catch (e) {}
 
         // 4. ETH & Optimism EVM Balance
-        let ethBalance = 0.0;
-        try {
-            const ethMainnet = await getEvmBalance('https://eth.llamarpc.com', derivedAddresses.ETH);
-            const optimismBal = await getEvmBalance('https://mainnet.optimism.io', derivedAddresses.ETH);
-            ethBalance = (ethMainnet + optimismBal);
-        } catch (e) {}
+        const ethBalance = await getEvmBalance(derivedAddresses.ETH);
 
         res.json({
             address: tronAddr,
             addresses: derivedAddresses,
             verifiedBalances: {
-                trx: parseFloat(trxBalance),
-                usdt: parseFloat(usdtBalance),
-                btc: parseFloat(btcBalance),
+                trx: parseFloat(trxBalance.toFixed(4)),
+                usdt: parseFloat(usdtBalance.toFixed(2)),
+                btc: parseFloat(btcBalance.toFixed(6)),
                 eth: parseFloat(ethBalance.toFixed(6)),
                 ton: 0.0,
                 sol: 0.0
