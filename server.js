@@ -43,7 +43,8 @@ const EVM_RPCS = {
     ETH: "https://rpc.ankr.com/eth",
     BSC: "https://bsc-dataseed1.binance.org",
     POLYGON: "https://polygon-rpc.com",
-    ARBITRUM: "https://arb1.arbitrum.io/rpc"
+    ARBITRUM: "https://arb1.arbitrum.io/rpc",
+    OP: "https://mainnet.optimism.io"
 };
 
 const UserSchema = new mongoose.Schema({
