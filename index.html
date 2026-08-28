@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPEN Coin Mining</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .balance-box {
+            font-size: 28px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .mine-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            transition: 0.2s;
+        }
+        .mine-btn:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .timer {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>OPEN Coin Mining</h1>
+        <div class="balance-box">Balance: <span id="balance">0.00</span> OPEN</div>
+        
+        <button id="mineBtn" class="mine-btn" onclick="startMining()">Start Mining (24h)</button>
+        <div id="timer" class="timer"></div>
+    </div>
+
+    <script>
+        let balance = parseFloat(localStorage.getItem('open_balance')) || 0.00;
+        let lastMineTime = parseInt(localStorage.getItem('last_mine_time')) || 0;
+        const cooldownTime = 24 * 60 * 60 * 1000; // 24 घंटे मिलीसेकंड में
+
+        document.getElementById('balance').innerText = balance.toFixed(2);
+
+        function updateTimer() {
+            let now = new Date().getTime();
+            let timeLeft = (lastMineTime + cooldownTime) - now;
+
+            let btn = document.getElementById('mineBtn');
+            let timerDisplay = document.getElementById('timer');
+
+            if (timeLeft > 0) {
+                btn.disabled = true;
+                let hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                let seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                timerDisplay.innerText = `Next claim in: ${hours}h ${minutes}m ${seconds}s`;
+            } else {
+                btn.disabled = false;
+                timerDisplay.innerText = "Ready to Mine!";
+            }
+        }
+
+        function startMining() {
+            let now = new Date().getTime();
+            if (now >= lastMineTime + cooldownTime) {
+                balance += 10; // हर 24 घंटे में मिलने वाला रिवॉर्ड (जैसे 10 कॉइन)
+                lastMineTime = now;
+
+                localStorage.setItem('open_balance', balance);
+                localStorage.setItem('last_mine_time', lastMineTime);
+
+                document.getElementById('balance').innerText = balance.toFixed(2);
+                updateTimer();
+            }
+        }
+
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    </script>
+</body>
+</html>
