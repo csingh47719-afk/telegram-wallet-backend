@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Coin Mining</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0b0e14;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            box-sizing: border-box;
+        }
+        .wallet-btn {
+            background-color: #2b313a;
+            color: #f3ba2f;
+            border: 1px solid #f3ba2f;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .share-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .container {
+            text-align: center;
+            width: 100%;
+            padding: 10px;
+        }
+        .user-info {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #f3ba2f;
+        }
+        .balance-box {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #0ecb81;
+        }
+        .speed-info {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 15px;
+        }
+        /* कॉइन पल्स एनिमेशन */
+        .coin-logo {
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, #f3ba2f, #b8860b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: bold;
+            color: #000;
+            margin: 20px auto;
+            box-shadow: 0 0 20px rgba(243, 186, 47, 0.5);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(243, 186, 47, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(243, 186, 47, 0.8); }
+            100% { transform: scale(1.0, 1); box-shadow: 0 0 15px rgba(243, 186, 47, 0.4); }
+        }
+        .claim-btn {
+            width: 90%;
+            max-width: 400px;
+            padding: 15px;
+            background-color: #f3ba2f;
+            color: #000;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(243, 186, 47, 0.3);
+            transition: 0.2s;
+        }
+        .claim-btn:active {
+            transform: scale(0.97);
+        }
+        .claim-btn:disabled {
+            background-color: #333;
+            color: #777;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .nav-bar {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            background-color: #161a25;
+            padding: 12px 0;
+            border-top: 1px solid #222;
+        }
+        .nav-item {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+        }
+        .nav-item.active {
+            color: #f3ba2f;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- टॉप बार: वॉलेट और शेयर बटन -->
+    <div class="top-bar">
+        <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect TON Wallet</button>
+        <button class="share-btn" onclick="shareApp()">🔗 Share</button>
+    </div>
+
+    <div class="container">
+        <div class="user-info" id="username">Loading...</div>
+        <div style="font-size: 13px; color: #aaa;">ASSETS</div>
+        
+        <!-- कॉइन बैलेंस -->
+        <div class="balance-box" id="balance">0.0000 OPEN</div>
+        <div class="speed-info">Mining Speed: +0.001 OPEN/h</div>
+
+        <!-- एनिमेटेड कॉइन लोगो -->
+        <div class="coin-logo">OPEN</div>
+
+        <!-- माइनिंग / क्लेम बटन -->
+        <button class="claim-btn" id="claimBtn" onclick="startMining()">START MINING / CLAIM</button>
+    </div>
+
+    <!-- नेविगेशन बार -->
+    <div class="nav-bar">
+        <div class="nav-item active">⛏️ Mine</div>
+        <div class="nav-item">📋 Tasks</div>
+        <div class="nav-item">⚡ Miners</div>
+        <div class="nav-item">👥 Friends</div>
+        <div class="nav-item">👤 Profile</div>
+    </div>
+
+    <script>
+        Telegram.WebApp.ready();
+        const tgUser = Telegram.WebApp.initDataUnsafe?.user;
+        const telegramId = tgUser ? tgUser.id : "123456789"; 
+        document.getElementById('username').innerText = tgUser ? tgUser.first_name : "Open Miner";
+
+        // अपने Render बैकएंड का लिंक यहाँ डालें
+        const BACKEND_URL = "https://telegram-wallet-backend-xxxx.onrender.com";
+
+        // यूजर का डेटा और माइनिंग स्टेटस लोड करें
+        function fetchUserData() {
+            fetch(`${BACKEND_URL}/api/user?telegram_id=${telegramId}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    document.getElementById('balance').innerText = data.balance.toFixed(4) + " OPEN";
+                    if(data.wallet_connected) {
+                        document.getElementById('walletBtn').innerText = data.wallet_address.substring(0, 6) + "...";
+                    }
+                    if(!data.can_claim) {
+                        lockButton(data.remaining_time);
+                    }
+                }
+            }).catch(err => console.error("Sync error:", err));
+        }
+
+        // माइनिंग शुरू / क्लेम करने का फंक्शन (एंटी-चीट सुरक्षित)
+        function startMining() {
+            const btn = document.getElementById('claimBtn');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            fetch(`${BACKEND_URL}/api/claim`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegram_id: telegramId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert(data.message);
+                    document.getElementById('balance').innerText = data.new_balance.toFixed(4) + " OPEN";
+                    lockButton(86400); // 24 घंटे का लॉक
+                } else {
+                    alert(data.message || "Please wait for 24 hours!");
+                    btn.disabled = false;
+                    btn.innerText = "START MINING / CLAIM";
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Server connection failed!");
+                btn.disabled = false;
+                btn.innerText = "START MINING / CLAIM";
+            });
+        }
+
+        // बटन को 24 घंटे के लिए लॉक करना और टाइमर चलाना
+        function lockButton(seconds) {
+            const btn = document.getElementById('claimBtn');
+            btn.disabled = true;
+            
+            let timeLeft = seconds;
+            const timer = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.innerText = "START MINING / CLAIM";
+                } else {
+                    let hours = Math.floor(timeLeft / 3600);
+                    let minutes = Math.floor((timeLeft % 3600) / 60);
+                    let secs = timeLeft % 60;
+                    btn.innerText = `Active: ${hours}h ${minutes}m ${secs}s`;
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        // TON वॉलेट कनेक्ट करने का सिम्युलेशन (TON Connect SDK इंटीग्रेशन के लिए)
+        function connectWallet() {
+            const sampleWallet = "UQB...SampleWalletAddress";
+            fetch(`${BACKEND_URL}/api/connect-wallet`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegram_id: telegramId, wallet_address: sampleWallet })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    document.getElementById('walletBtn').innerText = "UQB...Wallet";
+                    alert("TON Wallet Connected Successfully!");
+                }
+            });
+        }
+
+        // शेयर बटन (फ्रेंड्स को इनवाइट करने के लिए)
+        function shareApp() {
+            const shareUrl = `https://t.me/share/url?url=https://t.me/YourBotName/app&text=Join%20Open%20Coin%20and%20start%20mining%20today!`;
+            window.open(shareUrl, '_blank');
+        }
+
+        // ऐप खुलते ही डेटा लोड करें
+        fetchUserData();
+    </script>
+</body>
+</html>
