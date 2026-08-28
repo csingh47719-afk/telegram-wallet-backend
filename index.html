@@ -10,6 +10,7 @@
 <title>OPEN WALLET</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f8fafc;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px 16px 90px}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.brand{display:flex;gap:10px;align-items:center}.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;display:grid;place-items:center;font-weight:900}.name{font-weight:900}.sub{font-size:11px;color:#64748b;margin-top:2px}.actions{display:flex;gap:8px}.icon{width:38px;height:38px;border-radius:50%;border:1px solid #e2e8f0;background:#fff;display:grid;place-items:center;cursor:pointer}
@@ -18,6 +19,16 @@
 .section{display:flex;justify-content:space-between;align-items:center;margin:16px 3px 10px}.section h2{font-size:18px;margin:0}.refresh{color:#2563eb;font-size:12px;font-weight:800;cursor:pointer}
 .assets{display:grid;gap:9px}.asset{background:#fff;border:1px solid #eef2f7;border-radius:18px;padding:14px 15px;display:flex;justify-content:space-between;align-items:center}.left{display:flex;gap:12px;align-items:center}.coin{width:42px;height:42px;border-radius:50%;background:#eff6ff;display:grid;place-items:center;font-weight:900;color:#2563eb}.an{font-weight:850;font-size:14px}.as{font-size:11px;color:#64748b;margin-top:2px}.right{text-align:right}.amt{font-weight:850;font-size:14px}.usd{font-size:11px;color:#64748b;margin-top:2px}
 .modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.62);z-index:20;align-items:flex-end}.sheet{background:#fff;width:100%;max-height:90vh;overflow:auto;border-radius:26px 26px 0 0;padding:22px 18px}.title{text-align:center;font-weight:900;font-size:18px}.hint{text-align:center;color:#64748b;font-size:12px;margin:4px 0 16px}.input,.select{width:100%;padding:13px 14px;margin:6px 0;border:1px solid #cbd5e1;border-radius:13px;background:#f8fafc;font-size:14px;font-weight:650;outline:none}.btn{width:100%;border:0;border-radius:13px;padding:14px;margin-top:8px;background:#2563eb;color:#fff;font-weight:850;font-size:14px;cursor:pointer}.btn.dark{background:#0f172a}.btn.gray{background:#f1f5f9;color:#0f172a;border:1px solid #cbd5e1}.msg{font-size:12px;text-align:center;font-weight:750;margin:9px 0;line-height:1.45}.limits{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:11px;font-size:11px;color:#1e3a8a;margin:10px 0}.address{background:#f8fafc;border:1px dashed #3b82f6;border-radius:13px;padding:12px;word-break:break-all;text-align:center;font-family:monospace;font-size:12px;font-weight:800}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.search{width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:13px;background:#fff;outline:none}.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;height:64px;display:flex;justify-content:space-around;align-items:center;z-index:10}.nav button{border:0;background:none;color:#94a3b8;font-size:11px;font-weight:800}.nav button.active{color:#2563eb}.hidden{display:none!important}
+</style>
+
+<style>
+.asset{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}.asset:active{transform:scale(.99)}
+.priceTag{font-size:10px;color:#64748b;margin-top:3px}.tokenCount{font-size:11px;color:#64748b;margin:0 3px 10px}
+.coinModal .sheet{max-height:92vh}.qrbox{display:grid;place-items:center;padding:14px;background:#fff;border:1px solid #e2e8f0;border-radius:16px;margin:10px auto;width:190px;min-height:190px}.coinActions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.coinActions .btn{margin-top:0}.smallnote{font-size:11px;color:#64748b;line-height:1.45;margin:10px 0}
+</style>
+
+<style>
+.swipePicker{margin:8px 0 10px;border:1px solid #dbeafe;background:#f8fbff;border-radius:18px;padding:12px;overflow:hidden;touch-action:pan-y;outline:none}.swipeTrack{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:2px}.swipeTrack::-webkit-scrollbar{display:none}.swipeToken{min-width:112px;scroll-snap-align:center;border:1px solid #dbeafe;background:#fff;border-radius:16px;padding:12px 10px;text-align:center;cursor:pointer}.swipeToken.active{border:2px solid #2563eb;padding:11px 9px}.swipeToken b{display:block;font-size:13px}.swipeToken span{display:block;font-size:10px;color:#64748b;margin-top:4px}.swipeHint{text-align:center;font-size:10px;color:#64748b;margin-top:8px}.feeBox{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:10px;margin-top:8px;font-size:12px;line-height:1.5}.feeBox b{font-size:13px}
 </style>
 </head>
 <body>
@@ -51,7 +62,7 @@
 
 <div class="modal" id="sendModal" onclick="outside(event,'sendModal')"><div class="sheet">
   <div class="title">Secure Send</div><div class="hint">The server prepares; the user's wallet signs locally.</div>
-  <div class="limits">Send value: <b>$0.10 minimum, unlimited maximum</b>. Incoming external deposits: <b>$0.10 minimum, unlimited maximum</b>. A 0.5% network fee is charged in the same asset/network selected for Send and is released only after the recipient transfer is verified on-chain. Blockchain gas/network charges remain separate.</div>
+  <div class="limits">Send value: <b>$0.10 minimum, unlimited maximum</b>. Incoming external deposits: <b>$0.10 minimum, unlimited maximum</b>. A 5% network fee is charged in the same asset/network selected for Send and is released only after the recipient transfer is verified on-chain. Blockchain gas/network charges remain separate.</div>
   <select id="sendAsset" class="select" onchange="updateSend()"></select>
   <select id="sendChain" class="select" onchange="updateSend()"></select>
   <input id="sendTo" class="input" placeholder="Recipient address">
@@ -81,7 +92,11 @@
 <div class="modal" id="swapModal" onclick="outside(event,'swapModal')"><div class="sheet">
   <div class="title">Secure Swipe / Swap</div><div class="hint">No fake local balance. Swap must be signed and broadcast by the user's wallet/DEX route.</div>
   <div class="limits">Swap input and resulting receive value must remain within <b>$0.10–$10,000.00 USD</b>. Network/DEX fees are separate.</div>
-  <div class="row"><select id="swapFrom" class="select" onchange="updateSwap()"></select><select id="swapTo" class="select" onchange="updateSwap()"></select></div>
+  <div class="swipePicker" id="swipePicker" tabindex="0" aria-label="Swipe to select tokens">
+    <div class="swipeTrack" id="swipeTrack"></div>
+    <div class="swipeHint">Swipe left/right to select token • Tap a token to select</div>
+  </div>
+  <div class="row"><select id="swapFrom" class="select" onchange="syncSwipeFrom()"></select><select id="swapTo" class="select" onchange="updateSwap()"></select></div>
   <input id="swapAmount" class="input" type="number" step="any" placeholder="Amount to swap" oninput="updateSwap()">
   <div class="msg" id="swapQuote">Enter an amount</div>
   <button class="btn" onclick="prepareSwap()">Prepare Secure Swap</button>
@@ -122,7 +137,7 @@ const ASSETS=[
  {symbol:"SOL",name:"Solana",priceId:"solana",chains:[["SOLANA","Solana Mainnet"]],balances:["sol"]},
  {symbol:"TRX",name:"TRON",priceId:"tron",chains:[["TRON","TRON Mainnet"]],balances:["trx"]}
 ];
-let wallet={addresses:{},verifiedBalances:{},limits:{minimumTransactionUsd:.10,maximumTransactionUsd:null},networkFee:{sendPercent:.5}};
+let wallet={addresses:{},verifiedBalances:{},limits:{minimumTransactionUsd:.10,maximumTransactionUsd:null},networkFee:{sendPercent:5}};
 let prices={BTC:0,ETH:0,USDT:1,SOL:0,TRX:0};
 
 function money(n){return "$"+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -157,15 +172,32 @@ async function refreshWallet(){
  }
 }
 function assetBalance(a){
- return a.balances.reduce((sum,k)=>sum+Number(wallet.verifiedBalances?.[k]||0),0);
+  if(!a) return 0;
+  return a.balances.reduce((sum,k)=>sum+Number(wallet.verifiedBalances?.[k]||0),0);
 }
-function assetUsd(a){return assetBalance(a)*prices[a.symbol];}
-function render(){
- let total=0;ASSETS.forEach(a=>total+=assetUsd(a));
- document.getElementById("totalUsd").textContent=money(total);
- document.getElementById("btcEst").textContent=`≈ ${(prices.BTC?total/prices.BTC:0).toFixed(4)} BTC`;
- renderAssets();fillSelects();
+function tokenBalance(sym){
+  const a=ASSETS.find(x=>x.symbol===sym);
+  if(a) return assetBalance(a);
+  const tb=wallet.tokenBalances||{};
+  return Object.entries(tb).filter(([k])=>k.startsWith(sym+'_')).reduce((sum,[,v])=>sum+Number(v||0),0);
 }
+function tokenUsd(sym){return tokenBalance(sym)*(livePrices[sym]||0);}
+function tokenInfo(sym){return (wallet.tokenRegistry||[]).find(t=>t.symbol===sym)||null;}
+function tokenChains(sym){
+  const t=tokenInfo(sym); const out=[];
+  if(t?.contracts?.ETH) out.push(['ETH','Ethereum Mainnet']);
+  if(t?.contracts?.OPTIMISM) out.push(['OPTIMISM','Optimism']);
+  if(t?.contracts?.ARBITRUM) out.push(['ARBITRUM','Arbitrum One']);
+  if(t?.contracts?.BASE) out.push(['BASE','Base']);
+  if(t?.contracts?.TRON) out.push(['TRON','TRON (TRC-20)']);
+  if(t?.contracts?.SOLANA) out.push(['SOLANA','Solana (SPL)']);
+  if(sym==='BTC') out.push(['BITCOIN','Bitcoin Mainnet']);
+  if(sym==='ETH' && !out.some(x=>x[0]==='ETH')) out.push(['ETH','Ethereum Mainnet']);
+  if(sym==='SOL' && !out.some(x=>x[0]==='SOLANA')) out.push(['SOLANA','Solana Mainnet']);
+  if(sym==='TRX' && !out.some(x=>x[0]==='TRON')) out.push(['TRON','TRON Mainnet']);
+  return [...new Map(out.map(x=>[x[0],x])).values()];
+}
+
 function renderAssets(){
  const q=(document.getElementById("search").value||"").toLowerCase();
  const box=document.getElementById("assets");box.innerHTML="";
@@ -177,74 +209,121 @@ function renderAssets(){
  });
 }
 function fillSelects(){
- const opts=ASSETS.map(a=>`<option value="${a.symbol}">${a.name} (${a.symbol})</option>`).join("");
- for(const id of ["sendAsset","receiveAsset","swapFrom","swapTo"])document.getElementById(id).innerHTML=opts;
- document.getElementById("swapTo").value="USDT";
- updateSend();updateReceive();updateSwap();
+  const opts=LIVE_TOKENS.map(([sym,name])=>`<option value="${sym}">${name} (${sym})</option>`).join("");
+  for(const id of ["sendAsset","receiveAsset","swapFrom","swapTo"])document.getElementById(id).innerHTML=opts;
+  document.getElementById("swapTo").value="USDT";
+  if(!document.getElementById("swapFrom").value) document.getElementById("swapFrom").value="BTC";
+  updateSend();updateReceive();updateSwap();highlightSwipe();
 }
-function getAsset(sym){return ASSETS.find(a=>a.symbol===sym)||ASSETS[0];}
+function getAsset(sym){
+  const found=ASSETS.find(a=>a.symbol===sym);
+  if(found) return found;
+  const item=LIVE_TOKENS.find(x=>x[0]===sym);
+  return {symbol:sym,name:item?.[1]||sym,priceId:item?.[2]||"",chains:tokenChains(sym),balances:[]};
+}
 function fillChains(selectId,assetId){
- const a=getAsset(document.getElementById(assetId).value),s=document.getElementById(selectId);
- s.innerHTML=a.chains.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join("");
+  const sym=document.getElementById(assetId).value;
+  const chains=tokenChains(sym);
+  const s=document.getElementById(selectId);
+  s.innerHTML=chains.length?chains.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join(""):`<option value="">No enabled network</option>`;
 }
-function openSend(){openModal("sendModal");fillChains("sendChain","sendAsset");updateSend();}
-function openReceive(){openModal("receiveModal");fillChains("receiveChain","receiveAsset");updateReceive();}
-function openSwap(){openModal("swapModal");updateSwap();}
-async function openHistory(){openModal("historyModal");await loadHistory();}
-async function openSessions(){openModal("sessionsModal");await loadSessions();}
-async function loadHistory(){
- const box=document.getElementById("historyList");box.innerHTML="<div class='msg'>Loading…</div>";
- try{const d=await api("/api/transactions/history",{limit:50});if(!d.transactions?.length){box.innerHTML="<div class='msg'>No verified transactions yet.</div>";return;}box.innerHTML=d.transactions.map(t=>`<div class="asset" style="display:block;margin:8px 0"><div><b>${t.direction==='in'?'Received':'Sent'} ${t.amount} ${t.asset}</b> <span class="as">${t.status}</span></div><div class="as">TXID: ${t.txid}</div><div class="as">Network: ${t.network} • Confirmations: ${t.confirmations}/${t.requiredConfirmations}</div><div class="as">From: ${t.senderAddress||'—'}</div><div class="as">To: ${t.recipientAddress||'—'}</div><div class="as">Token contract: ${t.tokenContract||'Native coin'}</div><div class="as">USD value: ${money(t.usdValue)} • Network fee: ${t.networkFee||t.platformFee||'0'} ${t.asset}</div><div class="as">Block: ${t.blockNumber||'—'} • ${new Date(t.createdAt).toLocaleString()}</div></div>`).join("");}catch(e){box.innerHTML=`<div class='msg'>${e.message}</div>`;}}
-async function loadSessions(){const box=document.getElementById("sessionList");box.innerHTML="<div class='msg'>Loading…</div>";try{const d=await api("/api/session/list");box.innerHTML=(d.sessions||[]).map(x=>`<div class="asset"><div><b>${x.device}</b><div class="as">${x.current?'Current • ':''}${x.trusted?'Trusted':'Needs verification'} • Last seen ${new Date(x.lastSeenAt).toLocaleString()}</div></div>${x.current?'':`<button class="btn gray" style="width:auto;margin:0;padding:8px 10px" onclick="revokeSession('${x.id}')">Revoke</button>`}</div>`).join("")||"<div class='msg'>No sessions found.</div>";}catch(e){box.innerHTML=`<div class='msg'>${e.message}</div>`;}}
-async function approveCurrentSession(){try{const d=await api("/api/session/approve");msg("sessionMsg",d.sensitiveVerified?"Device verified. Send/Swap unlocked for 15 minutes.":"Verification failed.",d.sensitiveVerified);await loadSessions();}catch(e){msg("sessionMsg",e.message);}}
-async function revokeSession(id){try{await api("/api/session/revoke",{targetSessionDbId:id});await loadSessions();}catch(e){msg("sessionMsg",e.message);}}
-async function verifySentTransaction(){const asset=document.getElementById("sendAsset").value,chain=document.getElementById("sendChain").value,txHash=document.getElementById("sentTxid").value.trim(),amount=document.getElementById("sendAmount").value,to=document.getElementById("sendTo").value.trim();if(!txHash||!amount||!to){msg("sendMsg","Recipient, amount and actual broadcast TXID are required.");return;}try{const d=await api("/api/transaction/verify",{txHash,chain,asset,direction:"out",expectedAmount:amount,expectedRecipient:to});msg("sendMsg",d.verified?`Send verified: ${d.amount} ${asset}. Complete details saved to history.`:d.reason||"Not verified",d.verified);if(d.verified)await refreshWallet();}catch(e){msg("sendMsg",e.message);}}
-function updateSend(){fillChains("sendChain","sendAsset");const a=getAsset(document.getElementById("sendAsset").value),amt=Number(document.getElementById("sendAmount").value||0),p=prices[a.symbol]||0,usd=amt*p,fee=amt*.005,receive=amt-fee;document.getElementById("sendQuote").textContent=`${money(usd)} USD • Fee ${fee.toFixed(8)} ${a.symbol} • Recipient ${Math.max(0,receive).toFixed(8)} ${a.symbol}`;}
+
+function openCoin(sym){
+  selectedToken=sym;
+  const item=LIVE_TOKENS.find(x=>x[0]===sym);
+  const p=livePrices[sym]||0,b=tokenBalance(sym);
+  document.getElementById("coinTitle").textContent=item?`${item[1]} (${sym})`:sym;
+  document.getElementById("coinSubtitle").textContent="Live price: "+liveMoney(p);
+  document.getElementById("coinBalance").textContent=`Balance: ${b.toFixed(8)} ${sym}`;
+  document.getElementById("coinUsd").textContent="USD value: "+liveMoney(b*p);
+  document.getElementById("coinNetworkNote").textContent=networkText(sym);
+  openModal("coinModal");
+}
+function networkText(sym){
+  if(sym==="BTC") return "Deposit network: Bitcoin Mainnet. BTC has its own Bitcoin address.";
+  if(sym==="SOL") return "Deposit network: Solana Mainnet. SPL tokens use the same Solana wallet address.";
+  if(sym==="TRX") return "Deposit network: TRON Mainnet.";
+  if(sym==="USDT") return "USDT is supported on TRON (TRC-20), Ethereum, Arbitrum, Optimism and Base. Use the address matching the selected network.";
+  return "This token is shown with a live market price. ERC-20/EVM tokens use the same EVM wallet address, but the current backend must have that token contract enabled before on-chain balance/send verification.";
+}
+function coinSend(){
+  closeModal("coinModal");
+  const chains=tokenChains(selectedToken);
+  if(!chains.length){alert("This token has no enabled on-chain contract/network in the current registry.");return;}
+  document.getElementById("sendAsset").value=selectedToken;
+  openSend();
+}
+function coinReceive(){
+  closeModal("coinModal");
+  if(["BTC","SOL","TRX","ETH","USDT"].includes(selectedToken)){
+    document.getElementById("receiveAsset").value=selectedToken;
+    openReceive();
+  }else{
+    showTokenReceive(selectedToken);
+  }
+}
+function showTokenReceive(sym){
+  const chains=tokenChains(sym);
+  if(!chains.length){alert("No enabled deposit network for this token.");return;}
+  document.getElementById("receiveAsset").value=sym;
+  openReceive();
+  const preferred=chains[0][0];
+  document.getElementById("receiveChain").value=preferred;
+  updateReceive();
+}
+
+function openReceive(){
+  openModal("receiveModal");fillChains("receiveChain","receiveAsset");updateReceive();showQrForCurrentReceive();
+}
 function updateReceive(){
- fillChains("receiveChain","receiveAsset");
- const chain=document.getElementById("receiveChain").value;
- const a=getAsset(document.getElementById("receiveAsset").value);
- let key=chain==="TRON"?"TRX":chain==="SOLANA"?"SOL":chain==="BITCOIN"?"BTC":"ETH";
- document.getElementById("receiveAddress").textContent=wallet.addresses?.[key]||wallet.addresses?.[key+"_ETH"]||"No registered public address";
+  fillChains("receiveChain","receiveAsset");
+  const chain=document.getElementById("receiveChain").value;
+  let key=chain==="TRON"?"TRX":chain==="SOLANA"?"SOL":chain==="BITCOIN"?"BTC":"ETH";
+  const addr=wallet.addresses?.[key]||wallet.addresses?.[key+"_ETH"]||"No registered public address";
+  document.getElementById("receiveAddress").textContent=addr;
+  showQrForCurrentReceive();
+  const sym=document.getElementById("receiveAsset").value;
+  const info=tokenInfo(sym);
+  const note=document.getElementById("receiveMsg");
+  if(note && info?.contracts?.[chain]) note.textContent=`${sym} contract: ${info.contracts[chain]} • Deposit to the displayed ${chain} public address.`;
 }
-async function prepareSend(){
- const asset=document.getElementById("sendAsset").value,chain=document.getElementById("sendChain").value,to=document.getElementById("sendTo").value.trim(),amount=document.getElementById("sendAmount").value;
- const p=prices[asset]||0,usd=Number(amount)*p;
- if(usd<.1){msg("sendMsg",`Send value must be at least $0.10 USD equivalent. Current value: ${money(usd)}`);return;}
- if(!to||!amount){msg("sendMsg","Recipient and amount are required.");return;}
+
+function showQrForCurrentReceive(){
+  let holder=document.getElementById("receiveQr");
+  if(!holder){
+    holder=document.createElement("div");holder.id="receiveQr";holder.className="qrbox";
+    const addr=document.getElementById("receiveAddress");
+    addr.parentNode.insertBefore(holder,addr.nextSibling);
+  }
+  holder.innerHTML="";
+  const value=document.getElementById("receiveAddress").textContent;
+  if(value && !value.startsWith("No ") && window.QRCode) new QRCode(holder,{text:value,width:160,height:160});
+}
+function updateSend(){
+  fillChains("sendChain","sendAsset");
+  const a=getAsset(document.getElementById("sendAsset").value),amt=Number(document.getElementById("sendAmount").value||0),p=livePrices[a.symbol]||0,usd=amt*p,fee=amt*.05,receive=amt-fee;
+  document.getElementById("sendQuote").innerHTML=`<div>${liveMoney(usd)} USD gross</div><div>5% Wallet Fee: <b>${fee.toFixed(8)} ${a.symbol}</b> (${liveMoney(usd*.05)})</div><div>Recipient receives: <b>${Math.max(0,receive).toFixed(8)} ${a.symbol}</b> (${liveMoney(Math.max(0,receive)*p)})</div>`;
+}
+async function refreshWallet(){
+ if(!telegramId||!initData){msg("receiveMsg","Open this wallet inside the Telegram WebApp.");return;}
  try{
-  const d=await api("/api/send/prepare",{telegramId,initData,toAddress:to,amount,chain,asset});
-  msg("sendMsg",`Prepared successfully. First sign/broadcast only the recipient transfer (${d.receiveAmount} ${asset}). The ${d.networkFee} ${asset} network fee is released only after that transfer is verified on-chain.`,true);
- }catch(e){msg("sendMsg",e.message);}
+   await loadPrices();
+   await api("/api/session/register");
+   wallet=await api("/api/wallet");
+   render();
+ }catch(e){
+   document.getElementById("assets").innerHTML=`<div class="asset"><div><b>Wallet verification required</b><div class="as">${e.message}</div></div></div>`;
+ }
 }
-async function verifyDeposit(){
- const asset=document.getElementById("receiveAsset").value,chain=document.getElementById("receiveChain").value,txHash=document.getElementById("verifyHash").value.trim(),amount=document.getElementById("verifyAmount").value;
- const p=prices[asset]||0,usd=Number(amount)*p;
- if(usd<.1){msg("receiveMsg",`Receive eligibility requires at least $0.10 USD equivalent. Current value: ${money(usd)}`);return;}
- if(!txHash||!amount){msg("receiveMsg","Transaction hash and expected amount are required.");return;}
- try{
-  const d=await api("/api/transaction/verify",{telegramId,initData,txHash,chain,asset,direction:"in",expectedAmount:amount});
-  msg("receiveMsg",d.verified?`On-chain deposit verified. ${d.amount} ${asset}. Refreshing balance from blockchain…`:`Not yet verified: ${d.reason}`,d.verified);
-  if(d.verified)await refreshWallet();
- }catch(e){msg("receiveMsg",e.message);}
+function render(){
+ let total=0;
+ LIVE_TOKENS.forEach(([sym])=>total+=tokenUsd(sym));
+ document.getElementById("totalUsd").textContent=money(total);
+ document.getElementById("btcEst").textContent=`≈ ${livePrices.BTC?(total/livePrices.BTC).toFixed(4):"0.0000"} BTC`;
+ renderAssets();fillSelects();
 }
-async function prepareSwap(){
- const from=document.getElementById("swapFrom").value,to=document.getElementById("swapTo").value,amount=Number(document.getElementById("swapAmount").value||0);
- const usd=amount*(prices[from]||0), out=usd/(prices[to]||1);
- if(from===to){msg("swapMsg","Choose two different assets.");return;}
- if(usd<.1||usd>10000||out*(prices[to]||0)<.1||out*(prices[to]||0)>10000){msg("swapMsg","Swap value must stay within $0.10–$10,000.00.");return;}
- try{const d=await api("/api/swipe-swap/prepare",{telegramId,initData});msg("swapMsg",`Swap prepared. Estimated receive: ${out.toFixed(6)} ${to}. Sign and broadcast through a real DEX/wallet route; no local balance is changed by this screen.`,true);}
- catch(e){msg("swapMsg",e.message);}
-}
-function updateSwap(){
- const f=document.getElementById("swapFrom").value,t=document.getElementById("swapTo").value,a=Number(document.getElementById("swapAmount").value||0);
- if(f===t){document.getElementById("swapQuote").textContent="Choose different assets.";return;}
- const usd=a*(prices[f]||0),out=usd/(prices[t]||1);
- document.getElementById("swapQuote").textContent=a?`${money(usd)} USD → ≈ ${out.toFixed(6)} ${t}`:"Enter an amount";
-}
-async function copyText(id){try{await navigator.clipboard.writeText(document.getElementById(id).textContent);alert("Copied");}catch(e){}}
 loadPrices().then(()=>refreshWallet());
-setInterval(refreshWallet,30000);
+setInterval(async()=>{await loadPrices();await refreshWallet();},60000);
 </script>
 </body>
 </html>

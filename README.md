@@ -1,30 +1,20 @@
-# OPEN WALLET — Secure Multi-Chain Wallet
+# OPEN WALLET — 137+ Live Assets v6
 
-Non-custodial Telegram WebApp/backend for public-address registration, blockchain-only balance reads, on-chain transaction verification, transaction history and device/session security.
+This build extends the v5 wallet with a server-side token registry and real EVM ERC-20 balance scanning for the 137 configured CoinGecko assets.
 
-## Verification
-The backend independently verifies:
-- TXID on the selected network/chain
-- registered wallet address
-- sender/recipient address where applicable
-- token contract from the server-side allow-list
-- token Transfer event / native transfer data
-- confirmed amount and confirmations
-- USD value of the verified amount
+## Included
+- 137-token CoinGecko price list with 30-second client refresh.
+- CoinGecko platform registry resolves public contract addresses for Ethereum, Optimism, Arbitrum, Base, TRON and Solana when CoinGecko provides them.
+- EVM ERC-20 balances are read directly from chain using Multicall3; balances are never stored as an internal ledger.
+- Main wallet totals include verified native balances plus discovered ERC-20 balances.
+- Token tap opens Send/Receive actions.
+- Receive shows the correct public wallet address for the selected network and a QR code.
+- Send calculates a 5% platform fee and recipient amount live.
+- EVM ERC-20 Send preparation returns an unsigned `transfer()` transaction; signing/broadcasting remains on the user's device.
+- Swipe token picker and 137-token swap selectors remain enabled.
+- Private keys, seed phrases and mnemonics are rejected by wallet registration and are never required by the backend.
 
-## Balance refresh
-After a verified deposit the frontend refreshes the wallet by reading current on-chain balances and recalculates each coin's quantity, current USD value and total wallet USD value.
+## Important scope
+A single EVM address can hold ERC-20 tokens on Ethereum-compatible networks, but native coins on independent networks (for example XRP, ADA, LTC, DOGE, TON, SUI, etc.) require their own chain RPC/indexer and transaction builder. This build does not pretend those balances are zero because they are unsupported; it reports only balances that the configured chain adapters can actually verify.
 
-## Limits
-- Minimum transaction value: $0.10 USD-equivalent.
-- Outgoing Send maximum: unlimited at the application layer (minimum $0.10 USD-equivalent).
-- Incoming external deposits: unlimited maximum (the blockchain address can receive more than $10,000).
-
-## Device/session security
-A persistent client session identifier is created locally. The backend tracks active sessions, marks the first session trusted, treats later sessions as untrusted until explicit approval, and blocks sensitive Send/Swap on untrusted/expired sessions. Users can list and revoke sessions.
-
-## History
-Verified records retain TXID, network, direction, asset, amount, sender, recipient, token contract, confirmations, block number, USD value, fee details and verification status.
-
-- Send network fee: 0.5% of the Send amount, charged in the same asset/network selected for the transaction.
-- The 0.5% fee is released only after the recipient transfer is independently verified on-chain; failed/reverted sends do not trigger the fee transfer. Blockchain gas/network charges remain separate.
+Before production use, configure reliable RPC endpoints and fee-recipient public addresses in environment variables. Never put a private key or seed phrase in the server environment.
